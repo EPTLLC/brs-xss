@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+
+"""
+BRS-XSS: XSS Detection Suite
+
+XSS scanner with ML engine and multilingual support.
+
+Company: EasyProTech LLC (www.easypro.tech)
+Dev: Brabus
+Modified: Sat 02 Aug 2025 11:02:30 MSK
+Telegram: @easyprotech
+"""
+
+__version__ = "1.0.0"
+__author__ = "Brabus (EasyProTech LLC)"
+__email__ = "brabus@easypro.tech"
+__license__ = "MIT"
+__description__ = "XSS Detection Suite"
+
+# Core components
+from .core import ConfigManager, HTTPClient, XSSScanner
+from .dom import DOMAnalyzer, DOMVulnerability
+from .ml import MLPredictor, PredictionResult
+from .report import ReportGenerator, ReportFormat
+from .waf import WAFDetector, EvasionEngine
+from .crawler import CrawlerEngine, FormExtractor
+from .utils import Logger, URLValidator
+# API and GUI removed - terminal-only mode
+from .i18n.messages import Messages
+
+# Initialize internationalization
+_messages = Messages()
+
+def _(message_key: str, **kwargs) -> str:
+    """
+    Translation function for internationalization.
+    
+    Args:
+        message_key: Message key in format "category.key"
+        **kwargs: Parameters for string formatting
+        
+    Returns:
+        Translated and formatted message
+    """
+    message = _messages.get(message_key, message_key)
+    if kwargs:
+        try:
+            return message.format(**kwargs)
+        except (KeyError, ValueError):
+            return message
+    return message
+
+__all__ = [
+    # Metadata
+    "__version__", "__author__", "__email__", "__license__", "__description__",
+    
+    # Core components
+    "ConfigManager", "HTTPClient", "XSSScanner",
+    
+    # DOM analysis
+    "DOMAnalyzer", "DOMVulnerability",
+    
+    # Machine Learning
+    "MLPredictor", "PredictionResult",
+    
+    # Reporting
+    "ReportGenerator", "ReportFormat",
+    
+    # WAF handling
+    "WAFDetector", "EvasionEngine",
+    
+    # Web crawling
+    "CrawlerEngine", "FormExtractor",
+    
+    # Utilities
+    "Logger", "URLValidator",
+    
+    # Terminal-only mode (API & GUI removed)
+    
+    # Internationalization
+    "_"
+]

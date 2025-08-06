@@ -1,0 +1,63 @@
+# BRS-XSS Default Configuration
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Created: Thu 31 Jul 00:17:37 MSK 2025
+# Telegram: @easyprotech
+
+# Global settings
+app:
+  name: "BRS-XSS"
+  version: "1.0.0"
+  locale: "en"                    # Base locale (English)
+  fallback_locale: "en"           # Fallback locale
+
+# Scanner settings  
+scanner:
+  max_depth: 3
+  timeout: 10
+  user_agent: "BRS-XSS v1.0.0"
+  threads: 10
+  delay: 0.0
+  
+# Payload settings
+payloads:
+  max_generation: 1000
+  min_efficiency: 85
+  contexts: ["html", "attribute", "script", "comment"]
+  
+# Machine learning
+ml:
+  models_path: "./brsxss/ml/models/"
+  enable_prediction: true
+  confidence_threshold: 0.8
+
+# Reporting
+reporting:
+  formats: ["html", "json", "sarif"]
+  output_dir: "./reports/"
+  include_screenshots: false
+  
+# Internationalization  
+i18n:
+  locales_path: "./brsxss/i18n/locales/"
+  supported_locales: ["en", "ru", "zh", "es", "de", "fr", "ja"]
+  auto_detect_locale: true
+  domain: "brsxss"
+
+# HTTP settings
+http:
+  verify_ssl: true
+  follow_redirects: true
+  max_retries: 3
+  default_headers:
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    Accept-Language: "ru-RU,ru;q=0.9,en;q=0.8"
+    Accept-Encoding: "gzip, deflate"
+    Connection: "keep-alive"
+
+# Логирование
+logging:
+  level: "INFO"
+  console_output: true
+  file_output: "./logs/brs-xss.log"
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"

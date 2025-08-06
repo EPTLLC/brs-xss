@@ -1,0 +1,20 @@
+# BRS-XSS Base Dependencies
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Created: Thu 31 Jul 00:17:37 MSK 2025
+
+# Core dependencies
+pydantic>=2.0.0          # Data validation and settings management
+httpx>=0.24.0            # HTTP client for async requests
+typer>=0.9.0             # CLI framework
+rich>=13.0.0             # Beautiful terminal output
+pyyaml>=6.0              # YAML configuration files
+jinja2>=3.1.0            # Template engine for reports
+
+# Internationalization
+babel>=2.12.0            # Internationalization utilities
+polib>=1.2.0             # PO files manipulation
+
+# Utilities
+python-dateutil>=2.8.0   # Date/time utilities
+urllib3>=1.26.0          # HTTP library utilities
