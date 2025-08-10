@@ -61,7 +61,7 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 
 ```bash
 # Clone repository
-git clone https://github.com/easypro-tech/brs-xss.git
+git clone https://github.com/EPTLLC/brs-xss
 cd brs-xss
 
 # Install dependencies
