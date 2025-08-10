@@ -121,6 +121,7 @@ class HeadlessDOMDetector:
             logger.info("Browser instance started")
         except Exception as e:
             logger.error(f"Failed to start browser: {e}")
+            logger.info("If this is the first run, install browsers: `playwright install`.")
             raise
     
     async def close(self):

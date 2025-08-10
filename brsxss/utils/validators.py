@@ -268,8 +268,11 @@ class PayloadValidator:
         if len(payload) > 200:
             payload = payload[:200] + "..."
         
-        # Remove dangerous characters for logging
-        sanitized = re.sub(r'[^\w\s<>()="\'-]', '?', payload)
+        # Remove dangerous tags and reduce special chars
+        sanitized = re.sub(r'(?is)<\s*script[^>]*>.*?<\s*/\s*script\s*>', '<removed>', payload)
+        sanitized = re.sub(r'(?is)<\s*iframe[^>]*>.*?<\s*/\s*iframe\s*>', '<removed>', sanitized)
+        sanitized = re.sub(r'(?is)<\s*img[^>]*>', '<img>', sanitized)
+        sanitized = re.sub(r'[^\w\s\-_.:,;()\[\]{}="\']', '?', sanitized)
         
         return sanitized
 

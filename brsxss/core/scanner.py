@@ -346,6 +346,9 @@ class XSSScanner:
                 logger.debug(f"Payload scored {vulnerability_score.score:.2f}, below threshold {min_score}")
                 return None
             
+            # Heuristic exploitation likelihood
+            exploitation_likelihood = self._estimate_exploitation_likelihood(context_info, reflection_result)
+
             # Create comprehensive vulnerability report
             vulnerability = {
                 'url': url,
@@ -356,7 +359,9 @@ class XSSScanner:
                 'context': context_info.get('context_type', 'unknown'),
                 'severity': vulnerability_score.severity,
                 'detection_score': round(vulnerability_score.score, 2),
-                'exploitation_likelihood': round(getattr(vulnerability_score, 'exploitation_likelihood', 0.0), 2),
+                'exploitation_likelihood': round(exploitation_likelihood, 2),
+                'likelihood_level': self._likelihood_level(exploitation_likelihood),
+                'likelihood_reason': self._likelihood_reason(context_info, reflection_result),
                 'confidence': round(vulnerability_score.confidence, 2),
                 'response_snippet': (reflection_result.reflection_points[0].reflected_value[:200] if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else ''),
                 'timestamp': time.time(),
@@ -378,6 +383,45 @@ class XSSScanner:
         except Exception as e:
             logger.error(f"Error testing payload {payload[:30]}: {e}")
             return None
+
+    def _estimate_exploitation_likelihood(self, context_info: Dict[str, Any], reflection_result: Any) -> float:
+        score = 0.4
+        ctx = (context_info or {}).get('context_type', 'unknown')
+        if ctx in ('javascript', 'js_string'):
+            score += 0.3
+        elif ctx in ('html_content', 'html_attribute'):
+            score += 0.2
+        rtype = getattr(reflection_result, 'overall_reflection_type', None)
+        rvalue = rtype.value if hasattr(rtype, 'value') else (str(rtype) if rtype else '')
+        if rvalue == 'exact':
+            score += 0.3
+        elif rvalue in ('partial', 'modified'):
+            score += 0.15
+        elif rvalue in ('encoded', 'filtered'):
+            score -= 0.15
+        filters = context_info.get('filters_detected', []) if context_info else []
+        if filters:
+            score -= min(0.2, 0.05 * len(filters))
+        return max(0.0, min(1.0, score))
+
+    def _likelihood_level(self, likelihood: float) -> str:
+        if likelihood >= 0.7:
+            return 'high'
+        if likelihood >= 0.4:
+            return 'medium'
+        return 'low'
+
+    def _likelihood_reason(self, context_info: Dict[str, Any], reflection_result: Any) -> str:
+        ctx = (context_info or {}).get('context_type', 'unknown')
+        rtype = getattr(reflection_result, 'overall_reflection_type', None)
+        rvalue = rtype.value if hasattr(rtype, 'value') else (str(rtype) if rtype else 'none')
+        parts = []
+        parts.append(f"context={ctx}")
+        parts.append(f"reflection={rvalue}")
+        filters = context_info.get('filters_detected', []) if context_info else []
+        if filters:
+            parts.append(f"filters={len(filters)}")
+        return ", ".join(parts)
     
     def _build_test_url(self, base_url: str, param_name: str, payload: str) -> str:
         """Build test URL with payload"""

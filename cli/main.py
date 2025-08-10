@@ -17,6 +17,7 @@ from rich.console import Console
 from rich.text import Text
 
 from .commands import simple_scan
+from brsxss import __version__
 
 app = typer.Typer(
     name="brs-xss",
@@ -35,7 +36,7 @@ app.command(name="scan", help="Scan domain or IP for XSS vulnerabilities")(simpl
 def version():
     """Show version information"""
     version_text = Text()
-    version_text.append("BRS-XSS v1.0.0\n", style="bold green")
+    version_text.append(f"BRS-XSS v{__version__}\n", style="bold green")
     version_text.append("XSS vulnerability scanner\n", style="dim")
     version_text.append("Company: EasyProTech LLC (www.easypro.tech)\n", style="dim")
     version_text.append("Developer: Brabus\n", style="dim")

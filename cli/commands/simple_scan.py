@@ -18,7 +18,7 @@ import typer
 from rich.console import Console
 from rich.progress import Progress
 
-from brsxss import _
+from brsxss import _, __version__
 from brsxss.core.scanner import XSSScanner
 from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig, ReportFormat
@@ -39,7 +39,7 @@ async def simple_scan(
     threads: int = typer.Option(
         10,
         "--threads", "-t", 
-        help="Number of threads",
+        help="Concurrency (parallel requests)",
         min=1,
         max=50
     ),
@@ -73,7 +73,7 @@ async def simple_scan(
     
     logger = Logger("cli.simple_scan")
     
-    console.print("[bold green]BRS-XSS v1.0.0[/bold green] - Serious XSS Scanner")
+    console.print(f"[bold green]BRS-XSS v{__version__}[/bold green] - Serious XSS Scanner")
     console.print(f"Target: {target}")
     
     if verbose:
@@ -188,7 +188,13 @@ async def simple_scan(
                 include_methodology=True,
             )
             generator = ReportGenerator(report_config)
-            generated = generator.generate_report(vuln_items, stats, target_info={"url": target})
+            policy = {
+                'min_vulnerability_score': scanner.config.get('scanner.min_vulnerability_score', 2.0),
+                'severity_bands': {
+                    'critical': '>= 9.0', 'high': '>=7.0', 'medium': '>=4.0', 'low': '>=1.0', 'info': '>0'
+                }
+            }
+            generated = generator.generate_report(vuln_items, stats, target_info={"url": target, "policy": policy})
 
             # Move reports to structured directories
             import os
@@ -389,7 +395,7 @@ def _save_simple_report(vulnerabilities: list, targets: list, output_path: str):
     report = {
         "scan_info": {
             "timestamp": datetime.now().isoformat(),
-            "scanner": "BRS-XSS Simple Scanner v1.0.0",
+            "scanner": f"BRS-XSS Simple Scanner v{__version__}",
             "targets_scanned": len(targets),
             "vulnerabilities_found": len(serializable_vulns)
         },
@@ -415,7 +421,7 @@ def simple_scan_wrapper(
     threads: int = typer.Option(
         10,
         "--threads", "-t", 
-        help="Number of threads",
+        help="Concurrency (parallel requests)",
         min=1,
         max=50
     ),

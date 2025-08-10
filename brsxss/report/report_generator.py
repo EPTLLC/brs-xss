@@ -176,6 +176,7 @@ class ReportGenerator:
             'vulns_by_type': vulns_by_type,
             'statistics': statistics,
             'target_info': target_info,
+            'policy': target_info.get('policy', {}),
             'summary': {
                 'total_vulnerabilities': len(vulnerabilities),
                 'critical_count': len(vulns_by_severity['critical']),

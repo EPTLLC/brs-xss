@@ -12,6 +12,9 @@
 ![Status](https://img.shields.io/badge/status-stable-brightgreen)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-85%25-yellowgreen)
+![GitHub stars](https://img.shields.io/github/stars/EPTLLC/brs-xss?style=social)
+![GitHub forks](https://img.shields.io/github/forks/EPTLLC/brs-xss?style=social)
+![GitHub watchers](https://img.shields.io/github/watchers/EPTLLC/brs-xss?style=social)
 
 # BRS-XSS
 
@@ -20,16 +23,17 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:04:15 MSK  
-**Version:** 1.0.1  
+**Version:** 1.0.2  
+**Updated:** Mon 11 Aug 2025 01:40:52 MSK  
 **Telegram:** https://t.me/EasyProTech
 
-## 🎯 Overview
+## Overview
 
 BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner designed for security professionals and penetration testers. Built with modular Python architecture and comprehensive detection capabilities.
 
 **BRS-XSS is part of the [Brabus Recon Suite (BRS)](https://github.com/EPTLLC/brs), a modular toolkit for professional network analysis and security auditing.**
 
-### 🔥 Key Features
+### Key Features
 
 - **🎯 Context-Aware Scanning** - Intelligent payload generation based on injection context (HTML, JavaScript, CSS)
 - **🛡️ WAF Detection & Bypass** - Advanced evasion techniques for popular WAF solutions
@@ -56,53 +60,59 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 - **Asynchronous** - Non-blocking HTTP operations
 - **Extensible** - Plugin-ready architecture
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 
 ```bash
-# Clone repository
-git clone https://github.com/EPTLLC/brs-xss
-cd brs-xss
+# Install (editable)
+pip install -e .
 
-# Install dependencies
-pip install -r requirements/base.txt
+# First run (install browsers for DOM analysis)
+playwright install
+```
 
-# Make executable
-chmod +x main.py
+### Docker
+
+```bash
+# Build image (includes Playwright browsers)
+docker build -t brs-xss:latest .
+
+# Run scan
+docker run --rm brs-xss:latest scan example.com
 ```
 
 ### Basic Usage
 
 ```bash
 # Serious scan (maximal discovery + testing by default)
-python3 main.py scan example.com
+brs-xss scan example.com
 
 # Scan with options
-python3 main.py scan example.com --threads 20 --timeout 15
+brs-xss scan example.com --threads 20 --timeout 15
 
 # Show version
-python3 main.py version
+brs-xss version
 
 # Show configuration
-python3 main.py config --show
+brs-xss config --show
 ```
 
 ### Advanced Options
 
 ```bash
 # Deep scan with custom settings
-python3 main.py scan target.com \
+brs-xss scan target.com \
   --threads 25 \
   --timeout 20 \
   --output /path/to/report.json \
   --verbose
 
 # Scan with SSL bypass
-python3 main.py scan internal.company.com --no-ssl-verify
+brs-xss scan internal.company.com --no-ssl-verify
 
 # Blind XSS testing
-python3 main.py scan target.com --blind-xss https://webhook.site/unique-id
+brs-xss scan target.com --blind-xss https://webhook.site/unique-id
 ```
 
 ### 🎯 Live Example
@@ -121,7 +131,7 @@ python3 main.py scan "xss-game.appspot.com/level1/frame?query=test" --verbose
 # Report saved: results/json/scan_report_*.json
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 brs-xss/
@@ -153,7 +163,7 @@ brs-xss/
 └── main.py                    # Application entry point
 ```
 
-## 🌍 Supported Languages
+## Supported Languages
 
 | Code | Language | Status |
 |------|----------|--------|
@@ -162,7 +172,7 @@ brs-xss/
 
 *Additional languages can be added by extending the i18n system.*
 
-## 📊 Core Capabilities
+## Core Capabilities
 
 ### Context Analysis
 - **HTML Context Detection** - Tag, attribute, and text content analysis
@@ -186,7 +196,7 @@ brs-xss/
 - **SARIF** - Static Analysis Results Interchange Format (optional)
 - **JUnit (XML)** - CI-friendly XML (optional)
 
-## 📊 Results Structure
+## Results Structure
 
 All scan results are automatically saved to the `results/` directory:
 
@@ -238,7 +248,7 @@ results/
 
 **SARIF Integration:** Compatible with GitHub Security tab and other security tools.
 
-## 🔧 Configuration
+## Configuration
 
 Configuration is managed through `config/default.yaml`:
 
@@ -261,7 +271,7 @@ reporting:
   output_dir: "./results/"
 ```
 
-## 📝 Current Status
+## Current Status
 
 ### ✅ Implemented Features
 - [x] Core XSS scanning engine
@@ -283,7 +293,7 @@ reporting:
 - DOM dynamic analysis requires `playwright install` to provision browsers
 - WAF bypass techniques not thoroughly tested on production configurations
 
-## 🧩 BRS Suite Integration
+## BRS Suite Integration
 
 BRS-XSS is a specialized module within the [Brabus Recon Suite (BRS)](https://github.com/EPTLLC/brs) ecosystem:
 
@@ -301,7 +311,7 @@ BRS-XSS is a specialized module within the [Brabus Recon Suite (BRS)](https://gi
 
 **Learn more:** [BRS Documentation](https://github.com/EPTLLC/brs)
 
-## 🤝 Contributing
+## Contributing
 
 Community contributions are welcome:
 
@@ -311,13 +321,13 @@ Community contributions are welcome:
 4. Ensure all comments and code are in English
 5. Submit a pull request
 
-## 📞 Support Policy
+## Support Policy
 
 **NO SUPPORT PROVIDED**: This project is released as-is without support, consultation, or assistance.
 
 **Community Contributions**: Development contributions are welcome but not obligated.
 
-## 📜 Legal Framework
+## Legal Framework
 
 **COMPREHENSIVE LEGAL PROTECTION:**
 
@@ -338,13 +348,13 @@ Community contributions are welcome:
 
 ---
 
-**BRS-XSS v1.0.1** | **[Brabus Recon Suite](https://github.com/EPTLLC/brs)** | **EasyProTech LLC** | **Developer: Brabus** | **https://t.me/EasyProTech**
+**BRS-XSS v1.0.2** | **[Brabus Recon Suite](https://github.com/EPTLLC/brs)** | **EasyProTech LLC** | **Developer: Brabus** | **https://t.me/EasyProTech**
 
 *Professional XSS Detection for Authorized Security Testing*
 
 **⚠️ Disclaimer:** This tool is intended for authorized security testing only. Users are responsible for compliance with applicable laws and regulations.
 
-## 📈 Technical Specifications
+## Technical Specifications
 
 ### WAF Detection & Testing
 **Detected WAFs:** Cloudflare, AWS WAF, Incapsula, ModSecurity, Akamai, Barracuda, F5 BIG-IP, Fortinet, Sucuri

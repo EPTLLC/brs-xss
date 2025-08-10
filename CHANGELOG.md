@@ -11,6 +11,20 @@ Telegram: https://t.me/EasyProTech
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2025-08-10
+### Added
+- Dockerfile with Playwright browsers; run scanner fully via Docker.
+- Heuristic exploitation likelihood (0–1), likelihood levels (low/med/high) and reasons in results.
+- Tests: paths/atomic_write/sanitize and log sanitizer.
+- BeautifulSoup support for crawler (beautifulsoup4 dependency).
+
+### Changed
+- CLI help: threads → “Concurrency (parallel requests)”.
+- README: Quick Start via pip entry point, Playwright install step, WAF detection marked beta, Docker usage section, removed excessive emojis.
+
+### Fixed
+- HTML report shows detection score, exploitation likelihood, confidence; policy (thresholds) appended.
+
 ## [1.0.1] - 2025-08-10
 ### Added
 - Professional multi-format reports (HTML + JSON) via `ReportGenerator` integrated into serious scan flow.

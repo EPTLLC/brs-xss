@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brs-xss"
-version = "1.0.1"
+version = "1.0.2"
 description = "Next-Generation XSS Detection Suite"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -19,10 +19,18 @@ dependencies = [
   "jinja2>=3.1.0",
   "babel>=2.12.0",
   "polib>=1.2.0",
-  "playwright>=1.50.0"
+  "playwright>=1.50.0",
+  "beautifulsoup4>=4.12.3"
 ]
 
 [project.scripts]
 brs-xss = "cli.main:app"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["brsxss*", "cli*"]
 
 

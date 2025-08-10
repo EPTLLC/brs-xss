@@ -7,7 +7,7 @@
 # Global settings
 app:
   name: "BRS-XSS"
-  version: "1.0.0"
+  version: "1.0.2"
   locale: "en"                    # Base locale (English)
   fallback_locale: "en"           # Fallback locale
 
@@ -15,7 +15,7 @@ app:
 scanner:
   max_depth: 3
   timeout: 10
-  user_agent: "BRS-XSS v1.0.0"
+  user_agent: "BRS-XSS v1.0.2"
   threads: 10
   delay: 0.0
   min_vulnerability_score: 2.0    # Minimum score for vulnerability detection
