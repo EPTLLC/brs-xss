@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Config Manager
-
-Configuration management system with YAML support and validation.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Tue 05 Aug 2025 17:39:06 MSK - Lowered vulnerability threshold to 0.2
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import os

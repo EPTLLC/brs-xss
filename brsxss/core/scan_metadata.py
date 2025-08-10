@@ -8,7 +8,7 @@ Main coordinator for comprehensive scan metadata management.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Tue 05 Aug 2025 18:03:16 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import Optional

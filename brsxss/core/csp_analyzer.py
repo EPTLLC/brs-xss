@@ -8,7 +8,7 @@ Specialized Content Security Policy analysis module.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Created: Tue 05 Aug 2025 18:03:16 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import Dict, List, Optional

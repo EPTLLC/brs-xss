@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Main Entry Point
-
-Main entry point for the BRS-XSS vulnerability scanner.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sun 04 Aug 2025 16:25:00 MSK
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 if __name__ == "__main__":

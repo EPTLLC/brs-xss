@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Crawler Engine
-
-Asynchronous web crawler for automatic website scanning.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import asyncio
@@ -151,15 +149,16 @@ class CrawlerEngine:
         """Crawler worker coroutine"""
         while True:
             try:
-                # Get URL from queue
+                # Get URL from queue with longer timeout
                 url, depth = await asyncio.wait_for(
-                    self.crawl_queue.get(), timeout=1.0
+                    self.crawl_queue.get(), timeout=30.0
                 )
                 
-                async with semaphore:
-                    await self._crawl_url(url, depth)
-                
-                self.crawl_queue.task_done()
+                try:
+                    async with semaphore:
+                        await self._crawl_url(url, depth)
+                finally:
+                    self.crawl_queue.task_done()
                 
                 # Delay between requests
                 if self.config.request_delay > 0:
@@ -170,6 +169,11 @@ class CrawlerEngine:
                 break
             except Exception as e:
                 logger.error(f"Worker error: {e}")
+                # Still mark task as done even on error
+                try:
+                    self.crawl_queue.task_done()
+                except:
+                    pass
                 continue
     
     async def _crawl_url(self, url: str, depth: int):
@@ -194,10 +198,11 @@ class CrawlerEngine:
             
             self.total_requests += 1
             
-            # Check content type
-            content_type = response.headers.get('content-type', '').lower()
+            # Check content type (case-insensitive)
+            content_type = response.headers.get('content-type', '') or response.headers.get('Content-Type', '')
+            content_type = content_type.lower()
             if self.config.skip_non_html and 'html' not in content_type:
-                logger.debug(f"Skipping non-HTML content: {url}")
+                logger.debug(f"Skipping non-HTML content: {url} (content-type: {content_type})")
                 return
             
             # Create result

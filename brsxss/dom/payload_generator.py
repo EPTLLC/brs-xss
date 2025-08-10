@@ -8,7 +8,7 @@ Generation of test payloads for DOM XSS vulnerabilities.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from .vulnerability_types import VulnerabilityType

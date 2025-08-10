@@ -8,7 +8,7 @@ Main security headers analysis module.
 Company: EasyProTech LLC (www.easypro.tech)  
 Dev: Brabus
 Modified: Tue 05 Aug 2025 18:03:16 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 import re

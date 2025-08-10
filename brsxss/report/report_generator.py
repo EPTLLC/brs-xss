@@ -7,8 +7,8 @@ Central report generation system with multiple format support.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Modified: Sun 10 Aug 2025 21:38:09 MSK (modified)
+Telegram: https://t.me/EasyProTech
 """
 
 import time

@@ -8,7 +8,7 @@ Professional reporting system with support for multiple formats.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from .report_types import ReportFormat, ReportConfig

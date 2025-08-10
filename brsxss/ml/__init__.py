@@ -8,7 +8,7 @@ Machine learning integration for XSS analysis with sklearn support.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from .model_types import ModelType, FeatureVector

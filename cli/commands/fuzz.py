@@ -8,7 +8,7 @@ Command for WAF fuzzing testing.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Created: Thu 31 Jul 00:17:37 MSK 2025
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import Optional

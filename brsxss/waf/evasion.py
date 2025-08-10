@@ -8,7 +8,7 @@ Adaptive WAF evasion system with machine learning approach.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from .evasion_types import EvasionTechnique, EvasionResult

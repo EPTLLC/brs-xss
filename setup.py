@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-# BRS-XSS: Next-Generation XSS Detection Suite
+# Project: BRS-XSS (XSS Detection Suite)
 # Company: EasyProTech LLC (www.easypro.tech)
-# Dev: Brabus  
-# Created: Thu 31 Jul 00:17:37 MSK 2025
-# Telegram: @easyprotech
+# Dev: Brabus
+# Date: Sun 10 Aug 2025 21:38:09 MSK
+# Status: Modified
+# Telegram: https://t.me/EasyProTech
 
 """
 Legacy setup.py for backward compatibility

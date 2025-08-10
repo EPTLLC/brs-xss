@@ -8,7 +8,7 @@ JavaScript DOM data sources and sinks for XSS vulnerability detection.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import List

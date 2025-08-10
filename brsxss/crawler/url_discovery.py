@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS URL Discovery
-
-Advanced URL and endpoint discovery for web crawling.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import re
@@ -135,7 +133,7 @@ class URLDiscovery:
                             url_type=URLType.LINK,
                             source_context=f"<a> tag: {link_tag.get_text()[:50]}",
                             depth=depth,
-                            parent_url=base_url
+                            discovered_at=base_url
                         )
                         links.append(discovered_url)
             

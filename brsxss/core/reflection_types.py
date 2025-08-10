@@ -8,7 +8,7 @@ Data types for reflection detection system.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Tue 05 Aug 2025 17:39:06 MSK - Improved detection sensitivity
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Dict, Any

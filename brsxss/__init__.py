@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS: XSS Detection Suite
-
-XSS scanner with ML engine and multilingual support.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 11:02:30 MSK
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Brabus (EasyProTech LLC)"
 __email__ = "brabus@easypro.tech"
 __license__ = "MIT"

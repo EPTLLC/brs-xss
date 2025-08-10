@@ -1,19 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Scanner
-
-Main XSS vulnerability scanner with comprehensive testing capabilities.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Tue 05 Aug 2025 17:39:06 MSK - Fixed critical logic errors
-Telegram: @easyprotech
-
-FIXES:
-- Remove 200-only status code restriction (process 3xx, 4xx, 5xx responses)
-- Remove mandatory reflection requirement (support DOM/Stored/Blind XSS)
-- Lower vulnerability threshold from 0.5 to 0.2 for better detection
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import asyncio
@@ -30,6 +23,13 @@ from .scoring_engine import ScoringEngine
 from ..waf.detector import WAFDetector
 from ..utils.logger import Logger
 
+# Optional DOM XSS support
+try:
+    from ..dom.headless_detector import HeadlessDOMDetector
+    DOM_XSS_AVAILABLE = True
+except ImportError:
+    DOM_XSS_AVAILABLE = False
+
 logger = Logger("core.scanner")
 
 
@@ -45,21 +45,32 @@ class XSSScanner:
     - Comprehensive vulnerability scoring
     """
     
-    def __init__(self, config: Optional[ConfigManager] = None, timeout: int = 10, max_concurrent: int = 10, verify_ssl: bool = True):
+    def __init__(self, config: Optional[ConfigManager] = None, timeout: int = 10, max_concurrent: int = 10, verify_ssl: bool = True, enable_dom_xss: bool = True, blind_xss_webhook: Optional[str] = None):
         """Initialize XSS scanner"""
         self.config = config or ConfigManager()
         self.timeout = timeout
         self.max_concurrent = max_concurrent
         self.verify_ssl = verify_ssl
+        self.enable_dom_xss = enable_dom_xss and DOM_XSS_AVAILABLE
         self.http_client = HTTPClient(timeout=timeout, verify_ssl=verify_ssl)
         
         # Track sessions for cleanup
         self._sessions_created = []
-        self.payload_generator = PayloadGenerator()
+        self.payload_generator = PayloadGenerator(blind_xss_webhook=blind_xss_webhook)
         self.reflection_detector = ReflectionDetector()
         self.context_analyzer = ContextAnalyzer()
         self.scoring_engine = ScoringEngine()
         self.waf_detector = WAFDetector(self.http_client)  # Pass shared HTTP client
+        
+        # DOM XSS detector (optional)
+        self.dom_detector = None
+        if self.enable_dom_xss:
+            try:
+                self.dom_detector = HeadlessDOMDetector(headless=True, timeout=timeout)
+                logger.info("DOM XSS detection enabled")
+            except Exception as e:
+                logger.warning(f"Could not initialize DOM XSS detector: {e}")
+                self.enable_dom_xss = False
         
         # State
         self.scan_results = []
@@ -69,6 +80,7 @@ class XSSScanner:
         # Statistics
         self.total_tests = 0
         self.vulnerabilities_found = 0
+        self.dom_vulnerabilities_found = 0
         self.scan_start_time = 0
     
     async def scan_url(self, url: str, parameters: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
@@ -100,7 +112,7 @@ class XSSScanner:
         
         logger.info(f"Testing {len(parameters)} parameters")
         
-        # Test each parameter
+        # Test each parameter for reflected XSS
         vulnerabilities = []
         for param_name, param_value in parameters.items():
             if param_name in self.tested_parameters:
@@ -111,9 +123,48 @@ class XSSScanner:
             vuln_results = await self._test_parameter(url, param_name, param_value)
             vulnerabilities.extend(vuln_results)
         
+        # Test for DOM XSS if enabled
+        if self.enable_dom_xss and self.dom_detector:
+            try:
+                await self.dom_detector.start()
+                dom_results = await self.dom_detector.detect_dom_xss(url, parameters)
+                
+                # Convert DOM XSS results to standard format
+                for dom_result in dom_results:
+                    if dom_result.vulnerable:
+                        dom_vuln = {
+                            'url': dom_result.url,
+                            'parameter': 'DOM_XSS',
+                            'payload': dom_result.payload,
+                            'vulnerable': True,
+                            'reflection_type': 'dom_based',
+                            'context': dom_result.execution_context,
+                            'severity': 'high',
+                            'score': dom_result.score,
+                            'confidence': 0.95,
+                            'timestamp': time.time(),
+                            'trigger_method': dom_result.trigger_method,
+                            'console_logs': dom_result.console_logs,
+                            'error_logs': dom_result.error_logs,
+                            'screenshot_path': dom_result.screenshot_path,
+                            'dom_xss': True  # Special flag for DOM XSS
+                        }
+                        vulnerabilities.append(dom_vuln)
+                        self.dom_vulnerabilities_found += 1
+                        logger.warning(f"DOM XSS vulnerability found via {dom_result.trigger_method}")
+                
+                await self.dom_detector.close()
+                
+            except Exception as e:
+                logger.error(f"DOM XSS detection failed: {e}")
+        
         # Generate scan summary
         scan_duration = time.time() - self.scan_start_time
-        logger.success(f"Scan completed in {scan_duration:.2f}s. Found {len(vulnerabilities)} vulnerabilities")
+        total_vulns = len(vulnerabilities)
+        dom_vulns = sum(1 for v in vulnerabilities if v.get('dom_xss', False))
+        reflected_vulns = total_vulns - dom_vulns
+        
+        logger.success(f"Scan completed in {scan_duration:.2f}s. Found {total_vulns} vulnerabilities ({reflected_vulns} reflected, {dom_vulns} DOM)")
         
         return vulnerabilities
     
@@ -166,14 +217,14 @@ class XSSScanner:
             test_url = self._build_test_url(url, param_name, param_value)
             initial_response = await self.http_client.get(test_url)
             
+            # Proceed with context analysis for any HTTP status if content exists
             if initial_response.status_code != 200:
                 if initial_response.status_code in [403, 404, 405]:
-                    logger.debug(f"Server returned {initial_response.status_code} for context analysis (normal WAF/security behavior)")
+                    logger.debug(f"Server returned {initial_response.status_code} for context analysis (possible WAF/security behavior)")
                 elif initial_response.status_code >= 500:
                     logger.info(f"Server error during context analysis: {initial_response.status_code}")
                 else:
-                    logger.warning(f"Unexpected response for context analysis: {initial_response.status_code}")
-                return vulnerabilities
+                    logger.debug(f"Non-200 response for context analysis: {initial_response.status_code}")
             
             # Analyze context
             context_analysis_result = self.context_analyzer.analyze_context(
@@ -272,16 +323,15 @@ class XSSScanner:
             if not response.text or len(response.text.strip()) == 0:
                 return None
             
-            # Check for reflection
+            # Check for reflection (reflected XSS path)
             reflection_result = self.reflection_detector.detect_reflections(
                 payload, response.text
             )
             
-            # CRITICAL: Require reflections for basic XSS detection
-            # Only bypass reflection requirement for blind XSS (when webhook is configured)
+            # Require reflections for reflected XSS; allow optional blind XSS flow
             has_reflections = reflection_result and len(getattr(reflection_result, 'reflection_points', [])) > 0
-
-            if not has_reflections:
+            blind_mode_enabled = bool(self.payload_generator and getattr(self.payload_generator, 'blind_xss', None) is not None)
+            if not has_reflections and not blind_mode_enabled:
                 logger.debug(f"No reflections found for payload: {payload[:30]}...")
                 return None
                 
@@ -290,8 +340,8 @@ class XSSScanner:
                 payload, reflection_result, context_info, response
             )
             
-            # Production-ready threshold - strict enough to avoid false positives
-            min_score = self.config.get('min_vulnerability_score', 6.8)  # Require high confidence
+            # Reasonable threshold for real-world XSS detection (scanner namespace)
+            min_score = self.config.get('scanner.min_vulnerability_score', 2.0)
             if vulnerability_score.score < min_score:
                 logger.debug(f"Payload scored {vulnerability_score.score:.2f}, below threshold {min_score}")
                 return None
@@ -302,22 +352,22 @@ class XSSScanner:
                 'parameter': param_name,
                 'payload': payload,
                 'vulnerable': True,
-                'reflection_type': reflection_result.overall_reflection_type.value if reflection_result.overall_reflection_type else 'none',
+                'reflection_type': (reflection_result.overall_reflection_type.value if (reflection_result and getattr(reflection_result, 'overall_reflection_type', None)) else 'none'),
                 'context': context_info.get('context_type', 'unknown'),
                 'severity': vulnerability_score.severity,
                 'score': vulnerability_score.score,
                 'confidence': vulnerability_score.confidence,
-                'response_snippet': reflection_result.reflection_points[0].reflected_value[:200] if reflection_result.reflection_points else '',
+                'response_snippet': (reflection_result.reflection_points[0].reflected_value[:200] if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else ''),
                 'timestamp': time.time(),
                 
                 # Additional detailed information for debugging
                 'http_status': response.status_code,
                 'response_headers': dict(response.headers) if hasattr(response, 'headers') else {},
                 'response_length': len(response.text),
-                'reflections_found': len(reflection_result.reflection_points),
-                'reflection_positions': [rp.position for rp in reflection_result.reflection_points] if reflection_result.reflection_points else [],
+                'reflections_found': (len(reflection_result.reflection_points) if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else 0),
+                'reflection_positions': ([rp.position for rp in reflection_result.reflection_points] if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else []),
                 'test_url': test_url,
-                'exploitation_confidence': getattr(reflection_result, 'exploitation_confidence', 0.0),
+                'exploitation_confidence': (getattr(reflection_result, 'exploitation_confidence', 0.0) if reflection_result else 0.0),
                 'payload_type': getattr(payload, 'payload_type', 'unknown'),
                 'context_analysis': context_info
             }
@@ -359,7 +409,23 @@ class XSSScanner:
             'scan_duration': scan_duration,
             'total_tests': self.total_tests,
             'vulnerabilities_found': self.vulnerabilities_found,
+            'dom_vulnerabilities_found': self.dom_vulnerabilities_found,
             'parameters_tested': len(self.tested_parameters),
             'wafs_detected': len(self.detected_wafs),
             'success_rate': self.vulnerabilities_found / max(1, self.total_tests)
         }
+    
+    async def close(self):
+        """Close scanner and cleanup resources"""
+        try:
+            # Close HTTP client
+            if self.http_client:
+                await self.http_client.close()
+            
+            # Close DOM detector
+            if self.dom_detector:
+                await self.dom_detector.close()
+                
+            logger.info("Scanner resources cleaned up")
+        except Exception as e:
+            logger.error(f"Error during scanner cleanup: {e}")

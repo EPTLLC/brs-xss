@@ -8,7 +8,7 @@ Command for crawling entire websites.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Created: Thu 31 Jul 00:17:37 MSK 2025
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import Optional
@@ -95,15 +95,31 @@ def crawl_command(
         crawl_duration = time.time() - start_time
         console.print("\nCrawl completed")
         
+        # Aggregate results from all crawled pages
+        all_discovered_urls = []
+        all_forms = []
+        all_parameters = set()
+        
+        for result in crawl_result:
+            if hasattr(result, 'discovered_urls') and result.discovered_urls:
+                all_discovered_urls.extend(result.discovered_urls)
+            if hasattr(result, 'extracted_forms') and result.extracted_forms:
+                all_forms.extend(result.extracted_forms)
+            if hasattr(result, 'potential_parameters') and result.potential_parameters:
+                all_parameters.update(result.potential_parameters)
+        
         # Statistics
         stats = {
-            _("URLss discovered"): len(crawl_result.discovered_urls),
-            _("Forms found"): len(crawl_result.forms),
-            _("Parameters discovered"): len(crawl_result.potential_parameters),
+            _("URLss discovered"): len(all_discovered_urls),
+            _("Forms found"): len(all_forms),
+            _("Parameters discovered"): len(all_parameters),
             _("Crawl duration"): f"{crawl_duration:.1f} sec",
         }
         
-        logger.print_stats(stats)
+        # Print statistics
+        console.print("\n[bold cyan]Crawl Statistics:[/bold cyan]")
+        for key, value in stats.items():
+            console.print(f"  {key}: {value}")
         
         # Save results if requested
         if output:
@@ -111,9 +127,9 @@ def crawl_command(
             import json
             crawl_data = {
                 "target_url": normalized_url,
-                "discovered_urls": list(crawl_result.discovered_urls),
-                "forms": [{"action": str(f), "method": "GET"} for f in crawl_result.forms],
-                "parameters": list(crawl_result.potential_parameters),
+                "discovered_urls": [url.url if hasattr(url, 'url') else str(url) for url in all_discovered_urls],
+                "forms": [{"action": str(f.action), "method": f.method} if hasattr(f, 'action') else {"action": str(f), "method": "GET"} for f in all_forms],
+                "parameters": list(all_parameters),
                 "crawl_duration": crawl_duration,
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
             }
@@ -122,7 +138,7 @@ def crawl_command(
                 json.dump(crawl_data, f, indent=2)
             console.print(f"📄 " + _("Crawl results saved: {filepath}").format(filepath=output))
         
-        console.print(f"\n[green]Crawl successful: {len(crawl_result.discovered_urls)} URLs discovered[/green]")
+        console.print(f"\n[green]Crawl successful: {len(all_discovered_urls)} URLs discovered[/green]")
             
     except KeyboardInterrupt:
         console.print("\nCrawl interrupted by user")

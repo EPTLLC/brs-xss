@@ -7,8 +7,8 @@ Exports for payload generation system.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 11:25:00 MSK
-Telegram: @easyprotech
+Modified: Вс 10 авг 2025 19:31:00 MSK
+Telegram: https://t.me/EasyProTech
 """
 
 from .payload_generator import PayloadGenerator

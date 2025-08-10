@@ -3,7 +3,7 @@
 # Language: English (en)
 # Dev: Brabus
 # Created: Sat 02 Aug 2025 11:30:00 MSK
-# Telegram: @easyprotech
+# Telegram: https://t.me/EasyProTech
 
 msgid ""
 msgstr ""

@@ -7,8 +7,8 @@ Main XSS vulnerability scanning command with comprehensive options.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Created: Thu 31 Jul 00:17:37 MSK 2025
-Telegram: @easyprotech
+Modified: Sun 10 Aug 2025 21:38:09 MSK (modified)
+Telegram: https://t.me/EasyProTech
 """
 
 from typing import Optional

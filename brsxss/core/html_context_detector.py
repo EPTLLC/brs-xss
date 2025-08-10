@@ -8,7 +8,7 @@ Specialized detector for HTML contexts.
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Modified: Sat 02 Aug 2025 11:25:00 MSK
-Telegram: @easyprotech
+Telegram: https://t.me/EasyProTech
 """
 
 import re

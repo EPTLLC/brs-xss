@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Report Types
-
-Report formats and configuration structures.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import time

@@ -20,7 +20,11 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:04:15 MSK  
-**Telegram:** @easyprotech
+**Version:** 1.0.1  
+**GitHub Org:** EPTLLC (EasyProTech)  
+**Location:** London, UK  
+**Email:** mail.easypro.tech@gmail.com  
+**Telegram:** https://t.me/EasyProTech
 
 ## 🎯 Overview
 
@@ -33,7 +37,7 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 - **🎯 Context-Aware Scanning** - Intelligent payload generation based on injection context (HTML, JavaScript, CSS)
 - **🛡️ WAF Detection & Bypass** - Advanced evasion techniques for popular WAF solutions
 - **🧠 Intelligent Classification** - Advanced heuristic analysis with ML-ready framework
-- **📊 Professional Reporting** - Multiple output formats (HTML, JSON, SARIF, XML, CSV)
+- **📊 Professional Reporting** - Multiple output formats (HTML, JSON; optional SARIF/JUnit)
 - **🌐 Multi-Language Support** - English (default) and Russian interfaces
 - **⚡ High Performance** - Asynchronous scanning with configurable threading
 - **🕷️ Web Crawling** - Form extraction and URL discovery capabilities
@@ -41,7 +45,7 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 
 ### 🛠️ Technology Stack
 
-- **Core:** Python 3.8+, AsyncIO, httpx
+- **Core:** Python 3.8+, AsyncIO, aiohttp
 - **CLI:** Typer with rich terminal output
 - **Analysis:** Intelligent heuristic algorithms with ML-ready architecture
 - **Reporting:** Jinja2 templates, multiple export formats
@@ -74,20 +78,11 @@ chmod +x main.py
 ### Basic Usage
 
 ```bash
-# Simple domain scan
+# Serious scan (maximal discovery + testing by default)
 python3 main.py scan example.com
 
 # Scan with options
-python3 main.py scan example.com --threads 20 --timeout 15 --deep
-
-# Crawl website for forms
-python3 main.py crawl https://example.com --depth 3
-
-# Fuzzing mode
-python3 main.py fuzz https://example.com/search
-
-# Interactive mode (default when no command specified)
-python3 main.py
+python3 main.py scan example.com --threads 20 --timeout 15
 
 # Show version
 python3 main.py version
@@ -101,11 +96,9 @@ python3 main.py config --show
 ```bash
 # Deep scan with custom settings
 python3 main.py scan target.com \
-  --deep \
   --threads 25 \
   --timeout 20 \
   --output /path/to/report.json \
-  --ml-mode \
   --verbose
 
 # Scan with SSL bypass
@@ -137,36 +130,29 @@ python3 main.py scan "xss-game.appspot.com/level1/frame?query=test" --verbose
 brs-xss/
 ├── brsxss/                    # Main package
 │   ├── core/                  # Core scanning engine
-│   │   ├── scanner.py         # Main XSS scanner
-│   │   ├── context_analyzer.py # Context detection
-│   │   ├── payload_generator.py # Payload generation
-│   │   ├── reflection_detector.py # Reflection analysis
-│   │   ├── scoring_engine.py  # Vulnerability scoring
-│   │   └── ...               # 30+ specialized modules
+│   ├── payloads/              # Payload collections
+│   ├── dom/                   # DOM XSS analysis (Playwright)
 │   ├── waf/                   # WAF detection & bypass
-│   │   ├── detector.py        # WAF identification
-│   │   ├── evasion_engine.py  # Bypass techniques
-│   │   └── ...               # 15+ WAF modules
 │   ├── ml/                    # Machine learning
-│   │   ├── ml_predictor.py    # Main ML engine
-│   │   ├── vulnerability_classifier.py
-│   │   └── ...               # 8+ ML modules
-│   ├── crawler/               # Web crawling
-│   │   ├── engine.py          # Crawler engine
-│   │   ├── form_extractor.py  # Form extraction
-│   │   └── ...               # 7+ crawler modules
-│   ├── dom/                   # DOM XSS analysis
-│   │   ├── dom_detector.py    # DOM scanner
-│   │   └── ...               # 12+ DOM modules
 │   ├── report/                # Report generation
 │   ├── utils/                 # Utilities
 │   └── i18n/                  # Internationalization
 ├── cli/                       # Command-line interface
-│   ├── main.py               # CLI entry point
-│   └── commands/             # CLI commands
+│   ├── main.py                # CLI entry point
+│   └── commands/              # CLI commands
 ├── config/                    # Configuration
 ├── requirements/              # Dependencies
 ├── results/                   # Scan results (auto-created)
+│   ├── html/                  # Professional HTML reports
+│   └── json/                  # Simple & professional JSON reports
+├── README.md
+├── CHANGELOG.md
+├── LICENSE
+├── DISCLAIMER.md
+├── ETHICS.md
+├── LEGAL.md
+├── KEY_VERIFICATION.md
+├── setup.py
 └── main.py                    # Application entry point
 ```
 
@@ -198,11 +184,10 @@ brs-xss/
 - **Vulnerability Assessment** - Risk-based classification
 
 ### Reporting Formats
-- **HTML** - Interactive reports with detailed analysis
-- **JSON** - Machine-readable structured data
-- **SARIF** - Static Analysis Results Interchange Format
-- **XML** - Structured XML reports
-- **CSV** - Tabular data for spreadsheets
+- **HTML** - Interactive reports with detailed analysis (default)
+- **JSON** - Machine-readable structured data (default)
+- **SARIF** - Static Analysis Results Interchange Format (optional)
+- **JUnit (XML)** - CI-friendly XML (optional)
 
 ## 📊 Results Structure
 
@@ -210,12 +195,10 @@ All scan results are automatically saved to the `results/` directory:
 
 ```
 results/
-├── html/     # Human-readable HTML reports
-├── json/     # Machine-readable JSON data  
-├── sarif/    # SARIF format for security tools
-├── xml/      # Structured XML reports
-├── csv/      # Spreadsheet-compatible format
-└── README.md # Results documentation
+├── json/     # Machine-readable JSON data (simple scan report)
+├── brsxss_report_<timestamp>.html  # Professional HTML reports
+├── brsxss_report_<timestamp>.json  # Professional JSON reports
+└── README.md
 ```
 
 ### 📋 Example Results
@@ -300,7 +283,7 @@ reporting:
 - No REST API server
 - Limited to 2 languages currently (EN/RU)
 - Analysis uses intelligent heuristics (no pre-trained ML models included)
-- DOM analysis is static (JavaScript parsing only, no browser execution)
+- DOM dynamic analysis requires `playwright install` to provision browsers
 - WAF bypass techniques not thoroughly tested on production configurations
 
 ## 🧩 BRS Suite Integration
@@ -352,13 +335,13 @@ Community contributions are welcome:
 
 ### Quick Reference
 **GPLv3 License:** Educational, research, and open-source projects  
-**Commercial License:** Commercial entities - Contact @easyprotech  
+**Commercial License:** Commercial entities - Contact https://t.me/EasyProTech  
 
 **⚖️ CRITICAL:** Read all legal documents before use. Unauthorized use is illegal and will be prosecuted.
 
 ---
 
-**BRS-XSS v1.0.0** | **[Brabus Recon Suite](https://github.com/EPTLLC/brs)** | **EasyProTech LLC** | **Developer: Brabus** | **@easyprotech**
+**BRS-XSS v1.0.1** | **[Brabus Recon Suite](https://github.com/EPTLLC/brs)** | **EasyProTech LLC** | **Developer: Brabus** | **https://t.me/EasyProTech**
 
 *Professional XSS Detection for Authorized Security Testing*
 
@@ -383,16 +366,15 @@ Community contributions are welcome:
 **Accuracy:** Context detection ~70-80%, Payload effectiveness ~60-75% (heuristic-based)
 
 ### DOM XSS Analysis
-**Current Capability:** Static JavaScript parsing and source/sink detection
+**Current Capability:** Headless browser execution (Playwright) + source/sink detection
 **Sources Detected:** 25+ (location.*, document.*, localStorage, postMessage, etc.)
 **Sinks Detected:** 20+ (innerHTML, eval, document.write, setTimeout, etc.)
-**Limitations:** No browser execution, no dynamic analysis
+**Limitations:** Requires `playwright install` to provision browsers
 
-**Roadmap for Browser-Based Analysis:**
-- Playwright integration for dynamic DOM testing
-- JavaScript execution monitoring
-- Real-time sink detection during user interaction
-- Screenshot capture for proof-of-concept
+**Dynamic Analysis Features:**
+- JavaScript execution monitoring (console, pageerror, dialog)
+- Real-time sink detection during execution
+- Screenshot capture for PoC
 
 ### Security & Logging
 **Payload Sanitization:** Automatic truncation and character filtering for logs

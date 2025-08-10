@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS CLI Main
-
-Command line interface for the BRS-XSS vulnerability scanner.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 09:35:54 MSK
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import typer
@@ -18,22 +16,19 @@ from typing import Optional
 from rich.console import Console
 from rich.text import Text
 
-from .commands import simple_scan, crawl, fuzz
+from .commands import simple_scan
 
 app = typer.Typer(
     name="brs-xss",
     help="BRS-XSS - XSS vulnerability scanner with advanced detection capabilities",
-    no_args_is_help=False,
+    no_args_is_help=True,
     rich_markup_mode="rich"
 )
 
 console = Console()
 
-# Add subcommands
+# Single authoritative command: serious scanning by default
 app.command(name="scan", help="Scan domain or IP for XSS vulnerabilities")(simple_scan.simple_scan_wrapper)
-app.add_typer(crawl.app, name="crawl", help="Crawl website and extract forms")
-app.add_typer(fuzz.app, name="fuzz", help="Fuzzing mode for parameter discovery")
-# GUI removed - terminal-only mode
 
 
 @app.command()
@@ -45,7 +40,6 @@ def version():
     version_text.append("Company: EasyProTech LLC (www.easypro.tech)\n", style="dim")
     version_text.append("Developer: Brabus\n", style="dim")
     console.print(version_text)
-
 
 @app.command()
 def config(
@@ -75,82 +69,6 @@ def config(
             raise typer.Exit(1)
 
 
-def interactive_mode():
-    """Interactive terminal mode - simple and user-friendly"""
-    from rich.prompt import Prompt, Confirm
-    from rich.panel import Panel
-    from rich.table import Table
-    
-    console.print(Panel.fit(
-        "[bold green]BRS-XSS v1.0.0[/bold green]\n"
-        "[dim]Professional XSS Terminal Scanner[/dim]\n" 
-        "[dim]EasyProTech LLC - @easyprotech[/dim]",
-        title="Security Scanner"
-    ))
-    # Get target
-    target = Prompt.ask("\n[bold]Enter domain or IP address to scan[/bold]", default="")
-    if not target.strip():
-        console.print("[red]No target specified. Exiting.[/red]")
-        raise typer.Exit(1)
-    
-    # Scan options
-    console.print("\n[bold]Scan Options:[/bold]")
-    
-    table = Table(show_header=True, header_style="bold magenta")
-    table.add_column("Option", style="cyan")
-    table.add_column("Description", style="dim")
-    
-    table.add_row("1", "Quick Scan (basic parameters)")
-    table.add_row("2", "Deep Scan (crawling + forms)")
-    table.add_row("3", "Full Scan (everything)")
-    table.add_row("4", "Custom Settings")
-    
-    console.print(table)
-    
-    choice = Prompt.ask("\n[bold]Select scan type[/bold]", choices=["1", "2", "3", "4"], default="1")
-    
-    # Set parameters based on choice
-    if choice == "1":
-        deep = False
-        threads = 10
-        timeout = 15
-    elif choice == "2":
-        deep = True
-        threads = 15
-        timeout = 20
-    elif choice == "3":
-        deep = True
-        threads = 20
-        timeout = 30
-    else:  # Custom
-        deep = Confirm.ask("Enable deep scanning (forms + crawling)?", default=False)
-        threads = int(Prompt.ask("Number of threads", default="10"))
-        timeout = int(Prompt.ask("Request timeout (seconds)", default="15"))
-    
-    # Ask for report
-    save_report = Confirm.ask("\nSave detailed report?", default=True)
-    output_file = None
-    if save_report:
-        # Create filename with timestamp
-        timestamp = int(time.time())
-        clean_target = target.replace('.', '_').replace(':', '_')
-        filename = f"scan_report_{clean_target}_{timestamp}.json"
-        
-        # Save to proper results directory
-        import os
-        os.makedirs("results/json", exist_ok=True)
-        output_file = f"results/json/{filename}"
-    
-    console.print(f"\n[bold green]Starting scan of {target}...[/bold green]")
-    
-    # Run scan
-    try:
-        asyncio.run(simple_scan.simple_scan(target, threads, timeout, output_file, deep, verbose=False, ml_mode=True, blind_xss_webhook=None, no_ssl_verify=False))
-    except Exception as e:
-        console.print(f"[red]Scan failed: {e}[/red]")
-        raise typer.Exit(1)
-
-
 @app.callback(invoke_without_command=True)
 def main(
     ctx: typer.Context,
@@ -172,9 +90,7 @@ def main(
     
     Logger.setup_global_logging(log_level, log_file)
     
-    # If no command specified, start interactive mode
-    if ctx.invoked_subcommand is None:
-        interactive_mode()
+    # If no command specified, Typer shows help (no_args_is_help=True)
 
 
 if __name__ == "__main__":

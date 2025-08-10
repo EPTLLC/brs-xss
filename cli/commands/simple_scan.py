@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Simple Scan Command
-
-Simple, user-friendly scanning interface - just specify domain/IP.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Tue 05 Aug 2025 17:48:16 MSK - Fixed file path generation and HTTP session cleanup
-Telegram: @easyprotech
+Date: Sun 10 Aug 2025 21:38:09 MSK
+Status: Modified
+Telegram: https://t.me/EasyProTech
 """
 
 import asyncio
@@ -22,6 +20,9 @@ from rich.progress import Progress
 
 from brsxss import _
 from brsxss.core.scanner import XSSScanner
+from brsxss.report.report_generator import ReportGenerator
+from brsxss.report.report_types import ReportConfig, ReportFormat
+from brsxss.report.data_models import VulnerabilityData, ScanStatistics
 from brsxss.core.config_manager import ConfigManager
 from brsxss.utils.validators import URLValidator
 from brsxss.utils.logger import Logger
@@ -54,37 +55,25 @@ async def simple_scan(
         "--output", "-o",
         help="Output file path for report (defaults to results/json/)"
     ),
-    deep: bool = typer.Option(
-        False,
-        "--deep",
-        help="Enable deep scanning (crawling + forms)"
-    ),
+    deep: bool = typer.Option(True, "--deep/--no-deep", help="Enable deep scanning (crawling + forms)"),
     verbose: bool = typer.Option(
         False,
         "--verbose", "-v",
         help="Enable verbose output with detailed parameter analysis"
     ),
-    ml_mode: bool = typer.Option(
-        False,
-        "--ml-mode",
-        help="Enable ML-based vulnerability classification"
-    ),
+    ml_mode: bool = typer.Option(True, "--ml-mode/--no-ml-mode", help="Enable ML-based vulnerability classification"),
     blind_xss_webhook: Optional[str] = typer.Option(
         None,
         "--blind-xss",
         help="Webhook URL for blind XSS detection"
     ),
-    no_ssl_verify: bool = typer.Option(
-        False,
-        "--no-ssl-verify",
-        help="Disable SSL certificate verification (useful for internal/self-signed certs)"
-    ),
+    no_ssl_verify: bool = typer.Option(False, "--no-ssl-verify", help="Disable SSL certificate verification (useful for internal/self-signed certs)"),
 ):
     """Scan target for XSS vulnerabilities - specify domain or IP only"""
     
     logger = Logger("cli.simple_scan")
     
-    console.print("[bold green]BRS-XSS v1.0.0[/bold green] - Simple XSS Scanner")
+    console.print("[bold green]BRS-XSS v1.0.0[/bold green] - Serious XSS Scanner")
     console.print(f"Target: {target}")
     
     if verbose:
@@ -93,7 +82,7 @@ async def simple_scan(
         console.print("[dim]ML mode enabled - advanced vulnerability classification[/dim]")
     
     # Initialize scanner with CLI parameters
-    scanner = XSSScanner(timeout=timeout, max_concurrent=threads, verify_ssl=not no_ssl_verify)
+    scanner = XSSScanner(timeout=timeout, max_concurrent=threads, verify_ssl=not no_ssl_verify, blind_xss_webhook=blind_xss_webhook)
     
     if blind_xss_webhook:
         console.print(f"Blind XSS webhook enabled: {blind_xss_webhook}")
@@ -148,19 +137,90 @@ async def simple_scan(
             import re
             timestamp = int(__import__('time').time())
             # Clean target URL to create valid filename
-            # Remove protocol and special chars
+            # Remove protocol and normalize slashes
             clean_target = target.replace('https://', '').replace('http://', '')
-            clean_target = re.sub(r'[^\w\-_.]', '_', clean_target)
-            clean_target = re.sub(r'_{2,}', '_', clean_target).strip('_')
+            # Replace problematic characters, especially multiple slashes
+            clean_target = re.sub(r'/+', '_', clean_target)  # Replace slashes with underscores
+            clean_target = re.sub(r'[^\w\-_.]', '_', clean_target)  # Replace other special chars
+            clean_target = re.sub(r'_{2,}', '_', clean_target).strip('_')  # Collapse multiple underscores
             # Ensure it's not too long
             if len(clean_target) > 50:
-                clean_target = clean_target[:50]
+                clean_target = clean_target[:50].rstrip('_')
             filename = f"scan_report_{clean_target}_{timestamp}.json"
-            os.makedirs("results/json", exist_ok=True)
-            output = f"results/json/{filename}"
+            
+            # Ensure results directory exists
+            results_dir = os.path.abspath("results/json")
+            os.makedirs(results_dir, exist_ok=True)
+            output = os.path.join(results_dir, filename)
         
         _save_simple_report(all_vulnerabilities, scan_targets, output)
         console.print(f"Report saved: {output}")
+
+        # Generate professional multi-format report (HTML + JSON)
+        try:
+            # Convert to VulnerabilityData
+            vuln_items = []
+            for idx, v in enumerate(all_vulnerabilities, 1):
+                severity = v.get('severity')
+                if hasattr(severity, 'value'):
+                    severity = severity.value
+                elif not isinstance(severity, str):
+                    severity = 'low'
+                vuln_items.append(
+                    VulnerabilityData(
+                        id=f"xss_{idx}",
+                        title=f"XSS in parameter {v.get('parameter','')}",
+                        description=f"Possible XSS detected for parameter {v.get('parameter','')}.",
+                        severity=severity,
+                        confidence=float(v.get('confidence', 0.5)),
+                        url=v.get('url',''),
+                        parameter=v.get('parameter',''),
+                        payload=v.get('payload',''),
+                    )
+                )
+
+            # Scan statistics
+            stats = ScanStatistics(
+                total_urls_tested=len(scan_targets),
+                total_parameters_tested=sum(len((await _discover_parameters(u, False, None))) for u in scan_targets if isinstance(u,str)) if False else 0,
+                total_payloads_tested=0,
+                total_requests_sent=0,
+                scan_duration=0.0,
+                vulnerabilities_found=len(vuln_items),
+            )
+
+            # Configure report
+            report_config = ReportConfig(
+                title=f"BRS-XSS Scan Report - {scan_targets[0] if scan_targets else target}",
+                output_dir="results",
+                filename_template="brsxss_report_{timestamp}",
+                formats=[ReportFormat.HTML, ReportFormat.JSON],
+                include_recommendations=True,
+                include_methodology=True,
+            )
+            generator = ReportGenerator(report_config)
+            generated = generator.generate_report(vuln_items, stats, target_info={"url": target})
+
+            # Move reports to structured directories
+            import os
+            os.makedirs("results/html", exist_ok=True)
+            os.makedirs("results/json", exist_ok=True)
+            for fmt, path in generated.items():
+                try:
+                    if path.endswith('.html'):
+                        new_path = os.path.join("results/html", os.path.basename(path))
+                    elif path.endswith('.json'):
+                        new_path = os.path.join("results/json", os.path.basename(path))
+                    else:
+                        new_path = path
+                    if new_path != path:
+                        os.replace(path, new_path)
+                        path = new_path
+                except Exception as move_err:
+                    logger.debug(f"Report move error: {move_err}")
+                console.print(f"Professional report generated: {path}")
+        except Exception as e:
+            logger.debug(f"Failed to generate professional report: {e}")
     
     except Exception as e:
         logger.error(f"Scan failed: {e}")
@@ -232,7 +292,7 @@ def _build_scan_targets(target: str, force_http: bool = False) -> list:
 
 
 async def _discover_parameters(url: str, deep_scan: bool = False, http_client=None) -> dict:
-    """Auto-discover parameters in URL and forms"""
+    """Auto-discover parameters in URL and forms with advanced extraction"""
     
     parameters = {}
     
@@ -244,22 +304,64 @@ async def _discover_parameters(url: str, deep_scan: bool = False, http_client=No
     for param, values in url_params.items():
         parameters[param] = values[0] if values else "test"
     
-    # If deep scan enabled, try to find forms
-    if deep_scan:
+    # If deep scan enabled, use advanced form extraction and crawling
+    if deep_scan and http_client:
         try:
-            # HTTPClient import removed - not needed
+            from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
+            from brsxss.crawler.form_extractor import FormExtractor
             
-            if http_client:
+            # Use crawler for comprehensive discovery
+            config = CrawlConfig(
+                max_depth=2, 
+                max_urls=20, 
+                max_concurrent=3,
+                timeout=15,
+                extract_forms=True,
+                extract_links=True
+            )
+            crawler = CrawlerEngine(config, http_client)
+            
+            # Crawl starting from URL
+            crawl_results = await crawler.crawl(url)
+            
+            form_extractor = FormExtractor()
+            
+            # Process each crawled page
+            for result in crawl_results:
+                if result.status_code == 200 and result.content:
+                    # Extract forms from each page
+                    forms = form_extractor.extract_forms(result.content, result.url)
+                    
+                    for form in forms:
+                        # Add testable form fields as parameters
+                        for field in form.testable_fields:
+                            # Use intelligent default values
+                            if field.field_type.name == 'PASSWORD':
+                                parameters[field.name] = "password123"
+                            elif field.field_type.name == 'EMAIL':
+                                parameters[field.name] = "test@example.com"
+                            elif 'search' in field.name.lower() or 'query' in field.name.lower():
+                                parameters[field.name] = "search_test"
+                            else:
+                                parameters[field.name] = "test"
+                    
+                    # Also extract URL parameters from discovered URLs
+                    if hasattr(result, 'discovered_urls'):
+                        for discovered_url in result.discovered_urls:
+                            if hasattr(discovered_url, 'parameters') and discovered_url.parameters:
+                                parameters.update(discovered_url.parameters)
+                
+        except Exception as e:
+            # Fallback to basic form detection if advanced crawling fails
+            try:
                 response = await http_client.get(url)
                 if response.status_code == 200:
-                    # Simple form detection
                     import re
                     form_inputs = re.findall(r'<input[^>]*name=["\']([^"\']+)["\']', response.text, re.I)
                     for input_name in form_inputs:
                         parameters[input_name] = "test"
-                    
-        except Exception:
-            pass  # Continue with URL params only
+            except:
+                pass
     
     return parameters
 
@@ -341,21 +443,13 @@ def simple_scan_wrapper(
         "--output", "-o",
         help="Output file path for report (defaults to results/json/)"
     ),
-    deep: bool = typer.Option(
-        False,
-        "--deep",
-        help="Enable deep scanning (crawling + forms)"
-    ),
+    deep: bool = typer.Option(True, "--deep/--no-deep", help="Enable deep scanning (crawling + forms)"),
     verbose: bool = typer.Option(
         False,
         "--verbose", "-v",
         help="Enable verbose output with detailed parameter analysis"
     ),
-    ml_mode: bool = typer.Option(
-        False,
-        "--ml-mode",
-        help="Enable ML-based vulnerability classification"
-    ),
+    ml_mode: bool = typer.Option(True, "--ml-mode/--no-ml-mode", help="Enable ML-based vulnerability classification"),
     blind_xss_webhook: Optional[str] = typer.Option(
         None,
         "--blind-xss",
