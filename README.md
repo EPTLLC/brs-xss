@@ -24,7 +24,7 @@
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:04:15 MSK  
 **Version:** 1.0.2  
-**Updated:** Mon 11 Aug 2025 01:40:52 MSK  
+**Updated:** Mon 11 Aug 2025 01:44:15 MSK  
 **Telegram:** https://t.me/EasyProTech
 
 ## Overview
@@ -65,21 +65,26 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 ### Installation
 
 ```bash
-# Install (editable)
-pip install -e .
+# Install from GitHub
+pip install git+https://github.com/EPTLLC/brs-xss.git
 
-# First run (install browsers for DOM analysis)
+# Install browsers for DOM XSS analysis (required for --deep scans)
 playwright install
 ```
 
-### Docker
+### Docker (Recommended)
 
 ```bash
-# Build image (includes Playwright browsers)
+# Pull pre-built image (includes Playwright browsers)
+docker pull ghcr.io/eptllc/brs-xss:latest
+
+# Or build locally
+git clone https://github.com/EPTLLC/brs-xss.git
+cd brs-xss
 docker build -t brs-xss:latest .
 
-# Run scan
-docker run --rm brs-xss:latest scan example.com
+# Run scan (saves reports to local results/)
+docker run --rm -v "$(pwd)/results:/app/results" brs-xss:latest scan example.com
 ```
 
 ### Basic Usage
