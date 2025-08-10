@@ -132,25 +132,14 @@ async def simple_scan(
         
         # Save report
         if not output:
-            # Default output path
+            # Default output path (sanitized + ensured directories)
             import os
-            import re
+            from brsxss.utils.paths import sanitize_filename, ensure_dir
             timestamp = int(__import__('time').time())
-            # Clean target URL to create valid filename
-            # Remove protocol and normalize slashes
-            clean_target = target.replace('https://', '').replace('http://', '')
-            # Replace problematic characters, especially multiple slashes
-            clean_target = re.sub(r'/+', '_', clean_target)  # Replace slashes with underscores
-            clean_target = re.sub(r'[^\w\-_.]', '_', clean_target)  # Replace other special chars
-            clean_target = re.sub(r'_{2,}', '_', clean_target).strip('_')  # Collapse multiple underscores
-            # Ensure it's not too long
-            if len(clean_target) > 50:
-                clean_target = clean_target[:50].rstrip('_')
+            clean_target = sanitize_filename(target, max_len=50)
             filename = f"scan_report_{clean_target}_{timestamp}.json"
-            
-            # Ensure results directory exists
             results_dir = os.path.abspath("results/json")
-            os.makedirs(results_dir, exist_ok=True)
+            ensure_dir(results_dir)
             output = os.path.join(results_dir, filename)
         
         _save_simple_report(all_vulnerabilities, scan_targets, output)
@@ -408,14 +397,13 @@ def _save_simple_report(vulnerabilities: list, targets: list, output_path: str):
         "vulnerabilities": serializable_vulns
     }
     
-    # Determine format by extension
+    # Determine format by extension with atomic write
+    from brsxss.utils.paths import atomic_write
+    content = json.dumps(report, indent=2, cls=CustomJSONEncoder)
     if output_path.endswith('.json'):
-        with open(output_path, 'w') as f:
-            json.dump(report, f, indent=2, cls=CustomJSONEncoder)
+        atomic_write(output_path, content)
     else:
-        # Default to JSON
-        with open(output_path + '.json', 'w') as f:
-            json.dump(report, f, indent=2, cls=CustomJSONEncoder)
+        atomic_write(output_path + '.json', content)
 
 
 def simple_scan_wrapper(

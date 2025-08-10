@@ -355,8 +355,9 @@ class XSSScanner:
                 'reflection_type': (reflection_result.overall_reflection_type.value if (reflection_result and getattr(reflection_result, 'overall_reflection_type', None)) else 'none'),
                 'context': context_info.get('context_type', 'unknown'),
                 'severity': vulnerability_score.severity,
-                'score': vulnerability_score.score,
-                'confidence': vulnerability_score.confidence,
+                'detection_score': round(vulnerability_score.score, 2),
+                'exploitation_likelihood': round(getattr(vulnerability_score, 'exploitation_likelihood', 0.0), 2),
+                'confidence': round(vulnerability_score.confidence, 2),
                 'response_snippet': (reflection_result.reflection_points[0].reflected_value[:200] if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else ''),
                 'timestamp': time.time(),
                 

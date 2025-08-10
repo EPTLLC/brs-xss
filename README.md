@@ -21,9 +21,6 @@
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:04:15 MSK  
 **Version:** 1.0.1  
-**GitHub Org:** EPTLLC (EasyProTech)  
-**Location:** London, UK  
-**Email:** mail.easypro.tech@gmail.com  
 **Telegram:** https://t.me/EasyProTech
 
 ## 🎯 Overview
@@ -54,7 +51,7 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 
 ### 🏗️ Architecture
 
-- **Modular Design** - Independent, testable components following SRP [[memory:4996666]]
+- **Modular Design** - Independent, testable components following SRP
 - **CLI-First** - Terminal-focused interface
 - **Asynchronous** - Non-blocking HTTP operations
 - **Extensible** - Plugin-ready architecture
@@ -310,11 +307,11 @@ Community contributions are welcome:
 
 1. Fork the repository
 2. Create a feature branch
-3. Follow the modular architecture [[memory:4996666]]
-4. Ensure all comments and code are in English [[memory:4858909]]
+3. Follow the modular architecture
+4. Ensure all comments and code are in English
 5. Submit a pull request
 
-## 📞 Support Policy [[memory:5134596]]
+## 📞 Support Policy
 
 **NO SUPPORT PROVIDED**: This project is released as-is without support, consultation, or assistance.
 
@@ -324,7 +321,7 @@ Community contributions are welcome:
 
 **COMPREHENSIVE LEGAL PROTECTION:**
 
-### License Structure [[memory:5134596]]
+### License Structure
 - **[LICENSE](LICENSE)** - Dual GPLv3/Commercial licensing terms
 - **[LEGAL.md](LEGAL.md)** - Complete legal terms and compliance requirements
 - **[DISCLAIMER.md](DISCLAIMER.md)** - Liability disclaimers and warranties

@@ -27,9 +27,10 @@ class SeverityLevel(Enum):
 @dataclass
 class ScoringResult:
     """Vulnerability scoring result"""
-    score: float                    # Overall score (0-10)
+    score: float                    # Overall detection score (0-10)
     severity: SeverityLevel        # Severity level
-    confidence: float              # Confidence in assessment (0-1)
+    confidence: float              # Detection score confidence (0-1)
+    exploitation_likelihood: float = 0.0  # Likelihood of real exploitation (0-1)
     
     # Scoring components
     impact_score: float = 0.0      # Impact assessment

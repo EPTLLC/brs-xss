@@ -223,9 +223,9 @@ class ReportGenerator:
         # Full file path
         file_path = Path(self.config.output_dir) / full_filename
         
-        # Save file
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(content)
+        # Save file atomically
+        from ..utils.paths import atomic_write
+        atomic_write(str(file_path), content)
         
         return str(file_path)
     
