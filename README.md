@@ -16,6 +16,9 @@
 ![GitHub forks](https://img.shields.io/github/forks/EPTLLC/brs-xss?style=social)
 ![GitHub watchers](https://img.shields.io/github/watchers/EPTLLC/brs-xss?style=social)
 
+> **Note**  
+> Donations are not required. If BRS-XSS is useful for you - putting a ⭐ helps me see that the project delivers value.
+
 # BRS-XSS
 
 **Professional XSS Scanner with Advanced Detection Capabilities**
