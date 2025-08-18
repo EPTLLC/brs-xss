@@ -26,12 +26,6 @@ Files are named using the following pattern:
 brs-xss_{target}_{timestamp}.{format}
 ```
 
-Example:
-```
-brs-xss_easypro.tech_20250802_113500.html
-brs-xss_example.com_20250802_114230.json
-```
-
 ## Automatic Cleanup
 
 - Results older than 30 days are automatically archived
