@@ -81,8 +81,7 @@ async def simple_scan(
     if ml_mode:
         console.print("[dim]ML mode enabled - advanced vulnerability classification[/dim]")
     
-    # Initialize scanner with CLI parameters
-    scanner = XSSScanner(timeout=timeout, max_concurrent=threads, verify_ssl=not no_ssl_verify, blind_xss_webhook=blind_xss_webhook)
+    # Scanner will be created with progress callback during scanning
     
     if blind_xss_webhook:
         console.print(f"Blind XSS webhook enabled: {blind_xss_webhook}")
@@ -98,27 +97,58 @@ async def simple_scan(
         all_vulnerabilities = []
         
         with Progress() as progress:
-            task = progress.add_task("Scanning targets...", total=len(scan_targets))
+            # Create main task for URLs
+            url_task = progress.add_task("Scanning targets...", total=len(scan_targets))
+            # Create detailed task for payloads
+            payload_task = progress.add_task("Testing payloads...", total=100)
+            
+            def update_payload_progress(current: int, total: int):
+                """Update payload progress bar"""
+                if total > 0:
+                    percentage = min(100, (current * 100) // total)
+                    progress.update(payload_task, completed=percentage, total=100,
+                                  description=f"Testing payload {current}/{total}")
             
             for url in scan_targets:
-                progress.update(task, description=f"Scanning {url}")
+                progress.update(url_task, description=f"Scanning {url}")
+                progress.update(payload_task, completed=0, description="Discovering parameters...")
                 
                 try:
+                    # Create temporary HTTP client for parameter discovery
+                    from brsxss.core.http_client import HTTPClient
+                    temp_client = HTTPClient(timeout=timeout, verify_ssl=not no_ssl_verify)
+                    
                     # Auto-discover parameters
-                    parameters = await _discover_parameters(url, deep, scanner.http_client)
+                    parameters = await _discover_parameters(url, deep, temp_client)
                     
                     if parameters:
                         console.print(f"Found {len(parameters)} parameters in {url}")
                         
+                        # Create scanner with progress callback
+                        scanner_with_progress = XSSScanner(
+                            timeout=timeout, 
+                            max_concurrent=threads, 
+                            verify_ssl=not no_ssl_verify, 
+                            blind_xss_webhook=blind_xss_webhook,
+                            progress_callback=update_payload_progress
+                        )
+                        
                         # Scan this URL with its parameters
-                        vulns = await scanner.scan_url(url, parameters)
+                        vulns = await scanner_with_progress.scan_url(url, parameters)
                         all_vulnerabilities.extend(vulns)
+                        
+                        # Cleanup
+                        await scanner_with_progress.close()
                     
-                    progress.advance(task)
+                    # Cleanup temporary client
+                    await temp_client.close()
+                    
+                    progress.advance(url_task)
+                    progress.update(payload_task, completed=100, description="URL scan completed")
                     
                 except Exception as e:
                     logger.warning(f"Error scanning {url}: {e}")
-                    progress.advance(task)
+                    progress.advance(url_task)
         
         # Display results
         console.print(f"\nScan completed: {len(all_vulnerabilities)} vulnerabilities found")

@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import asyncio
 import time
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any, Set, Callable
 from urllib.parse import urljoin, urlparse
 
 from .config_manager import ConfigManager
@@ -45,7 +45,7 @@ class XSSScanner:
     - Comprehensive vulnerability scoring
     """
     
-    def __init__(self, config: Optional[ConfigManager] = None, timeout: int = 10, max_concurrent: int = 10, verify_ssl: bool = True, enable_dom_xss: bool = True, blind_xss_webhook: Optional[str] = None):
+    def __init__(self, config: Optional[ConfigManager] = None, timeout: int = 10, max_concurrent: int = 10, verify_ssl: bool = True, enable_dom_xss: bool = True, blind_xss_webhook: Optional[str] = None, progress_callback: Optional[Callable[[int, int], None]] = None):
         """Initialize XSS scanner"""
         self.config = config or ConfigManager()
         self.timeout = timeout
@@ -76,6 +76,11 @@ class XSSScanner:
         self.scan_results = []
         self.tested_parameters = set()
         self.detected_wafs = []
+        
+        # Progress tracking
+        self.progress_callback = progress_callback
+        self.current_payload_index = 0
+        self.total_payloads_count = 0
         
         # Statistics
         self.total_tests = 0
@@ -111,6 +116,13 @@ class XSSScanner:
             return []
         
         logger.info(f"Testing {len(parameters)} parameters")
+        
+        # Calculate total payloads for progress tracking
+        if self.progress_callback:
+            # Estimate total payloads (will be updated with actual count during generation)
+            estimated_payloads_per_param = 950  # ~901 from PayloadManager + ~50 context
+            self.total_payloads_count = len(parameters) * estimated_payloads_per_param
+            self.current_payload_index = 0
         
         # Test each parameter for reflected XSS
         vulnerabilities = []
@@ -242,12 +254,23 @@ class XSSScanner:
             
             logger.debug(f"Generated {len(payloads)} payloads for {param_name}")
             
+            # Update total payload count with actual number
+            actual_payload_count = len(payloads)
+            if self.progress_callback and self.total_payloads_count == 0:
+                self.total_payloads_count = actual_payload_count * len(parameters)
+            
             # Test each payload
-            for payload_obj in payloads[:self.config.get('max_payloads_per_param', 20)]:
+            max_payloads = self.config.get('max_payloads_per_param', actual_payload_count)
+            for i, payload_obj in enumerate(payloads[:max_payloads]):
                 self.total_tests += 1
+                self.current_payload_index += 1
                 
                 # Extract payload string from GeneratedPayload object
                 payload = payload_obj.payload if hasattr(payload_obj, 'payload') else str(payload_obj)
+                
+                # Update progress
+                if self.progress_callback:
+                    self.progress_callback(self.current_payload_index, self.total_payloads_count)
                 
                 # Test payload
                 result = await self._test_payload(url, param_name, payload, context_info)

@@ -77,7 +77,7 @@ class PayloadTemplate:
 @dataclass
 class GenerationConfig:
     """Configuration for payload generation"""
-    max_payloads: int = 50
+    max_payloads: int = 2000  # Allow for comprehensive testing (901 base + evasions + WAF-specific)
     include_evasions: bool = True
     include_waf_specific: bool = True
     effectiveness_threshold: float = 0.3

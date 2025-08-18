@@ -18,6 +18,7 @@ from .context_payloads import ContextPayloadGenerator
 from .evasion_techniques import EvasionTechniques
 from .waf_evasions import WAFEvasions
 from .blind_xss import BlindXSSManager
+from ..payloads.payload_manager import PayloadManager
 from ..utils.logger import Logger
 
 logger = Logger("core.payload_generator")
@@ -43,6 +44,7 @@ class PayloadGenerator:
         
         # Initialize generators
         self.context_generator = ContextPayloadGenerator()
+        self.payload_manager = PayloadManager()
         self.evasion_techniques = EvasionTechniques()
         self.waf_evasions = WAFEvasions()
         self.blind_xss = BlindXSSManager(blind_xss_webhook) if blind_xss_webhook else None
@@ -82,19 +84,34 @@ class PayloadGenerator:
         
         all_payloads = []
         
-        # Generate base context payloads
+        # Generate base context payloads from context generator
         base_payloads = self.context_generator.get_context_payloads(
             context_type, context_info
         )
         
-        # Convert to GeneratedPayload objects
-        for payload in base_payloads:
+        # Add ALL payloads from payload manager (comprehensive coverage)
+        comprehensive_payloads = self.payload_manager.get_all_payloads()
+        
+        # Combine context-specific and comprehensive payloads
+        combined_payloads = base_payloads + comprehensive_payloads
+        
+        # Convert to GeneratedPayload objects (filter empty payloads)
+        for i, payload in enumerate(combined_payloads):
+            # Skip empty or invalid payloads
+            if not payload or not str(payload).strip():
+                continue
+                
+            # Determine if this is a context-specific or comprehensive payload
+            is_context_specific = i < len(base_payloads)
+            description = "Context-specific payload" if is_context_specific else "Comprehensive payload"
+            effectiveness = 0.9 if is_context_specific else 0.7
+            
             all_payloads.append(GeneratedPayload(
-                payload=payload,
+                payload=str(payload).strip(),
                 context_type=context_type,
                 evasion_techniques=[],
-                effectiveness_score=0.8,
-                description="Base context payload"
+                effectiveness_score=effectiveness,
+                description=description
             ))
         
         # Apply evasion techniques if enabled

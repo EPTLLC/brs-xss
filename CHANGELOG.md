@@ -11,6 +11,27 @@ Telegram: https://t.me/EasyProTech
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2025-08-18
+### Added
+- **Comprehensive Payload Integration**: PayloadGenerator now uses PayloadManager to access ALL 901+ payloads from payloads folder
+- **Real-time Progress Tracking**: Added progress callback system showing "Testing payload X/Y" with percentage and time estimates
+- **Enhanced User Feedback**: Dual progress bars - one for URLs, one for detailed payload testing progress
+
+### Fixed
+- **Syntax Errors**: Resolved F821 undefined name errors (Dict import, MLTrainer reference, keyword scope)
+- **Python 3.8 Compatibility**: Fixed playwright version requirement (>=1.40.0) and license format for older setuptools
+- **GitHub Actions**: Updated workflows to use requirements/base.txt and proper package installation
+- **Progress Bar**: Fixed progress display that was stuck at 0% - now shows real scanning progress
+
+### Changed
+- **Payload Limit**: Increased GenerationConfig.max_payloads from 50 to 2000 for comprehensive testing
+- **Progress Display**: Enhanced CLI to show both URL scanning and payload testing progress simultaneously
+
+### Technical
+- Added progress_callback parameter to XSSScanner for real-time progress updates
+- Integrated PayloadManager into PayloadGenerator for full payload coverage
+- Fixed workflow files to properly install dependencies and run tests
+
 ## [1.0.2] - 2025-08-10
 ### Added
 - Dockerfile with Playwright browsers; run scanner fully via Docker.

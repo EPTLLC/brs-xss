@@ -7,7 +7,7 @@
 # Global settings
 app:
   name: "BRS-XSS"
-  version: "1.0.2"
+  version: "1.0.3"
   locale: "en"                    # Base locale (English)
   fallback_locale: "en"           # Fallback locale
 

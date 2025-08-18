@@ -17,7 +17,7 @@
 ![GitHub watchers](https://img.shields.io/github/watchers/EPTLLC/brs-xss?style=social)
 
 > **Note**  
-> Donations are not required. If BRS-XSS is useful for you - putting a ⭐ helps me see that the project delivers value.
+> Donations are not required. If BRS-XSS is useful for you - putting a star helps me see that the project delivers value.
 
 # BRS-XSS
 
@@ -26,8 +26,8 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:04:15 MSK  
-**Version:** 1.0.2  
-**Updated:** Mon 11 Aug 2025 01:44:15 MSK  
+**Version:** 1.0.3  
+**Updated:** Sun 18 Aug 2025 22:00:00 MSK  
 **Telegram:** https://t.me/EasyProTech
 
 ## Overview
@@ -38,16 +38,16 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 
 ### Key Features
 
-- **🎯 Context-Aware Scanning** - Intelligent payload generation based on injection context (HTML, JavaScript, CSS)
-- **🛡️ WAF Detection & Bypass** - Advanced evasion techniques for popular WAF solutions
-- **🧠 Intelligent Classification** - Advanced heuristic analysis with ML-ready framework
-- **📊 Professional Reporting** - Multiple output formats (HTML, JSON; optional SARIF/JUnit)
-- **🌐 Multi-Language Support** - English (default) and Russian interfaces
-- **⚡ High Performance** - Asynchronous scanning with configurable threading
-- **🕷️ Web Crawling** - Form extraction and URL discovery capabilities
-- **🔍 DOM XSS Analysis** - Client-side JavaScript vulnerability detection
+- **Context-Aware Scanning** - Intelligent payload generation based on injection context (HTML, JavaScript, CSS)
+- **WAF Detection & Bypass** - Advanced evasion techniques for popular WAF solutions
+- **Intelligent Classification** - Advanced heuristic analysis with ML-ready framework
+- **Professional Reporting** - Multiple output formats (HTML, JSON; optional SARIF/JUnit)
+- **Multi-Language Support** - English (default) and Russian interfaces
+- **High Performance** - Asynchronous scanning with configurable threading
+- **Web Crawling** - Form extraction and URL discovery capabilities
+- **DOM XSS Analysis** - Client-side JavaScript vulnerability detection
 
-### 🛠️ Technology Stack
+### Technology Stack
 
 - **Core:** Python 3.8+, AsyncIO, aiohttp
 - **CLI:** Typer with rich terminal output
@@ -56,12 +56,67 @@ BRS-XSS is a command-line Cross-Site Scripting (XSS) vulnerability scanner desig
 - **Crawling:** BeautifulSoup with regex fallback
 - **I18N:** Babel for internationalization
 
-### 🏗️ Architecture
+### Architecture
 
 - **Modular Design** - Independent, testable components following SRP
 - **CLI-First** - Terminal-focused interface
 - **Asynchronous** - Non-blocking HTTP operations
 - **Extensible** - Plugin-ready architecture
+
+#### System Architecture
+
+```mermaid
+graph TB
+    CLI[CLI Interface] --> Scanner[XSS Scanner]
+    Scanner --> PayloadGen[Payload Generator]
+    Scanner --> WAFDet[WAF Detector]
+    Scanner --> ReflDet[Reflection Detector]
+    Scanner --> CtxAnalyzer[Context Analyzer]
+    Scanner --> HTTPClient[HTTP Client]
+    
+    PayloadGen --> PayloadMgr[Payload Manager]
+    PayloadMgr --> Basic[Basic XSS<br/>99 payloads]
+    PayloadMgr --> Advanced[Advanced XSS<br/>117 payloads]
+    PayloadMgr --> WAFBypass[WAF Bypass<br/>122 payloads]
+    PayloadMgr --> Polyglot[Polyglot<br/>136 payloads]
+    PayloadMgr --> Framework[Framework Specific<br/>159 payloads]
+    PayloadMgr --> Others[+ 5 more categories<br/>268 payloads]
+    
+    Scanner --> DOMDet[DOM XSS Detector]
+    DOMDet --> Playwright[Playwright Browser]
+    
+    Scanner --> Reports[Report Generator]
+    Reports --> HTML[HTML Reports]
+    Reports --> JSON[JSON Reports]
+    Reports --> SARIF[SARIF Reports]
+```
+
+#### Scanning Workflow
+
+```mermaid
+flowchart LR
+    A[Target URL] --> B[Parameter Discovery]
+    B --> C[WAF Detection]
+    C --> D[Context Analysis]
+    D --> E[Payload Generation<br/>901+ payloads]
+    E --> F[Reflection Testing]
+    F --> G[Vulnerability Scoring]
+    G --> H[DOM XSS Analysis]
+    H --> I[Report Generation]
+    
+    B --> B1[URL Parameters]
+    B --> B2[Form Parameters]
+    B --> B3[Hidden Fields]
+    
+    E --> E1[Context-Specific]
+    E --> E2[WAF Evasion]
+    E --> E3[Encoding Variants]
+    E --> E4[Polyglot Payloads]
+    
+    I --> I1[HTML Report]
+    I --> I2[JSON Report]
+    I --> I3[SARIF Report]
+```
 
 ## Quick Start
 
@@ -123,7 +178,7 @@ brs-xss scan internal.company.com --no-ssl-verify
 brs-xss scan target.com --blind-xss https://webhook.site/unique-id
 ```
 
-### 🎯 Live Example
+### Live Example
 
 **Testing against XSS Game (Educational Purpose):**
 ```bash
@@ -293,7 +348,7 @@ reporting:
 - [x] CLI interface with rich output
 - [x] Configuration management
 
-### 🚧 Known Limitations
+### Known Limitations
 - No GUI interface (CLI only)
 - No REST API server
 - Limited to 2 languages currently (EN/RU)
@@ -352,15 +407,15 @@ Community contributions are welcome:
 **GPLv3 License:** Educational, research, and open-source projects  
 **Commercial License:** Commercial entities - Contact https://t.me/EasyProTech  
 
-**⚖️ CRITICAL:** Read all legal documents before use. Unauthorized use is illegal and will be prosecuted.
+**CRITICAL:** Read all legal documents before use. Unauthorized use is illegal and will be prosecuted.
 
 ---
 
-**BRS-XSS v1.0.2** | **[Brabus Recon Suite](https://github.com/EPTLLC/brs)** | **EasyProTech LLC** | **Developer: Brabus** | **https://t.me/EasyProTech**
+**BRS-XSS v1.0.3** | **[Brabus Recon Suite](https://github.com/EPTLLC/brs)** | **EasyProTech LLC** | **Developer: Brabus** | **https://t.me/EasyProTech**
 
 *Professional XSS Detection for Authorized Security Testing*
 
-**⚠️ Disclaimer:** This tool is intended for authorized security testing only. Users are responsible for compliance with applicable laws and regulations.
+**Disclaimer:** This tool is intended for authorized security testing only. Users are responsible for compliance with applicable laws and regulations.
 
 ## Technical Specifications
 
