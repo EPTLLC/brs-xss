@@ -77,10 +77,14 @@ graph TB
     PayloadGen --> PayloadMgr[Payload Manager]
     PayloadMgr --> Basic[Basic XSS<br/>99 payloads]
     PayloadMgr --> Advanced[Advanced XSS<br/>117 payloads]
+    PayloadMgr --> ContextSpec[Context Specific<br/>123 payloads]
     PayloadMgr --> WAFBypass[WAF Bypass<br/>122 payloads]
+    PayloadMgr --> DOMxss[DOM XSS<br/>144 payloads]
+    PayloadMgr --> FilterEvas[Filter Evasion<br/>145 payloads]
+    PayloadMgr --> Encoding[Encoding<br/>101 payloads]
     PayloadMgr --> Polyglot[Polyglot<br/>136 payloads]
+    PayloadMgr --> BlindXSS[Blind XSS<br/>68 payloads]
     PayloadMgr --> Framework[Framework Specific<br/>159 payloads]
-    PayloadMgr --> Others[+ 5 more categories<br/>268 payloads]
     
     Scanner --> DOMDet[DOM XSS Detector]
     DOMDet --> Playwright[Playwright Browser]
@@ -98,7 +102,7 @@ flowchart LR
     A[Target URL] --> B[Parameter Discovery]
     B --> C[WAF Detection]
     C --> D[Context Analysis]
-    D --> E[Payload Generation<br/>901+ payloads]
+    D --> E[Payload Generation<br/>1214 payloads]
     E --> F[Reflection Testing]
     F --> G[Vulnerability Scoring]
     G --> H[DOM XSS Analysis]
@@ -427,8 +431,8 @@ Community contributions are welcome:
 ### Machine Learning Implementation
 **Current Status:** Heuristic-based analysis with ML framework prepared
 **Implementation:**
-- Context: Rule-based detection using 25+ HTML/JS features
-- Payload: Heuristic scoring of 30+ payload characteristics  
+- Context: Rule-based detection using 76 HTML/JS features (32 sources + 44 sinks)
+- Payload: Heuristic scoring of 24 payload characteristics (11 high-impact + 6 exfiltration + 7 UI patterns)  
 - Vulnerability: Risk scoring based on context + reflection accuracy
 
 **ML Framework:** scikit-learn compatible architecture ready for model training
@@ -437,8 +441,8 @@ Community contributions are welcome:
 
 ### DOM XSS Analysis
 **Current Capability:** Headless browser execution (Playwright) + source/sink detection
-**Sources Detected:** 25+ (location.*, document.*, localStorage, postMessage, etc.)
-**Sinks Detected:** 20+ (innerHTML, eval, document.write, setTimeout, etc.)
+**Sources Detected:** 32 (location.*, document.*, localStorage, postMessage, WebSocket, etc.)
+**Sinks Detected:** 44 (innerHTML, eval, document.write, setTimeout, setAttribute, etc.)
 **Limitations:** Requires `playwright install` to provision browsers
 
 **Dynamic Analysis Features:**
