@@ -377,8 +377,9 @@ class MLPredictor:
         """Retrain models with new data"""
         logger.info("Starting ML model retraining")
         
-        trainer = MLTrainer(self.models_dir)
-        results = trainer.train_all_models()
+        # TODO: Implement MLTrainer or remove this method
+        logger.warning("MLTrainer not implemented yet")
+        results = {"status": "placeholder"}
         
         # Reload models
         self._load_models()

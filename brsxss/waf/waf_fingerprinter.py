@@ -305,11 +305,13 @@ class WAFFingerprinter:
                 patterns.append(f"{header_name}:")
             
             # Look for WAF-specific values
-            if any(keyword in header_value for keyword in [
+            waf_keywords = [
                 'cloudflare', 'incapsula', 'sucuri', 'akamai', 'aws',
                 'barracuda', 'fortinet', 'f5', 'bigip', 'modsecurity'
-            ]):
-                patterns.append(f"{header_name}:.*{keyword}")
+            ]
+            for keyword in waf_keywords:
+                if keyword in header_value:
+                    patterns.append(f"{header_name}:.*{keyword}")
         
         return patterns
     
