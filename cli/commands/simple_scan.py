@@ -218,8 +218,12 @@ async def simple_scan(
                 include_methodology=True,
             )
             generator = ReportGenerator(report_config)
+            # Load config for report generation
+            from brsxss.core.config_manager import ConfigManager
+            config_mgr = ConfigManager()
+            
             policy = {
-                'min_vulnerability_score': scanner.config.get('scanner.min_vulnerability_score', 2.0),
+                'min_vulnerability_score': config_mgr.get('scanner.min_vulnerability_score', 2.0),
                 'severity_bands': {
                     'critical': '>= 9.0', 'high': '>=7.0', 'medium': '>=4.0', 'low': '>=1.0', 'info': '>0'
                 }
@@ -256,11 +260,11 @@ async def simple_scan(
         try:
             # Give time for pending requests to complete
             await asyncio.sleep(0.5)
-            await scanner.close()
+            # Note: Individual scanners are cleaned up in the loop above
             # Additional delay to ensure SSL cleanup
             await asyncio.sleep(0.5)
         except Exception as e:
-            logger.debug(f"Error closing scanner: {e}")
+            logger.debug(f"Error in cleanup: {e}")
 
 
 def _build_scan_targets(target: str, force_http: bool = False) -> list:
