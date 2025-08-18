@@ -254,10 +254,11 @@ class XSSScanner:
             
             logger.debug(f"Generated {len(payloads)} payloads for {param_name}")
             
-            # Update total payload count with actual number
+            # Update total payload count with actual number (if not set yet)
             actual_payload_count = len(payloads)
             if self.progress_callback and self.total_payloads_count == 0:
-                self.total_payloads_count = actual_payload_count * len(parameters)
+                # Use estimated count since we don't know total parameters in this scope
+                self.total_payloads_count = actual_payload_count
             
             # Test each payload
             max_payloads = self.config.get('max_payloads_per_param', actual_payload_count)
