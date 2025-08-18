@@ -4,7 +4,7 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:31:45 MSK  
-**Telegram:** @easyprotech
+**Telegram:** https://t.me/EasyProTech
 
 ---
 
@@ -125,7 +125,7 @@ BRS-XSS is part of the Brabus Recon Suite (BRS).
 
 **COMMERCIAL LICENSE:**
 - Commercial entities and proprietary projects
-- Contact: @easyprotech for licensing terms
+- Contact: https://t.me/EasyProTech for licensing terms
 - Custom agreements available
 
 ### TRADEMARK NOTICE
@@ -138,7 +138,7 @@ BRS-XSS is part of the Brabus Recon Suite (BRS).
 
 ### VIOLATION REPORTING
 
-Report suspected unauthorized use to: @easyprotech
+Report suspected unauthorized use to: https://t.me/EasyProTech
 
 ### LEGAL CONSEQUENCES
 
@@ -177,7 +177,7 @@ Legal updates will be published at: https://github.com/EPTLLC/brs-xss
 **For legal inquiries only:**
 
 - **Company:** EasyProTech LLC
-- **Contact:** @easyprotech (Telegram)
+- **Contact:** https://t.me/EasyProTech
 - **Website:** www.easypro.tech
 
 **NOTE:** No technical support or consultation provided.

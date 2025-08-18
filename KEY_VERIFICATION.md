@@ -4,7 +4,7 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:33:15 MSK  
-**Telegram:** @easyprotech
+**Telegram:** https://t.me/EasyProTech
 
 ---
 
@@ -201,7 +201,7 @@ brs-xss-v1.0.tar.gz: FAILED
 1. **STOP IMMEDIATELY** - Do not use the release
 2. **DELETE DOWNLOADED FILES** - Remove potentially compromised files
 3. **RE-DOWNLOAD** from official sources only
-4. **REPORT ISSUE** to @easyprotech
+4. **REPORT ISSUE** to https://t.me/EasyProTech
 5. **WAIT FOR OFFICIAL RESPONSE** before proceeding
 
 ---
@@ -292,7 +292,7 @@ echo "✅ Release verification successful"
 
 **FOR GPG/SECURITY ISSUES ONLY:**
 
-- **Contact:** @easyprotech (Telegram)
+- **Contact:** https://t.me/EasyProTech
 - **Purpose:** Key verification problems, security concerns
 - **Response Time:** 24-48 hours for critical issues
 
@@ -325,4 +325,4 @@ echo "✅ Release verification successful"
 
 ---
 
-**EasyProTech LLC | @easyprotech | www.easypro.tech**
+**EasyProTech LLC | https://t.me/EasyProTech | www.easypro.tech**

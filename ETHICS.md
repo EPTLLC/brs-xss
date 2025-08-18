@@ -4,7 +4,7 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:32:45 MSK  
-**Telegram:** @easyprotech
+**Telegram:** https://t.me/EasyProTech
 
 ---
 
@@ -216,7 +216,7 @@
 ### CONCERNS AND VIOLATIONS
 
 **REPORT ETHICAL CONCERNS TO:**
-- **Contact:** @easyprotech (Telegram)
+- **Contact:** https://t.me/EasyProTech
 - **Purpose:** Ethical violations or concerns only
 - **Response:** Appropriate investigation and action
 
@@ -276,4 +276,4 @@
 
 ---
 
-**EasyProTech LLC | @easyprotech | www.easypro.tech**
+**EasyProTech LLC | https://t.me/EasyProTech | www.easypro.tech**

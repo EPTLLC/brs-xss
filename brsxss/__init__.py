@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 __version__ = "1.0.3"
 __author__ = "Brabus (EasyProTech LLC)"
-__email__ = "brabus@easypro.tech"
+__email__ = "mail.easypro.tech@gmail.com"
 __license__ = "MIT"
 __description__ = "XSS Detection Suite"
 

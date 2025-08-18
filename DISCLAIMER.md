@@ -4,7 +4,7 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:32:15 MSK  
-**Telegram:** @easyprotech
+**Telegram:** https://t.me/EasyProTech
 
 ---
 
@@ -182,4 +182,4 @@ Continued use after modifications constitutes acceptance of updated terms.
 
 ---
 
-**EasyProTech LLC | @easyprotech | www.easypro.tech**
+**EasyProTech LLC | https://t.me/EasyProTech | www.easypro.tech**
