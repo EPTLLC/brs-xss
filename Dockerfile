@@ -1,8 +1,8 @@
-# Project: BRS-XSS (XSS Detection Suite)
+# Project: BRS-XSS v1.0.3 (XSS Detection Suite)
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
-# Date: Sun 10 Aug 2025 22:36:10 MSK
-# Status: Created
+# Date: Sun 18 Aug 2025 22:30:00 MSK
+# Status: Modified
 # Telegram: https://t.me/EasyProTech
 
 FROM python:3.10-slim-bookworm
