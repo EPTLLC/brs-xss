@@ -11,7 +11,15 @@ Modified: Вс 10 авг 2025 19:31:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Mapping, Set
+
+# Type alias for WAF detection results
+DetectedWAF = Any
+from collections import Counter
+from itertools import islice
+from functools import lru_cache
+import hashlib
+import random
 
 from .payload_types import GeneratedPayload, GenerationConfig, EvasionTechnique
 from .context_payloads import ContextPayloadGenerator
@@ -19,9 +27,13 @@ from .evasion_techniques import EvasionTechniques
 from .waf_evasions import WAFEvasions
 from .blind_xss import BlindXSSManager
 from ..payloads.payload_manager import PayloadManager
+from ..payloads.context_matrix import ContextMatrix, Context
 from ..utils.logger import Logger
 
 logger = Logger("core.payload_generator")
+
+# Clean module exports
+__all__ = ["PayloadGenerator", "DetectedWAF"]
 
 
 class PayloadGenerator:
@@ -45,25 +57,103 @@ class PayloadGenerator:
         # Initialize generators
         self.context_generator = ContextPayloadGenerator()
         self.payload_manager = PayloadManager()
+        self.context_matrix = ContextMatrix()  # New context-aware payload system
         self.evasion_techniques = EvasionTechniques()
         self.waf_evasions = WAFEvasions()
         self.blind_xss = BlindXSSManager(blind_xss_webhook) if blind_xss_webhook else None
         
-        # Statistics
+        # Statistics with Counter for better performance
         self.generated_count = 0
         self.generation_stats = {
-            'total_generated': 0,
-            'by_context': {},
-            'by_technique': {},
-            'success_rate': 0.0
+            "total_generated": 0,
+            "by_context": Counter(),
+            "by_technique": Counter(),
+            "by_source": Counter(),
+            "success_rate": 0.0,
         }
+        
+        # Deterministic random generator (for future use in tie-breaking)
+        self._rand = random.Random(getattr(self.config, "seed", 1337))
+        
+        # Warning state for safe mode
+        self._warned_blind = False
+        
+        # Validate configuration on initialization
+        self._validate_config()
         
         logger.info("Payload generator initialized")
     
+    def _validate_config(self):
+        """Validate configuration parameters"""
+        fields = [
+            ("max_payloads", 1, 100000),
+            ("effectiveness_threshold", 0.0, 1.0),
+            ("max_manager_payloads", 0, 200000),
+            ("max_evasion_bases", 0, 1000),
+            ("evasion_variants_per_tech", 0, 50),
+            ("waf_bases", 0, 100),
+        ]
+        
+        for name, lo, hi in fields:
+            val = getattr(self.config, name, None)
+            if val is None or not (lo <= val <= hi):
+                raise ValueError(f"Invalid config: {name}={val}, expected range [{lo}, {hi}]")
+        
+        # Validate pool_cap if present
+        pool_cap = getattr(self.config, "pool_cap", 10000)
+        if not (100 <= pool_cap <= 200000):
+            raise ValueError(f"Invalid config: pool_cap={pool_cap}, expected range [100, 200000]")
+    
+    def _norm_key(self, s: str) -> str:
+        """Normalize payload for deduplication with optional hashing"""
+        # Remove whitespace, comments, convert to lowercase
+        cleaned = " ".join(s.split()).lower()
+        # Use hash for crypto-resistant deduplication if enabled
+        use_hash = getattr(self.config, "norm_hash", False)
+        return hashlib.sha256(cleaned.encode()).hexdigest() if use_hash else cleaned
+    
+    @lru_cache(maxsize=65536)
+    def _norm_key_cached(self, s: str) -> str:
+        """Cached version of _norm_key for better performance on large pools"""
+        return self._norm_key(s)
+    
+    def _safe_list(self, xs):
+        """Convert to safe list, protecting against generators/None"""
+        return xs if isinstance(xs, list) else list(xs or [])
+    
+    def _get_weights(self):
+        """Get weights with universal compatibility for dict/object"""
+        defaults = {
+            "context_specific": 0.92,
+            "context_matrix": 0.90, 
+            "comprehensive": 0.70,
+            "evasion": 0.75
+        }
+        w = getattr(self.config, "weights", None)
+        if w is None:
+            return defaults
+        if isinstance(w, dict):
+            return {k: float(w.get(k, v)) for k, v in defaults.items()}
+        return {k: float(getattr(w, k, v)) for k, v in defaults.items()}
+    
+    def _wrap(self, ctx: str, payload: Any, tag: str, eff: float) -> GeneratedPayload:
+        """Wrap payload in GeneratedPayload object with length protection"""
+        payload_str = str(payload).strip() if payload is not None else ""
+        max_len = getattr(self.config, "payload_max_len", 4096)
+        if len(payload_str) > max_len:
+            payload_str = payload_str[:max_len]
+        return GeneratedPayload(
+            payload=payload_str,
+            context_type=ctx,
+            evasion_techniques=[],
+            effectiveness_score=eff,
+            description=tag
+        )
+    
     def generate_payloads(
         self,
-        context_info: Dict[str, Any],
-        detected_wafs: Optional[List[Any]] = None,
+        context_info: Mapping[str, Any],
+        detected_wafs: Optional[List[DetectedWAF]] = None,
         max_payloads: Optional[int] = None
     ) -> List[GeneratedPayload]:
         """
@@ -78,73 +168,134 @@ class PayloadGenerator:
             List of generated payloads
         """
         max_count = max_payloads or self.config.max_payloads
+        max_count = max(1, min(max_count, getattr(self.config, "pool_cap", 10000)))
         context_type = context_info.get('context_type', 'unknown')
         
-        logger.debug(f"Generating max {max_count} payloads for context: {context_type}")
+        # Configuration limits with safe defaults
+        manager_cap = getattr(self.config, "max_manager_payloads", 2000)
+        evasion_bases = getattr(self.config, "max_evasion_bases", 10)
+        evasion_variants = getattr(self.config, "evasion_variants_per_tech", 2)
+        waf_bases = getattr(self.config, "waf_bases", 3)
         
-        all_payloads = []
+        # Quiet logging for large pools
+        pool_cap = getattr(self.config, "pool_cap", 10000)
+        logger.debug(f"Generating max {max_count} for context={context_type} "
+                    f"(manager={manager_cap}, evasion_bases={evasion_bases}, pool_cap={pool_cap})")
         
-        # Generate base context payloads from context generator
-        base_payloads = self.context_generator.get_context_payloads(
-            context_type, context_info
-        )
+        # Build payload pool without excessive memory allocation
+        pool: List[GeneratedPayload] = []
         
-        # Add ALL payloads from payload manager (comprehensive coverage)
-        comprehensive_payloads = self.payload_manager.get_all_payloads()
+        # Get configurable weights for payload sources
+        weights = self._get_weights()
+        w_ctx = weights["context_specific"]
+        w_mat = weights["context_matrix"]
+        w_all = weights["comprehensive"]
         
-        # Combine context-specific and comprehensive payloads
-        combined_payloads = base_payloads + comprehensive_payloads
+        # 1. Base context payloads from context generator with error handling
+        try:
+            base_payloads = self.context_generator.get_context_payloads(context_type, context_info)
+        except Exception as e:
+            logger.error(f"context_generator failed: {e}")
+            base_payloads = []
         
-        # Convert to GeneratedPayload objects (filter empty payloads)
-        for i, payload in enumerate(combined_payloads):
-            # Skip empty or invalid payloads
-            if not payload or not str(payload).strip():
-                continue
-                
-            # Determine if this is a context-specific or comprehensive payload
-            is_context_specific = i < len(base_payloads)
-            description = "Context-specific payload" if is_context_specific else "Comprehensive payload"
-            effectiveness = 0.9 if is_context_specific else 0.7
+        pool.extend([self._wrap(context_type, p, "Context-specific", w_ctx) 
+                    for p in base_payloads if str(p).strip()])
+        
+        # 2. Context Matrix payloads - lazy loading for relevant contexts only
+        matrix_payloads = []
+        if context_type in ("html_content", "html_attribute", "javascript", "css", "uri", "svg"):
+            context_mapping = {
+                'html_content': Context.HTML,
+                'html_attribute': Context.ATTRIBUTE, 
+                'javascript': Context.JAVASCRIPT,
+                'css': Context.CSS,
+                'uri': Context.URI,
+                'svg': Context.SVG
+            }
             
-            all_payloads.append(GeneratedPayload(
-                payload=str(payload).strip(),
-                context_type=context_type,
-                evasion_techniques=[],
-                effectiveness_score=effectiveness,
-                description=description
-            ))
+            matrix_context = context_mapping.get(context_type, Context.HTML)
+            matrix_payloads = list(self.context_matrix.get_context_payloads(matrix_context))
+            matrix_payloads.extend(self.context_matrix.get_polyglot_payloads())
+            
+            # Add aggressive payloads if enabled
+            if getattr(self.config, 'enable_aggressive', False):
+                matrix_payloads.extend(self.context_matrix.get_aggr_payloads())
         
-        # Apply evasion techniques if enabled
-        if self.config.include_evasions:
+        pool.extend([self._wrap(context_type, p, "Context-matrix", w_mat) 
+                    for p in matrix_payloads if str(p).strip()])
+        
+        # 3. Comprehensive payloads with cap to avoid memory issues
+        comprehensive_payloads = islice(self.payload_manager.get_all_payloads(), manager_cap)
+        pool.extend([self._wrap(context_type, p, "Comprehensive", w_all) 
+                    for p in comprehensive_payloads if str(p).strip()])
+        
+        # Hard cap pool size to prevent memory issues
+        pool_cap = getattr(self.config, "pool_cap", 10000)
+        if len(pool) > pool_cap:
+            # Keep proportions: take top by priority (already sorted by effectiveness)
+            pool = pool[:pool_cap]
+        
+        # 4. Sдержанный evasion - только на лучших базовых пейлоадах
+        if self.config.include_evasions and pool:
+            base_for_evasion = [p.payload for p in pool[:min(evasion_bases, len(pool))]]
             evasion_payloads = self._apply_evasion_techniques(
-                base_payloads, context_info
+                base_for_evasion, context_info, limit_per_tech=evasion_variants
             )
-            all_payloads.extend(evasion_payloads)
+            pool.extend(evasion_payloads)
         
-        # Generate WAF-specific payloads if enabled
+        # 5. WAF-specific payloads - только на топ базовых
         if self.config.include_waf_specific and detected_wafs:
-            waf_payloads = self._generate_waf_specific_payloads(
-                base_payloads, detected_wafs
-            )
-            all_payloads.extend(waf_payloads)
+            base_for_waf = [p.payload for p in pool[:min(waf_bases, len(pool))]]
+            waf_payloads = self._generate_waf_specific_payloads(base_for_waf, detected_wafs)
+            pool.extend(waf_payloads)
         
-        # Filter by effectiveness threshold
-        filtered_payloads = [
-            p for p in all_payloads 
-            if p.effectiveness_score >= self.config.effectiveness_threshold
-        ]
+        # 6. Early filtering, deduplication, and sorting
+        thr = getattr(self.config, 'effectiveness_threshold', 0.65)
+        seen: Set[str] = set()
+        filtered: List[GeneratedPayload] = []
         
-        # Sort by effectiveness and limit count
+        for p in pool:
+            if p.effectiveness_score < thr:
+                continue
+            key = self._norm_key_cached(p.payload)
+            if key in seen:
+                continue
+            seen.add(key)
+            filtered.append(p)
+        
+        # Stable sort: by score desc, then by payload for determinism
         sorted_payloads = sorted(
-            filtered_payloads,
-            key=lambda p: p.effectiveness_score,
-            reverse=True
+            filtered,
+            key=lambda x: (-x.effectiveness_score, x.payload)
         )[:max_count]
         
-        # Update statistics
-        self._update_statistics(sorted_payloads, context_type)
+        # Apply blind XSS payloads if enabled and not in safe mode
+        safe_mode = getattr(self.config, "safe_mode", True)
+        if safe_mode and getattr(self.config, "include_blind_xss", False) and not self._warned_blind:
+            logger.warning("include_blind_xss ignored due to safe_mode")
+            self._warned_blind = True
+        elif not safe_mode and self.config.include_blind_xss and self.blind_xss:
+            blind_payloads = self.blind_xss.generate_payloads(context_type, context_info)
+            blind_limit = getattr(self.config, "blind_batch_limit", 10)
+            sorted_payloads.extend(blind_payloads[:min(blind_limit, max_count - len(sorted_payloads))])
         
-        logger.info(f"Generated {len(sorted_payloads)} payloads for {context_type}")
+        # Final deduplication after blind XSS to prevent duplicates
+        seen_final: Set[str] = set()
+        final: List[GeneratedPayload] = []
+        for p in sorted_payloads:
+            k = self._norm_key_cached(p.payload)
+            if k in seen_final:
+                continue
+            seen_final.add(k)
+            final.append(p)
+        sorted_payloads = final[:max_count]
+        
+        # Update statistics with Counter
+        self._update_statistics(sorted_payloads, context_type, len(pool))
+        
+        logger.info(f"Generated {len(sorted_payloads)} payloads for context={context_type}")
+        logger.debug(f"candidates={len(pool)} filtered={len(filtered)} final={len(sorted_payloads)}")
+        
         return sorted_payloads
     
     def generate_single_payload(
@@ -198,7 +349,8 @@ class PayloadGenerator:
     def _apply_evasion_techniques(
         self,
         base_payloads: List[str],
-        context_info: Dict[str, Any]
+        context_info: Mapping[str, Any],
+        limit_per_tech: int = 2
     ) -> List[GeneratedPayload]:
         """Apply various evasion techniques to base payloads"""
         evasion_payloads = []
@@ -207,6 +359,10 @@ class PayloadGenerator:
         limited_base = base_payloads[:5]
         
         for base_payload in limited_base:
+            # Skip empty or overly long payloads for safety
+            if not base_payload or len(base_payload) > 4096:
+                continue
+                
             # Apply each evasion technique
             techniques_map = {
                 'case_variation': self.evasion_techniques.apply_case_variations,
@@ -222,13 +378,13 @@ class PayloadGenerator:
                 try:
                     variants = technique_func(base_payload)
                     
-                    for variant in variants[:3]:  # Limit variants per technique
+                    for variant in variants[:limit_per_tech]:  # Use configurable limit
                         if variant != base_payload:  # Avoid duplicates
                             evasion_payloads.append(GeneratedPayload(
                                 payload=variant,
                                 context_type=context_info.get('context_type', 'unknown'),
                                 evasion_techniques=[technique_name],
-                                effectiveness_score=0.7,
+                                effectiveness_score=0.75,
                                 description=f"Evasion: {technique_name}"
                             ))
                 
@@ -242,7 +398,7 @@ class PayloadGenerator:
     def _generate_waf_specific_payloads(
         self,
         base_payloads: List[str],
-        detected_wafs: List[Any]
+        detected_wafs: List[DetectedWAF]
     ) -> List[GeneratedPayload]:
         """Generate WAF-specific evasion payloads"""
         waf_payloads = []
@@ -279,47 +435,59 @@ class PayloadGenerator:
         
         return [payload]
     
-    def _update_statistics(self, payloads: List[GeneratedPayload], context_type: str):
-        """Update generation statistics"""
+    def _update_statistics(self, payloads: List[GeneratedPayload], context_type: str, 
+                          total_candidates: int = None):
+        """Update generation statistics with real success rate calculation"""
         self.generated_count += len(payloads)
-        self.generation_stats['total_generated'] = self.generated_count
+        self.generation_stats["total_generated"] = self.generated_count
+        self.generation_stats["by_context"][context_type] += len(payloads)
         
-        # Update context statistics
-        if context_type not in self.generation_stats['by_context']:
-            self.generation_stats['by_context'][context_type] = 0
-        self.generation_stats['by_context'][context_type] += len(payloads)
-        
-        # Update technique statistics
+        # Update technique and source statistics with Counter
         for payload in payloads:
-            for technique in payload.evasion_techniques:
-                if technique not in self.generation_stats['by_technique']:
-                    self.generation_stats['by_technique'][technique] = 0
-                self.generation_stats['by_technique'][technique] += 1
+            for t in payload.evasion_techniques:
+                self.generation_stats["by_technique"][t] += 1
+            self.generation_stats["by_source"][payload.description] += 1
+        
+        # Calculate real success rate: payloads that passed threshold vs total candidates
+        prev_rate = self.generation_stats["success_rate"]
+        if total_candidates and total_candidates > 0:
+            batch_rate = len(payloads) / float(total_candidates)
+        else:
+            batch_rate = 1.0  # Fallback when no candidate count available
+        self.generation_stats["success_rate"] = 0.9 * prev_rate + 0.1 * batch_rate
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get generation statistics"""
         return self.generation_stats.copy()
     
     def reset_statistics(self):
-        """Reset generation statistics"""
+        """Reset generation statistics with proper Counter types"""
         self.generated_count = 0
         self.generation_stats = {
-            'total_generated': 0,
-            'by_context': {},
-            'by_technique': {},
-            'success_rate': 0.0
+            "total_generated": 0,
+            "by_context": Counter(),
+            "by_technique": Counter(),
+            "by_source": Counter(),
+            "success_rate": 0.0,
         }
         logger.info("Generation statistics reset")
     
     def update_config(self, config: GenerationConfig):
-        """Update generation configuration"""
+        """Update generation configuration with validation"""
+        old_config = self.config
         self.config = config
-        logger.info(f"Generation config updated: max_payloads={config.max_payloads}")
+        try:
+            self._validate_config()
+            logger.info(f"Generation config updated: max_payloads={config.max_payloads}")
+        except ValueError as e:
+            # Restore old config if validation fails
+            self.config = old_config
+            raise e
     
     def bulk_generate_payloads(
         self,
         contexts: List[Dict[str, Any]],
-        detected_wafs: Optional[List[Any]] = None
+        detected_wafs: Optional[List[DetectedWAF]] = None
     ) -> Dict[str, List[GeneratedPayload]]:
         """
         Generate payloads for multiple contexts efficiently.
@@ -335,20 +503,23 @@ class PayloadGenerator:
         
         logger.info(f"Bulk generating payloads for {len(contexts)} contexts")
         
+        # Equal quota distribution with stable order
+        quota = max(1, self.config.max_payloads // max(1, len(contexts)))
+        
         for i, context_info in enumerate(contexts):
-            context_type = context_info.get('context_type', f'context_{i}')
+            ctx_name = context_info.get("context_type", f"context_{i}")
             
             try:
                 payloads = self.generate_payloads(
                     context_info=context_info,
                     detected_wafs=detected_wafs,
-                    max_payloads=self.config.max_payloads // len(contexts)
+                    max_payloads=quota
                 )
-                results[context_type] = payloads
+                results[ctx_name] = payloads
                 
             except Exception as e:
-                logger.error(f"Error generating payloads for context {context_type}: {e}")
-                results[context_type] = []
+                logger.error(f"Error generating payloads for context {ctx_name}: {e}")
+                results[ctx_name] = []
         
         logger.info(f"Bulk generation completed: {len(results)} context types")
         return results

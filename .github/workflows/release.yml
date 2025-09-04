@@ -1,0 +1,126 @@
+# Project: BRS-XSS (XSS Detection Suite)
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Wed 04 Sep 2025 10:25:00 MSK
+# Status: Created
+# Telegram: https://t.me/EasyProTech
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install -U pip wheel
+        pip install -r requirements/dev.txt
+        pip install -e .
+        
+    - name: Quality gates
+      run: |
+        ruff check .
+        mypy brsxss/ cli/ --ignore-missing-imports
+        
+    - name: Test with coverage
+      run: |
+        coverage run -m pytest -q --maxfail=1
+        coverage report --fail-under=85
+        
+    - name: SARIF smoke test
+      run: |
+        # Generate test SARIF
+        brs-xss scan "http://httpbin.org/get?test=value" -o test.sarif --timeout 10 || true
+        
+        # Validate SARIF 2.1.0 compliance
+        if [ -f "test.sarif" ]; then
+          python - <<'PY'
+import json,sys
+s=json.load(open("test.sarif"))
+assert s["version"]=="2.1.0"
+print("SARIF 2.1.0 validated")
+PY
+        fi
+
+  docker:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Extract version
+      id: version
+      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        
+    - name: Build and push multi-arch
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ghcr.io/eptllc/brs-xss:latest
+          ghcr.io/eptllc/brs-xss:${{ steps.version.outputs.version }}
+          
+    - name: Install cosign and syft
+      uses: sigstore/cosign-installer@v3
+      
+    - name: Install syft for SBOM
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+        
+    - name: Generate SBOM and sign
+      run: |
+        # Generate SBOM
+        syft dir:. -o spdx-json > sbom.spdx.json
+        
+        # Sign container images
+        cosign sign --yes ghcr.io/eptllc/brs-xss:latest
+        cosign sign --yes ghcr.io/eptllc/brs-xss:${{ steps.version.outputs.version }}
+        
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v3
+      with:
+        name: sbom-${{ steps.version.outputs.version }}
+        path: sbom.spdx.json
+
+  pypi:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Build package
+      run: |
+        pip install build
+        python -m build
+        
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}

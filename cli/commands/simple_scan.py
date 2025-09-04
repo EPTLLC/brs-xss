@@ -68,6 +68,9 @@ async def simple_scan(
         help="Webhook URL for blind XSS detection"
     ),
     no_ssl_verify: bool = typer.Option(False, "--no-ssl-verify", help="Disable SSL certificate verification (useful for internal/self-signed certs)"),
+    safe_mode: bool = typer.Option(True, "--safe-mode/--no-safe-mode", help="Enable safe mode for production scanning"),
+    pool_cap: int = typer.Option(10000, "--pool-cap", help="Maximum payload pool size", min=100, max=200000),
+    max_payloads: int = typer.Option(500, "--max-payloads", help="Maximum payloads per context", min=1, max=10000),
 ):
     """Scan target for XSS vulnerabilities - specify domain or IP only"""
     
@@ -488,9 +491,12 @@ def simple_scan_wrapper(
         "--no-ssl-verify",
         help="Disable SSL certificate verification (useful for internal/self-signed certs)"
     ),
+    safe_mode: bool = typer.Option(True, "--safe-mode/--no-safe-mode", help="Enable safe mode for production scanning"),
+    pool_cap: int = typer.Option(10000, "--pool-cap", help="Maximum payload pool size", min=100, max=200000),
+    max_payloads: int = typer.Option(500, "--max-payloads", help="Maximum payloads per context", min=1, max=10000),
 ):
     """Wrapper to run async scan function"""
-    return asyncio.run(simple_scan(target, threads, timeout, output, deep, verbose, ml_mode, blind_xss_webhook, no_ssl_verify))
+    return asyncio.run(simple_scan(target, threads, timeout, output, deep, verbose, ml_mode, blind_xss_webhook, no_ssl_verify, safe_mode, pool_cap, max_payloads))
 
 # Create typer app for this command
 app = typer.Typer()

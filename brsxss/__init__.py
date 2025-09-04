@@ -9,7 +9,7 @@ Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __author__ = "Brabus (EasyProTech LLC)"
 __email__ = "mail.easypro.tech@gmail.com"
 __license__ = "MIT"

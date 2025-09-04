@@ -1,21 +1,73 @@
-#!/usr/bin/env python3
-
-Project: BRS-XSS (XSS Detection Suite)
-Company: EasyProTech LLC (www.easypro.tech)
-Dev: Brabus
-Date: Sun 10 Aug 2025 22:26:02 MSK
-Status: Created
-Telegram: https://t.me/EasyProTech
-
 # Changelog
 
 All notable changes to this project will be documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [1.0.4] - 2025-09-04
+
+### Highlights
+- SARIF 2.1.0 reporting for GitHub Security integration
+- CI/CD pipeline with Docker multi-arch builds
+- Complete documentation overhaul with comparison matrix
+
+### Added
+- SARIF 2.1.0 reporter (`sarif_reporter.py`)
+- Context Matrix framework (6 contexts + polyglot payloads, not yet integrated)
+- 5 How-to guides (quickstart, CI, SARIF, Docker, safe-mode)
+- Example user config (`~/.config/brs-xss/config.toml`)
+- Benchmark suite (performance + accuracy)
+
+### Changed
+- Project description to "Context-aware async XSS scanner for CI"
+- Safe defaults in `config/default.yaml`
+- PyPI keywords and README for better positioning
+- Dockerfile with multi-stage, security hardened
+
+### DevOps
+- GitHub Actions pipeline (ruff, mypy, pytest, codecov)
+- Multi-arch Docker builds (amd64/arm64)
+- Container registry GHCR with signed images
+- Performance monitoring via benchmark framework
+
+### Documentation
+- README overhaul with comparison vs XSStrike/XSpear/dalfox
+- Integration guides: GitHub Actions, GitLab CI, Jenkins
+- SARIF integration guide (Security tab setup)
+- Docker deployment guide
+
+### Fixed
+- **PayloadGenerator stability**: Fixed reset_statistics Counter type bug, unified detected_wafs types
+- **Statistics calculation**: Added proper success_rate updates with exponential smoothing
+- **Memory optimization**: Lazy Context Matrix loading for relevant contexts only
+- **Type safety**: Removed unused imports (Iterable, Tuple), consistent Optional[List[Any]] types
+- **Performance**: Reduced unnecessary allocations for unknown context types
+- **Configuration validation**: Added comprehensive config parameter validation with safe ranges
+- **Pool size control**: Hard cap on payload pool size to prevent memory issues (pool_cap setting)
+- **Final deduplication**: Added post-blind-XSS deduplication to eliminate all duplicates
+- **Security**: Safe logging without exposing raw payloads or WAF markers
+- **Payload safety**: Protection against empty/oversized payloads in evasion techniques
+- **Real success metrics**: Accurate success_rate calculation based on filtered vs total candidates
+- **Safe mode integration**: Blind XSS disabled in safe_mode for production safety
+- **Configurable weights**: Customizable effectiveness scores for different payload sources
+- **Code readability**: Explicit list comprehensions instead of generator expressions
+
+### Next
+- Context Matrix integration into core engine
+- WAF bypass test-suite
+- ML-scoring pipeline
 
 ## [1.0.3] - 2025-08-18
+
+### Highlights
+- **Complete Payload Arsenal**: Integration of 901+ specialized payloads from all payload modules
+- **Real-time Progress**: Detailed payload testing progress with time estimates
+- **Enhanced User Experience**: Dual progress bars for comprehensive scan visibility
+
 ### Added
-- **Comprehensive Payload Integration**: PayloadGenerator now uses PayloadManager to access ALL 901+ payloads from payloads folder
-- **Real-time Progress Tracking**: Added progress callback system showing "Testing payload X/Y" with percentage and time estimates
-- **Enhanced User Feedback**: Dual progress bars - one for URLs, one for detailed payload testing progress
+- **Payload Integration**: PayloadGenerator now accesses all 901+ payloads from payload modules
+- **Progress Tracking**: Real-time progress callback system with payload-level granularity
+- **User Interface**: Dual progress bars showing URL and payload testing progress
 
 ### Fixed
 - **Syntax Errors**: Resolved F821 undefined name errors (Dict import, MLTrainer reference, keyword scope)
@@ -66,6 +118,16 @@ All notable changes to this project will be documented in this file.
 - SARIF/JUnit templates available; can be enabled via formats in report config in future.
 
 ## [1.0.0] - 2025-08-06
-- Initial release.
+- Initial release with core XSS detection capabilities
+- Context-aware payload generation
+- WAF detection and bypass techniques
+- Multi-format reporting (HTML, JSON)
+- DOM XSS analysis via Playwright
 
+---
 
+[1.0.4]: https://github.com/EPTLLC/brs-xss/compare/v1.0.3...v1.0.4
+[1.0.3]: https://github.com/EPTLLC/brs-xss/compare/v1.0.2...v1.0.3
+[1.0.2]: https://github.com/EPTLLC/brs-xss/compare/v1.0.1...v1.0.2
+[1.0.1]: https://github.com/EPTLLC/brs-xss/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v1.0.0

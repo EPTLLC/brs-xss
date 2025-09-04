@@ -11,8 +11,8 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Dict, Any
-from dataclasses import dataclass
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -77,11 +77,74 @@ class PayloadTemplate:
 @dataclass
 class GenerationConfig:
     """Configuration for payload generation"""
-    max_payloads: int = 2000  # Allow for comprehensive testing (901 base + evasions + WAF-specific)
+    max_payloads: int = 500  # Reduced default for better performance
     include_evasions: bool = True
     include_waf_specific: bool = True
-    effectiveness_threshold: float = 0.3
+    include_blind_xss: bool = False
+    effectiveness_threshold: float = 0.65  # Higher threshold for quality
     context_specific_only: bool = False
+    
+    # New performance-oriented settings
+    seed: int = 1337
+    max_manager_payloads: int = 2000
+    max_evasion_bases: int = 10
+    evasion_variants_per_tech: int = 2
+    waf_bases: int = 3
+    enable_aggressive: bool = False
+    
+    # Additional safety and performance settings
+    pool_cap: int = 10000
+    norm_hash: bool = False
+    safe_mode: bool = True
+    
+    # Magic number constants
+    payload_max_len: int = 4096
+    evasion_base_limit: int = 5
+    blind_batch_limit: int = 10
+    
+    # Configurable weights for payload sources (optional)
+    weights: Optional['Weights'] = None
+
+
+@dataclass
+class Weights:
+    """Weights for different payload sources"""
+    context_specific: float = 0.92
+    context_matrix: float = 0.90
+    comprehensive: float = 0.70
+    evasion: float = 0.75
+
+
+@dataclass  
+class GenerationConfig:
+    """Configuration for payload generation"""
+    max_payloads: int = 500  # Reduced default for better performance
+    include_evasions: bool = True
+    include_waf_specific: bool = True
+    include_blind_xss: bool = False
+    effectiveness_threshold: float = 0.65  # Higher threshold for quality
+    context_specific_only: bool = False
+    
+    # New performance-oriented settings
+    seed: int = 1337
+    max_manager_payloads: int = 2000
+    max_evasion_bases: int = 10
+    evasion_variants_per_tech: int = 2
+    waf_bases: int = 3
+    enable_aggressive: bool = False
+    
+    # Additional safety and performance settings
+    pool_cap: int = 10000
+    norm_hash: bool = False
+    safe_mode: bool = True
+    
+    # Magic number constants
+    payload_max_len: int = 4096
+    evasion_base_limit: int = 5
+    blind_batch_limit: int = 10
+    
+    # Configurable weights for payload sources
+    weights: Weights = field(default_factory=Weights)
     
     def __post_init__(self):
         """Validate configuration"""

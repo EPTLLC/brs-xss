@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brs-xss"
-version = "1.0.3"
-description = "Next-Generation XSS Detection Suite"
+version = "1.0.4"
+description = "Context-aware async XSS scanner for CI"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "GPL-3.0-or-later" }
 authors = [ { name = "Brabus", email = "mail.easypro.tech@gmail.com" } ]
-keywords = ["xss","security","scanner","cli","dom","playwright"]
+keywords = ["security","xss","dast","sarif","playwright","bug-bounty","ci-cd","async","context-aware"]
 dependencies = [
   "aiohttp>=3.8.0",
   "typer>=0.9.0",

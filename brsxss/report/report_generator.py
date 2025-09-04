@@ -18,6 +18,7 @@ from typing import Dict, List, Any
 from .report_types import ReportFormat, ReportConfig
 from .data_models import VulnerabilityData, ScanStatistics
 from .templates import HTMLTemplate, SARIFTemplate, JUnitTemplate, JSONTemplate
+from .sarif_reporter import SARIFReporter
 from ..utils.logger import Logger
 
 logger = Logger("report.generator")
@@ -51,6 +52,9 @@ class ReportGenerator:
             ReportFormat.JUNIT: JUnitTemplate(),
             ReportFormat.JSON: JSONTemplate(),
         }
+        
+        # Initialize SARIF 2.1.0 compliant reporter
+        self.sarif_reporter = SARIFReporter()
         
         # Create reports directory
         Path(self.config.output_dir).mkdir(parents=True, exist_ok=True)
@@ -196,13 +200,6 @@ class ReportGenerator:
     def _generate_single_format(self, report_format: ReportFormat, report_data: Dict[str, Any]) -> str:
         """Generate report in single format"""
         
-        template = self.templates.get(report_format)
-        if not template:
-            raise ValueError(f"Template for format {report_format.value} not found")
-        
-        # Generate content
-        content = template.generate(report_data)
-        
         # Form filename
         timestamp = int(time.time())
         filename = self.config.filename_template.format(timestamp=timestamp)
@@ -224,9 +221,32 @@ class ReportGenerator:
         # Full file path
         file_path = Path(self.config.output_dir) / full_filename
         
-        # Save file atomically
-        from ..utils.paths import atomic_write
-        atomic_write(str(file_path), content)
+        # Special handling for SARIF 2.1.0 compliant reports
+        if report_format == ReportFormat.SARIF:
+            # Use new SARIF reporter for GitHub Security integration
+            vulnerabilities = report_data.get('vulnerabilities', [])
+            scan_info = {
+                'start_time': report_data.get('scan_info', {}).get('start_time'),
+                'end_time': report_data.get('scan_info', {}).get('end_time'),
+                'targets_scanned': report_data.get('scan_info', {}).get('targets_scanned', 0),
+                'duration': report_data.get('scan_info', {}).get('duration', 'unknown'),
+                'command_line': report_data.get('scan_info', {}).get('command_line', 'brs-xss scan'),
+                'machine': report_data.get('scan_info', {}).get('machine', 'unknown')
+            }
+            
+            self.sarif_reporter.save_sarif(vulnerabilities, scan_info, str(file_path))
+        else:
+            # Use template-based generation for other formats
+            template = self.templates.get(report_format)
+            if not template:
+                raise ValueError(f"Template for format {report_format.value} not found")
+            
+            # Generate content
+            content = template.generate(report_data)
+            
+            # Save file atomically
+            from ..utils.paths import atomic_write
+            atomic_write(str(file_path), content)
         
         return str(file_path)
     

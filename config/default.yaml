@@ -1,66 +1,100 @@
-# BRS-XSS Default Configuration
+# BRS-XSS v2.0.0 Configuration  
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
-# Created: Thu 31 Jul 00:17:37 MSK 2025
+# Date: Wed 04 Sep 2025 09:03:08 MSK
+# Status: Modified
 # Telegram: https://t.me/EasyProTech
 
 # Global settings
 app:
   name: "BRS-XSS"
-  version: "1.0.3"
+  version: "1.0.4"
   locale: "en"                    # Base locale (English)
   fallback_locale: "en"           # Fallback locale
 
-# Scanner settings  
+# Scanner settings with production-safe defaults
 scanner:
-  max_depth: 3
-  timeout: 10
-  user_agent: "BRS-XSS v1.0.2"
-  threads: 10
-  delay: 0.0
+  max_depth: 3                    # Safe crawling depth
+  timeout: 15                     # Request timeout in seconds
+  user_agent: "BRS-XSS v2.0.0"
+  concurrency: 32                 # Concurrent requests limit
+  rate_limit: 8.0                 # Requests per second (RPS)
+  delay: 0.125                    # Delay between requests (1/8 second)
   min_vulnerability_score: 2.0    # Minimum score for vulnerability detection
+  safe_mode: true                 # Enable production-safe defaults
+  respect_robots: true            # Respect robots.txt
+  enable_denylist: true           # Enable URL denylist
+  max_retries: 3                  # HTTP retry attempts
+  backoff_factor: 2.0             # Exponential backoff multiplier
+  
+# Performance and caching
+performance:
+  enable_caching: true            # Enable reflection caching
+  cache_size: 10000               # Max cached URL+parameter combinations
+  enable_deduplication: true      # Enable payload deduplication via Bloom filter
+  bloom_filter_size: 100000       # Bloom filter capacity
+  bloom_error_rate: 0.01          # Bloom filter false positive rate
+  browser_pool_size: 4            # Playwright browser instances per worker
   
 # Payload settings
 payloads:
   max_generation: 1000
   min_efficiency: 85
-  contexts: ["html", "attribute", "script", "comment"]
+  contexts: ["html", "attribute", "script", "css", "uri", "svg"]
+  aggr_mode: false                # Enable aggressive polyglot + multi-encoding
+  waf_bypass: true                # Include WAF bypass payloads
   
 # Machine learning
 ml:
   models_path: "./brsxss/ml/models/"
   enable_prediction: true
   confidence_threshold: 0.8
+  context_features: 76            # HTML/JS features (32 sources + 44 sinks)
+  payload_features: 24            # Payload characteristics
 
-# Reporting
+# Reporting with SARIF 2.1.0 compliance
 reporting:
-  formats: ["html", "json", "sarif", "xml", "csv"]
+  formats: ["sarif", "json", "html"]
   output_dir: "./results/"
-  include_screenshots: false
+  include_screenshots: true       # For DOM XSS analysis
+  include_replay_urls: true       # One-click vulnerability replay
   auto_cleanup_days: 30
   preserve_critical: true
+  sarif_version: "2.1.0"
+  json_schema_validation: true
   
 # Internationalization  
 i18n:
   locales_path: "./brsxss/i18n/locales/"
-  supported_locales: ["en", "ru", "zh", "es", "de", "fr", "ja"]
-  auto_detect_locale: true
+  supported_locales: ["en", "ru"]
+  auto_detect_locale: false       # Disable auto-detection for consistency
   domain: "brsxss"
 
-# HTTP settings
+# HTTP settings with security focus
 http:
   verify_ssl: true
   follow_redirects: true
-  max_retries: 3
+  max_redirects: 5
   default_headers:
     Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
-    Accept-Language: "ru-RU,ru;q=0.9,en;q=0.8"
+    Accept-Language: "en-US,en;q=0.9"
     Accept-Encoding: "gzip, deflate"
     Connection: "keep-alive"
+    Cache-Control: "no-cache"
 
-# Logging
+# Security and safety
+security:
+  denylist_domains: []            # Domains to never scan
+  denylist_patterns: []           # URL patterns to avoid
+  max_payload_length: 2048        # Maximum payload size
+  sanitize_logs: true             # Sanitize sensitive data in logs
+  enable_safe_logging: true       # Use PayloadValidator for log sanitization
+
+# Logging with structured output
 logging:
   level: "INFO"
   console_output: true
   file_output: "./logs/brs-xss.log"
   format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+  max_log_size: "100MB"
+  backup_count: 5

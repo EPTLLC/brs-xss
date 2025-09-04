@@ -1,28 +1,37 @@
-# BRS-XSS Development Dependencies
+# Development dependencies for BRS-XSS
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
-# Created: Thu 31 Jul 00:17:37 MSK 2025
+# Date: Wed 04 Sep 2025 10:25:00 MSK
+# Status: Created
+# Telegram: https://t.me/EasyProTech
 
-# Include base requirements
+# Base requirements
 -r base.txt
 
 # Testing
-pytest>=7.4.0            # Testing framework
-pytest-cov>=4.1.0        # Coverage reporting
-pytest-asyncio>=0.21.0   # Async testing support
-pytest-mock>=3.11.0      # Mocking utilities
+pytest>=8.0.0
+pytest-cov>=4.0.0
+pytest-asyncio>=0.21.0
+pytest-benchmark>=4.0.0
+coverage>=7.0.0
 
 # Code quality
-black>=23.0.0            # Code formatting
-isort>=5.12.0            # Import sorting
-flake8>=6.0.0            # Linting
-mypy>=1.4.0              # Type checking
+ruff>=0.1.0
+mypy>=1.5.0
+types-PyYAML>=6.0.0
+types-requests>=2.31.0
 
 # Development tools
-pre-commit>=3.3.0        # Git hooks
-tox>=4.6.0               # Testing across environments
-bump2version>=1.0.0      # Version management
+black>=23.0.0
+isort>=5.12.0
 
-# Documentation
-mkdocs>=1.5.0            # Documentation generator
-mkdocs-material>=9.1.0   # Material theme for docs
+# Security scanning
+bandit>=1.7.0
+safety>=2.3.0
+
+# SARIF validation
+sarif-om>=1.0.0
+
+# Container security
+syft>=0.100.0
+cosign>=2.0.0

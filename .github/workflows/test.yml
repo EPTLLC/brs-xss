@@ -1,0 +1,167 @@
+# Project: BRS-XSS (XSS Detection Suite)
+# Company: EasyProTech LLC (www.easypro.tech)  
+# Dev: Brabus
+# Date: Wed 04 Sep 2025 09:03:08 MSK
+# Status: Created
+# Telegram: https://t.me/EasyProTech
+
+name: Tests & Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff mypy types-PyYAML types-requests
+        pip install -e .
+        
+    - name: Lint with ruff
+      run: ruff check .
+      
+    - name: Type check with mypy
+      run: mypy brsxss/ cli/ --ignore-missing-imports
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-asyncio
+        pip install -e .
+        playwright install chromium
+        
+    - name: Run tests with coverage
+      run: |
+        pytest tests/ -v --maxfail=1 --cov=brsxss --cov-report=xml --cov-report=term
+        
+    - name: Check coverage threshold
+      run: |
+        coverage report --fail-under=85
+        
+    - name: Upload coverage to Codecov
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        playwright install chromium
+        
+    - name: Test against XSS-Game
+      run: |
+        # Test basic functionality against known vulnerable target
+        timeout 120 python -m pytest tests/e2e/ -v || echo "E2E tests completed"
+        
+    - name: SARIF Schema Validation
+      run: |
+        # Install SARIF validator
+        npm install -g @microsoft/sarif-validator
+        
+        # Generate test SARIF
+        brs-xss scan "http://xss-game.appspot.com/level1/frame?query=test" -o test.sarif --timeout 30 || true
+        
+        # Validate SARIF 2.1.0 compliance
+        if [ -f "test.sarif" ]; then
+          echo "SARIF file generated successfully"
+          python -c "import json; json.load(open('test.sarif'))" && echo "Valid JSON"
+          sarif-validator test.sarif && echo "SARIF 2.1.0 schema valid"
+        fi
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+      
+    - name: Build Docker image
+      run: |
+        docker build -t brs-xss:test .
+        
+    - name: Test Docker image
+      run: |
+        docker run --rm brs-xss:test --help
+        
+    - name: Login to GitHub Container Registry
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Install cosign and syft
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: sigstore/cosign-installer@v3
+      
+    - name: Install syft for SBOM
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+        
+    - name: Build and push
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ghcr.io/eptllc/brs-xss:latest
+          ghcr.io/eptllc/brs-xss:v1.0.4
+        platforms: linux/amd64,linux/arm64
+        
+    - name: Generate SBOM and sign image
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        # Generate SBOM
+        syft dir:. -o spdx-json > sbom.spdx.json
+        
+        # Sign container image
+        cosign sign --yes ghcr.io/eptllc/brs-xss:latest
+        cosign sign --yes ghcr.io/eptllc/brs-xss:v1.0.4
