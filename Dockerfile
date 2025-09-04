@@ -14,13 +14,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Copy requirements first for better caching
+# Copy requirements and code for installation
 COPY requirements/ requirements/
 COPY pyproject.toml setup.py ./
+COPY brsxss/ brsxss/
+COPY cli/ cli/
+COPY config/ config/
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --user -r requirements/base.txt
+    pip install --user -e .
 
 # Runtime stage
 FROM python:3.11-slim-bookworm
