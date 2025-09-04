@@ -52,8 +52,8 @@ COPY cli/ cli/
 COPY config/ config/
 COPY pyproject.toml setup.py ./
 
-# Install application 
-RUN pip install .
+# Install application with dependencies
+RUN pip install --upgrade pip && pip install .
 
 # Install browsers for Playwright (only Chromium for smaller image)
 RUN playwright install chromium --with-deps
