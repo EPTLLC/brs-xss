@@ -115,6 +115,10 @@ jobs:
   docker:
     name: Docker Build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # Required for OIDC signing
     steps:
     - uses: actions/checkout@v4
     
@@ -159,10 +163,13 @@ jobs:
         
     - name: Generate SBOM and sign image
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      env:
+        COSIGN_EXPERIMENTAL: "true"
       run: |
         # Generate SBOM
         syft dir:. -o spdx-json > sbom.spdx.json
         
-        # Sign container images
-        cosign sign --yes ghcr.io/eptllc/brs-xss:latest
-        cosign sign --yes ghcr.io/eptllc/brs-xss:v1.0.4
+        # Sign container images using OIDC (no device flow)
+        export COSIGN_OIDC_ISSUER=https://token.actions.githubusercontent.com
+        cosign sign --identity-token "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" ghcr.io/eptllc/brs-xss:latest
+        cosign sign --identity-token "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" ghcr.io/eptllc/brs-xss:v1.0.4
