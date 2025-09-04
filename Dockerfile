@@ -23,7 +23,7 @@ COPY config/ config/
 
 # Install Python dependencies
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --user -e .
+    pip install --user .
 
 # Runtime stage
 FROM python:3.11-slim-bookworm
@@ -52,8 +52,8 @@ COPY cli/ cli/
 COPY config/ config/
 COPY pyproject.toml setup.py ./
 
-# Install application in development mode
-RUN pip install -e .
+# Install application 
+RUN pip install .
 
 # Install browsers for Playwright (only Chromium for smaller image)
 RUN playwright install chromium --with-deps
