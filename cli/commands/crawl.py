@@ -17,7 +17,6 @@ import asyncio
 
 import typer
 from rich.console import Console
-from rich.progress import Progress
 
 from brsxss import _
 from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
@@ -136,7 +135,7 @@ def crawl_command(
             
             with open(output if output.endswith('.json') else f"{output}.json", 'w') as f:
                 json.dump(crawl_data, f, indent=2)
-            console.print(f"📄 " + _("Crawl results saved: {filepath}").format(filepath=output))
+            console.print("📄 " + _("Crawl results saved: {filepath}").format(filepath=output))
         
         console.print(f"\n[green]Crawl successful: {len(all_discovered_urls)} URLs discovered[/green]")
             

@@ -11,8 +11,7 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-import re
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from ..utils.logger import Logger
 
 logger = Logger("core.similarity_matcher")

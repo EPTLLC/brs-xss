@@ -10,7 +10,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import asyncio
-import time
 from typing import Optional
 from urllib.parse import urlparse, urljoin
 
@@ -18,13 +17,11 @@ import typer
 from rich.console import Console
 from rich.progress import Progress
 
-from brsxss import _, __version__
+from brsxss import __version__
 from brsxss.core.scanner import XSSScanner
 from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig, ReportFormat
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics
-from brsxss.core.config_manager import ConfigManager
-from brsxss.utils.validators import URLValidator
 from brsxss.utils.logger import Logger
 
 console = Console()
@@ -329,7 +326,7 @@ async def _discover_parameters(url: str, deep_scan: bool = False, http_client=No
     parameters = {}
     
     # Extract URL parameters
-    from urllib.parse import urlparse, parse_qs
+    from urllib.parse import parse_qs
     parsed = urlparse(url)
     url_params = parse_qs(parsed.query)
     
@@ -383,7 +380,7 @@ async def _discover_parameters(url: str, deep_scan: bool = False, http_client=No
                             if hasattr(discovered_url, 'parameters') and discovered_url.parameters:
                                 parameters.update(discovered_url.parameters)
                 
-        except Exception as e:
+        except Exception:
             # Fallback to basic form detection if advanced crawling fails
             try:
                 response = await http_client.get(url)
@@ -392,7 +389,7 @@ async def _discover_parameters(url: str, deep_scan: bool = False, http_client=No
                     form_inputs = re.findall(r'<input[^>]*name=["\']([^"\']+)["\']', response.text, re.I)
                     for input_name in form_inputs:
                         parameters[input_name] = "test"
-            except:
+            except Exception:
                 pass
     
     return parameters

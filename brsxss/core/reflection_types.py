@@ -11,7 +11,7 @@ Modified: Tue 05 Aug 2025 17:39:06 MSK - Improved detection sensitivity
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Dict, Any
+from typing import List
 from dataclasses import dataclass
 from enum import Enum
 

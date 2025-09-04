@@ -12,7 +12,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import Optional, Tuple
 from .context_types import ContextType
 from ..utils.logger import Logger
 

@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 try:
-    from playwright.async_api import async_playwright, Browser, Page
+    from playwright.async_api import async_playwright, Browser
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
     PLAYWRIGHT_AVAILABLE = False
@@ -286,7 +286,7 @@ class HeadlessDOMDetector:
                     screenshot_path = f"/tmp/dom_xss_{int(time.time())}.png"
                     await page.screenshot(path=screenshot_path)
                     result.screenshot_path = screenshot_path
-                except:
+                except Exception:
                     pass
             
         except Exception as e:

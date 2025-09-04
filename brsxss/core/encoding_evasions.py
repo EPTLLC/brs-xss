@@ -109,7 +109,7 @@ class EncodingEvasions:
         try:
             b64_payload = base64.b64encode(payload.encode()).decode()
             encoded_versions.append(f'eval(atob("{b64_payload}"))')
-        except:
+        except Exception:
             pass
         
         # Hex encoding

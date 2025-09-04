@@ -263,7 +263,7 @@ class ContextMatrix:
                     encoded = encoding(payload)
                     if encoded != payload:  # Only add if actually different
                         aggr_payloads.append(encoded)
-                except:
+                except Exception:
                     continue
         
         return list(set(aggr_payloads))  # Remove duplicates

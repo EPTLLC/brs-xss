@@ -124,7 +124,7 @@ class TestPayloadGeneratorCritical:
         context_info = {'context_type': 'html_content'}
         
         # Generate with high threshold
-        payloads = gen.generate_payloads(context_info)
+        gen.generate_payloads(context_info)
         success_rate = gen.generation_stats['success_rate']
         
         # Success rate should be low due to high threshold

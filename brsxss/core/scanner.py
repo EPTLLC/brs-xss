@@ -9,10 +9,9 @@ Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-import asyncio
 import time
-from typing import Dict, List, Optional, Any, Set, Callable
-from urllib.parse import urljoin, urlparse
+from typing import Dict, List, Optional, Any, Callable
+from urllib.parse import urlparse
 
 from .config_manager import ConfigManager
 from .http_client import HTTPClient
@@ -449,7 +448,7 @@ class XSSScanner:
     
     def _build_test_url(self, base_url: str, param_name: str, payload: str) -> str:
         """Build test URL with payload"""
-        from urllib.parse import urlencode, urlparse, parse_qs, urlunparse
+        from urllib.parse import urlencode, parse_qs, urlunparse
         
         parsed_url = urlparse(base_url)
         query_params = parse_qs(parsed_url.query)
@@ -484,17 +483,3 @@ class XSSScanner:
             'success_rate': self.vulnerabilities_found / max(1, self.total_tests)
         }
     
-    async def close(self):
-        """Close scanner and cleanup resources"""
-        try:
-            # Close HTTP client
-            if self.http_client:
-                await self.http_client.close()
-            
-            # Close DOM detector
-            if self.dom_detector:
-                await self.dom_detector.close()
-                
-            logger.info("Scanner resources cleaned up")
-        except Exception as e:
-            logger.error(f"Error during scanner cleanup: {e}")

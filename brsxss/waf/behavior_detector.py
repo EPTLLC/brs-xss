@@ -11,7 +11,6 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-import time
 from typing import List, Dict, Any, Optional
 from .waf_types import WAFType, WAFInfo
 from ..utils.logger import Logger

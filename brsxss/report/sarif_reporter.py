@@ -10,9 +10,8 @@ SARIF 2.1.0 compliant reporter for GitHub Code Scanning integration
 """
 
 import json
-import uuid
 from datetime import datetime, timezone
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from urllib.parse import urlparse
 
 from .data_models import VulnerabilityData

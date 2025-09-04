@@ -12,9 +12,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import Dict, List, Optional, Any, Mapping, Set
-
-# Type alias for WAF detection results
-DetectedWAF = Any
 from collections import Counter
 from itertools import islice
 from functools import lru_cache
@@ -29,6 +26,9 @@ from .blind_xss import BlindXSSManager
 from ..payloads.payload_manager import PayloadManager
 from ..payloads.context_matrix import ContextMatrix, Context
 from ..utils.logger import Logger
+
+# Type alias for WAF detection results
+DetectedWAF = Any
 
 logger = Logger("core.payload_generator")
 

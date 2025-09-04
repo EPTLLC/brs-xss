@@ -11,7 +11,7 @@ Created: Вс 10 авг 2025 19:35:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Dict, Set, Optional
+from typing import List, Dict, Optional
 import random
 from .basic_xss import BasicXSSPayloads
 from .advanced_xss import AdvancedXSSPayloads

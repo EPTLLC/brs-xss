@@ -12,8 +12,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from urllib.parse import urlparse, urljoin
-from typing import List, Set, Optional, Dict, Any
+from urllib.parse import urlparse
+from typing import List, Dict, Any
 from dataclasses import dataclass
 
 from ..utils.logger import Logger

@@ -87,7 +87,7 @@ class ASTExtractor:
         for pattern in assignment_patterns:
             for match in re.finditer(pattern, line):
                 var_name = match.group(1)
-                value = match.group(2).strip()
+                match.group(2).strip()
                 
                 node = ASTNode(
                     node_type=NodeType.VARIABLE_ASSIGNMENT,

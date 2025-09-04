@@ -13,7 +13,6 @@ import os
 import re
 import tempfile
 from pathlib import Path
-from typing import Tuple
 
 
 def sanitize_filename(name: str, max_len: int = 128) -> str:

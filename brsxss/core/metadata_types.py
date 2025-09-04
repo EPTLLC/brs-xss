@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import platform
-from typing import Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass
 
 

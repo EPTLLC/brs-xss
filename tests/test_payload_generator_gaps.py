@@ -14,7 +14,7 @@ Each test covers specific code lines
 
 import pytest
 from brsxss.core.payload_generator import PayloadGenerator
-from brsxss.core.payload_types import GenerationConfig, GeneratedPayload, EvasionTechnique
+from brsxss.core.payload_types import GenerationConfig, GeneratedPayload
 
 
 # Mock classes for complete test control

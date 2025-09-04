@@ -10,8 +10,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from urllib.parse import urljoin, urlparse, parse_qs
-from typing import Dict, List, Optional, Set, Tuple, Any
+from urllib.parse import urljoin
+from typing import Dict, List, Any
 from dataclasses import dataclass
 from enum import Enum
 

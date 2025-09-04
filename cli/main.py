@@ -10,8 +10,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import typer
-import asyncio
-import time
 from typing import Optional
 from rich.console import Console
 from rich.text import Text

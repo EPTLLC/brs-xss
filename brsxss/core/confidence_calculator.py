@@ -37,7 +37,6 @@ class ConfidenceCalculator:
         Returns:
             Confidence score between 0 and 1
         """
-        base_confidence = 0.5
         
         # Reflection quality affects confidence
         reflection_confidence = self._calculate_reflection_confidence(reflection_result)

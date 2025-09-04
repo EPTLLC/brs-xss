@@ -17,7 +17,6 @@ import typer
 from rich.console import Console
 
 from brsxss import _
-from brsxss.utils.validators import URLValidator
 
 
 def fuzz_command(
@@ -103,11 +102,11 @@ def fuzz_command(
         
         # Show detected WAFs
         if detected_wafs:
-            console.print(f"\nDetected WAFs:")
+            console.print("\nDetected WAFs:")
             for waf in detected_wafs:
                 console.print(f"  • {waf.waf_type.value} (confidence: {waf.confidence:.0%})")
         else:
-            console.print(f"\n[green]No WAF detected[/green]")
+            console.print("\n[green]No WAF detected[/green]")
         
         # Save results if requested
         if output:
@@ -126,13 +125,13 @@ def fuzz_command(
             
             with open(output if output.endswith('.json') else f"{output}.json", 'w') as f:
                 json.dump(fuzz_data, f, indent=2)
-            console.print(f"📄 " + _("Fuzz results saved: {filepath}").format(filepath=output))
+            console.print("📄 " + _("Fuzz results saved: {filepath}").format(filepath=output))
         
         # Summary
         if detected_wafs:
-            console.print(f"\n[yellow]WAF protection detected - consider evasion techniques[/yellow]")
+            console.print("\n[yellow]WAF protection detected - consider evasion techniques[/yellow]")
         else:
-            console.print(f"\n[green]No WAF detected - direct testing possible[/green]")
+            console.print("\n[green]No WAF detected - direct testing possible[/green]")
             
     except KeyboardInterrupt:
         console.print("\nFuzzing interrupted by user")

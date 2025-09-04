@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import List, Callable, Dict
+from typing import List, Dict
 from .evasion_types import WAFType
 
 from ..utils.logger import Logger

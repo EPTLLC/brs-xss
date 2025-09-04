@@ -11,7 +11,6 @@
 Simplified E2E tests that actually work in CI
 """
 
-import pytest
 import json
 import tempfile
 from brsxss.core.config_manager import ConfigManager

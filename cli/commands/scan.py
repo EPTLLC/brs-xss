@@ -16,11 +16,9 @@ import time
 
 import typer
 from rich.console import Console
-from rich.progress import Progress, TaskID
+from rich.progress import Progress
 
 from brsxss import _
-from brsxss.core.config_manager import ConfigManager
-from brsxss.core.http_client import HTTPClient
 from brsxss.core.scanner import XSSScanner
 from brsxss.waf.detector import WAFDetector
 from brsxss.dom.dom_analyzer import DOMAnalyzer
@@ -29,7 +27,7 @@ from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics
 from brsxss.utils.logger import Logger
-from brsxss.utils.validators import URLValidator, ParameterValidator
+from brsxss.utils.validators import URLValidator
 
 
 def scan_command(
@@ -199,7 +197,7 @@ def scan_command(
                         if script.strip():
                             dom_vulns = dom_analyzer.analyze_javascript(script, normalized_url)
                             dom_vulnerabilities.extend(dom_vulns)
-                    logger.info(f"🕸️  " + _("DOM analysis: checked {scripts} scripts, found {issues} potential issues").format(
+                    logger.info("🕸️  " + _("DOM analysis: checked {scripts} scripts, found {issues} potential issues").format(
                         scripts=len(scripts), issues=len(dom_vulnerabilities)))
             except Exception as e:
                 logger.warning(f"DOM analysis error: {e}")
@@ -357,7 +355,7 @@ def scan_command(
                 )
                 
                 for report_format, file_path in generated_files.items():
-                    console.print(f"📄 " + _("Report saved: {filepath}").format(filepath=file_path))
+                    console.print("📄 " + _("Report saved: {filepath}").format(filepath=file_path))
                     
             except Exception as e:
                 logger.error(f"Report save error: {e}")
@@ -371,17 +369,17 @@ def scan_command(
                 }
                 with open(output if output.endswith('.json') else f"{output}.json", 'w') as f:
                     json.dump(simple_report, f, indent=2)
-                console.print(f"📄 " + _("Simple report saved: {filepath}").format(filepath=output))
+                console.print("📄 " + _("Simple report saved: {filepath}").format(filepath=output))
         
         # Scan results
         total_issues = vulnerabilities_found + len(dom_vulnerabilities)
         if total_issues > 0:
-            console.print(f"\n🚨 [red bold]" + _("WARNING: Found {count} security issues!").format(count=total_issues) + "[/red bold]")
-            console.print(f"  • " + _("XSS vulnerabilities: {count}").format(count=vulnerabilities_found))
-            console.print(f"  • " + _("DOM issues: {count}").format(count=len(dom_vulnerabilities)))
+            console.print("\n🚨 [red bold]" + _("WARNING: Found {count} security issues!").format(count=total_issues) + "[/red bold]")
+            console.print("  • " + _("XSS vulnerabilities: {count}").format(count=vulnerabilities_found))
+            console.print("  • " + _("DOM issues: {count}").format(count=len(dom_vulnerabilities)))
             if detected_wafs:
                 waf_names = ', '.join([waf.waf_type.value for waf in detected_wafs])
-                console.print(f"  • " + _("WAF detected: {wafs}").format(wafs=waf_names))
+                console.print("  • " + _("WAF detected: {wafs}").format(wafs=waf_names))
             raise typer.Exit(2)  # Exit code 2 for found vulnerabilities
         else:
             console.print("\n[green]No vulnerabilities found[/green]")

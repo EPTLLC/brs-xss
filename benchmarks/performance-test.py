@@ -18,7 +18,6 @@ import psutil
 import json
 import statistics
 from typing import List, Dict, Any
-from pathlib import Path
 
 
 class BRSXSSBenchmark:
@@ -263,7 +262,7 @@ class BRSXSSBenchmark:
                 if test["test_name"] == "performance_benchmark":
                     best = test["best_performance"]
                     report.append(f"Best Performance: {best['urls_per_second']} URLs/sec @ {best['concurrency']} concurrency")
-                    report.append(f"Target: 1000 URLs in 12 minutes = 1.39 URLs/sec")
+                    report.append("Target: 1000 URLs in 12 minutes = 1.39 URLs/sec")
                     if best['urls_per_second'] >= 1.39:
                         report.append("✅ Performance target MET")
                     else:
@@ -279,7 +278,7 @@ class BRSXSSBenchmark:
                     metrics = test["overall_metrics"]
                     report.append(f"Overall Accuracy: {metrics['accuracy']*100:.1f}%")
                     report.append(f"False Positive Rate: {metrics['false_positive_rate']*100:.1f}%")
-                    report.append(f"Target: <5% false positive rate")
+                    report.append("Target: <5% false positive rate")
                     if metrics['false_positive_rate'] < 0.05:
                         report.append("✅ Accuracy target MET")
                     else:

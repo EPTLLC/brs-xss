@@ -11,9 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import asyncio
 import time
-import re
-from urllib.parse import urljoin, urlparse, parse_qs
-from typing import Dict, List, Optional, Set, Tuple, Any
+from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass, field
 
 from .scope import ScopeManager
@@ -172,7 +170,7 @@ class CrawlerEngine:
                 # Still mark task as done even on error
                 try:
                     self.crawl_queue.task_done()
-                except:
+                except Exception:
                     pass
                 continue
     

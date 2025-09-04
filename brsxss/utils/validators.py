@@ -11,9 +11,10 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
+import os
 import re
 import urllib.parse
-from typing import Dict, List, Optional, Tuple, Any, Union
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -95,7 +96,7 @@ class URLValidator:
         try:
             parsed = urllib.parse.urlparse(url)
             return parsed.netloc.split(':')[0].lower()
-        except:
+        except Exception:
             return None
     
     @staticmethod
@@ -406,6 +407,3 @@ class InputSanitizer:
         sanitized = sanitized.replace("'", '&#x27;')
         return sanitized
 
-
-# Import os for file permissions check
-import os

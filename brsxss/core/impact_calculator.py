@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, Any, List
+from typing import Dict, Any
 from ..utils.logger import Logger
 
 logger = Logger("core.impact_calculator")

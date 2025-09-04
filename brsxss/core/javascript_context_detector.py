@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 from .context_types import ContextType
 from ..utils.logger import Logger
 
@@ -125,7 +125,7 @@ class JavaScriptContextDetector:
         
         # Look for object patterns
         before_marker = context[:marker_in_context]
-        after_marker = context[marker_in_context + len(marker):]
+        context[marker_in_context + len(marker):]
         
         # Check for object property pattern: key: value
         obj_property_pattern = r'[\w"\']+\s*:\s*[^,}]*$'
@@ -201,7 +201,7 @@ class JavaScriptContextDetector:
             return context_details
         
         before_marker = context[:marker_in_context]
-        after_marker = context[marker_in_context + len(marker):]
+        context[marker_in_context + len(marker):]
         
         # Check for function context
         if re.search(r'function\s+\w*\s*\([^)]*\)\s*{[^}]*$', before_marker):

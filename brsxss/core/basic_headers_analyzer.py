@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import Dict, List, Optional
+from typing import Optional
 from .header_types import HeaderAnalysis, SecurityLevel
 
 from ..utils.logger import Logger

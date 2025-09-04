@@ -11,9 +11,8 @@ Modified: Tue 05 Aug 2025 18:03:16 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-import re
-from typing import Dict, List, Optional
-from .header_types import HeaderAnalysis, SecurityLevel
+from typing import Dict
+from .header_types import HeaderAnalysis
 from .csp_analyzer import CSPAnalyzer  
 from .header_scorer import HeaderSecurityScorer
 from .basic_headers_analyzer import BasicHeadersAnalyzer

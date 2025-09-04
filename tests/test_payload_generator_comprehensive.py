@@ -12,7 +12,7 @@ Comprehensive tests for PayloadGenerator to achieve high coverage
 """
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from brsxss.core.payload_generator import PayloadGenerator
 from brsxss.core.payload_types import GenerationConfig, Weights
 
@@ -133,7 +133,7 @@ class TestPayloadGeneratorComprehensive:
         gen = PayloadGenerator(config)
         
         context_info = {'context_type': 'html_content'}
-        payloads = gen.generate_payloads(context_info)
+        gen.generate_payloads(context_info)
         
         stats = gen.get_statistics()
         assert stats["total_generated"] > 0

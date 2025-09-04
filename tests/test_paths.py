@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import os
 from brsxss.utils.paths import sanitize_filename, atomic_write, ensure_dir
 
 
