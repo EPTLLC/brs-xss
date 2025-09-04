@@ -1,38 +1,17 @@
-# Project: BRS-XSS v2.0.0 (XSS Detection Suite)
+# Project: BRS-XSS v1.0.4 (XSS Detection Suite)
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
-# Date: Wed 04 Sep 2025 09:03:08 MSK
+# Date: Wed 04 Sep 2025 13:22:00 MSK
 # Status: Modified
 # Telegram: https://t.me/EasyProTech
 
-# Multi-stage build for optimized image size
-FROM python:3.11-slim-bookworm as builder
+FROM python:3.11-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
-WORKDIR /app
-
-# Copy requirements and code for installation
-COPY requirements/ requirements/
-COPY pyproject.toml setup.py ./
-COPY brsxss/ brsxss/
-COPY cli/ cli/
-COPY config/ config/
-
-# Install Python dependencies
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --user .
-
-# Runtime stage
-FROM python:3.11-slim-bookworm
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PATH="/root/.local/bin:$PATH"
-
-# Install system dependencies for Playwright (minimal set)
+# Install system dependencies for Playwright
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl wget gnupg ca-certificates \
     libglib2.0-0 libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
@@ -43,17 +22,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy installed packages from builder
-COPY --from=builder /root/.local /root/.local
+# Copy requirements first for better caching
+COPY requirements.txt ./
 
-# Copy application code
+# Install Python dependencies
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY pyproject.toml setup.py ./
 COPY brsxss/ brsxss/
 COPY cli/ cli/
 COPY config/ config/
-COPY pyproject.toml setup.py ./
 
-# Install application with dependencies
-RUN pip install --upgrade pip && pip install .
+# Install application
+RUN pip install --no-deps .
 
 # Install browsers for Playwright (only Chromium for smaller image)
 RUN playwright install chromium --with-deps
@@ -73,12 +56,12 @@ CMD ["--help"]
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD brs-xss --version || exit 1
+    CMD brs-xss version || exit 1
 
 # Labels for better container management
 LABEL org.opencontainers.image.title="BRS-XSS" \
       org.opencontainers.image.description="Context-aware async XSS scanner for CI" \
-      org.opencontainers.image.version="2.0.0" \
+      org.opencontainers.image.version="1.0.4" \
       org.opencontainers.image.vendor="EasyProTech LLC" \
       org.opencontainers.image.source="https://github.com/EPTLLC/brs-xss" \
       org.opencontainers.image.licenses="GPL-3.0-or-later"
