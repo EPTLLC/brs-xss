@@ -100,7 +100,7 @@ PY
         cosign sign --yes ghcr.io/eptllc/brs-xss:${{ steps.version.outputs.version }}
         
     - name: Upload SBOM
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sbom-${{ steps.version.outputs.version }}
         path: sbom.spdx.json
