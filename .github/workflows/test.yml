@@ -163,6 +163,6 @@ jobs:
         # Generate SBOM
         syft dir:. -o spdx-json > sbom.spdx.json
         
-        # Sign container image
+        # Sign container images
         cosign sign --yes ghcr.io/eptllc/brs-xss:latest
         cosign sign --yes ghcr.io/eptllc/brs-xss:v1.0.4
