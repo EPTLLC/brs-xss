@@ -90,7 +90,7 @@ Machine-readable results with full JSON Schema validation:
 {
   "scan_info": {
     "timestamp": "2025-09-04T09:03:08Z",
-    "scanner": "BRS-XSS v2.0.0",
+    "scanner": "BRS-XSS v1.0.4",
     "targets_scanned": 47,
     "vulnerabilities_found": 8,
     "false_positive_rate": "3.2%"

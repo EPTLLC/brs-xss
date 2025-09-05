@@ -12,6 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import platform
+from ..version import VERSION
 from typing import Dict, List
 from dataclasses import dataclass
 
@@ -19,7 +20,7 @@ from dataclasses import dataclass
 @dataclass
 class ScanEnvironment:
     """Scan environment information"""
-    scanner_version: str = "1.0.0"
+    scanner_version: str = VERSION
     python_version: str = platform.python_version()
     platform: str = platform.platform()
     hostname: str = platform.node()

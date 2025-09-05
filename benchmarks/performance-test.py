@@ -26,7 +26,7 @@ class BRSXSSBenchmark:
     def __init__(self):
         self.results = {
             "benchmark_info": {
-                "version": "2.0.0",
+                "version": VERSION,
                 "timestamp": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
                 "system_info": self._get_system_info()
             },

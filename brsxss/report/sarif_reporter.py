@@ -21,7 +21,8 @@ class SARIFReporter:
     """Generate SARIF 2.1.0 compliant reports for security tools integration"""
     
     def __init__(self):
-        self.version = "2.0.0"
+        from .. import __version__
+        self.version = __version__
         self.tool_name = "BRS-XSS"
         self.vendor = "EasyProTech LLC"
         

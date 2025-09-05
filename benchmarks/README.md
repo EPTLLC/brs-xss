@@ -46,7 +46,7 @@ docker run --rm ghcr.io/eptllc/brs-xss:latest \
 
 ## Benchmark Results
 
-### Latest Results (v2.0.0)
+### Latest Results (v1.0.4)
 ```
 BRS-XSS Performance Benchmark Report
 ========================================
@@ -132,12 +132,12 @@ jobs:
 ### Version Comparison
 | Version | URLs/sec | FP Rate | Memory | Release |
 |---------|----------|---------|--------|---------|
-| v2.0.0 | 2.1 | 3.1% | 245MB | 2025-09-04 |
+| v1.0.4 | 2.1 | 3.1% | 245MB | 2025-09-05 |
 | v1.0.3 | 1.4 | 4.8% | 180MB | 2025-08-18 |
 | v1.0.0 | 0.9 | 8.2% | 160MB | 2025-08-07 |
 
 ### Performance Improvements
-- **v2.0.0**: Async HTTP client, connection pooling, payload caching
+- **v1.0.4**: Async HTTP client, connection pooling, payload caching
 - **v1.0.3**: Multi-threading, request deduplication
 - **v1.0.0**: Sequential processing baseline
 
