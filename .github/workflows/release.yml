@@ -40,17 +40,9 @@ jobs:
         
     - name: SARIF smoke test
       run: |
-        # Generate test SARIF
         brs-xss scan "http://httpbin.org/get?test=value" -o test.sarif --timeout 10 || true
-        
-        # Validate SARIF 2.1.0 compliance
         if [ -f "test.sarif" ]; then
-          python - <<'PY'
-import json,sys
-s=json.load(open("test.sarif"))
-assert s["version"]=="2.1.0"
-print("SARIF 2.1.0 validated")
-PY
+          python -c "import json; data=json.load(open('test.sarif')); assert data.get('version')=='2.1.0'; assert 'runs' in data; print('SARIF 2.1.0 Enterprise Validation: PASSED')"
         fi
 
   docker:
