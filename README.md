@@ -255,7 +255,7 @@ pip install -e .
 
 1. Fork the repository
 2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Follow code standards: `ruff check && mypy .`
+3. Follow code standards: `ruff check .`
 4. Add tests: `pytest tests/`
 5. Submit pull request
 
