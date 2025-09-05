@@ -203,11 +203,6 @@ brs-xss report merge scan1.json scan2.json -o combined.sarif
 pip install brs-xss
 ```
 
-### Homebrew
-```bash
-brew install eptllc/tap/brs-xss
-```
-
 ### Docker
 ```bash
 docker pull ghcr.io/eptllc/brs-xss:latest
@@ -272,7 +267,6 @@ pip install -e .
 
 ### Sprint 1 (Current)
 - [ ] SARIF 2.1.0 full compliance
-- [ ] Homebrew formula
 - [ ] Performance benchmarks
 - [ ] Docker multi-arch builds
 
