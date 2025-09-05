@@ -32,6 +32,6 @@ safety>=2.3.0
 # SARIF validation
 sarif-om>=1.0.0
 
-# Container security
-syft>=0.100.0
-cosign>=2.0.0
+# Container security (syft installed via curl in CI, cosign via GitHub Actions)
+# syft>=0.9.5  # Not needed as Python package - installed via curl
+# cosign not available as Python package - installed via GitHub Actions
