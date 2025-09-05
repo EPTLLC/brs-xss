@@ -19,6 +19,9 @@ import json
 import statistics
 from typing import List, Dict, Any
 
+# Use hardcoded version for benchmarks to avoid import issues
+VERSION = "1.0.4"
+
 
 class BRSXSSBenchmark:
     """Performance benchmark suite for BRS-XSS scanner"""
