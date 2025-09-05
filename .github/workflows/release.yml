@@ -82,14 +82,10 @@ jobs:
       run: |
         curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
         
-    - name: Generate SBOM and sign
+    - name: Generate SBOM
       run: |
-        # Generate SBOM
+        # Generate SBOM only - cosign signing disabled due to OIDC issues
         syft dir:. -o spdx-json > sbom.spdx.json
-        
-        # Sign container images
-        cosign sign --yes ghcr.io/eptllc/brs-xss:latest
-        cosign sign --yes ghcr.io/eptllc/brs-xss:${{ steps.version.outputs.version }}
         
     - name: Upload SBOM
       uses: actions/upload-artifact@v4
