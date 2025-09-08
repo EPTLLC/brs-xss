@@ -66,7 +66,7 @@ jobs:
         
     - name: Check coverage threshold
       run: |
-        coverage report --fail-under=30
+        coverage report --fail-under=80
         
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'
@@ -157,7 +157,7 @@ jobs:
         push: true
         tags: |
           ghcr.io/eptllc/brs-xss:latest
-          ghcr.io/eptllc/brs-xss:v1.0.4
+          ghcr.io/eptllc/brs-xss:v1.0.5
         platforms: linux/amd64,linux/arm64
         
     - name: Generate SBOM
