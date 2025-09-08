@@ -1,4 +1,9 @@
+Company: EasyProTech LLC (www.easypro.tech)
+Dev: Brabus
+Contact: https://t.me/EasyProTech
+
 # BRS-XSS
+
 
 **Context-aware async XSS scanner for CI**
 
@@ -7,6 +12,7 @@
 ![Coverage](https://img.shields.io/codecov/c/github/EPTLLC/brs-xss?label=coverage&logo=codecov)
 ![Docker](https://img.shields.io/badge/docker-multi--arch-blue?logo=docker)
 ![PyPI](https://img.shields.io/pypi/v/brs-xss?label=pypi&logo=pypi)
+![GHCR](https://img.shields.io/badge/GHCR-ghcr.io%2Feptllc%2Fbrs--xss-blue?logo=docker)
 ![SARIF](https://img.shields.io/badge/SARIF-2.1.0-green?logo=github)
 ![Security](https://img.shields.io/badge/security-hardened-brightgreen?logo=shield)
 ![Performance](https://img.shields.io/badge/benchmark-1k%20URLs%20%2F%2012min-brightgreen)
