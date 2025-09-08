@@ -157,7 +157,6 @@ jobs:
         push: true
         tags: |
           ghcr.io/eptllc/brs-xss:latest
-          ghcr.io/eptllc/brs-xss:v1.0.5
         platforms: linux/amd64,linux/arm64
         
     - name: Generate SBOM
