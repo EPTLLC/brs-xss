@@ -1,6 +1,3 @@
-import asyncio
-from types import SimpleNamespace
-
 import pytest
 
 from brsxss.core.http_client import HTTPClient, HTTPResponse

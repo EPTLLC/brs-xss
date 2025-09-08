@@ -1,5 +1,4 @@
 import json
-import tempfile
 from pathlib import Path
 
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics

@@ -1,5 +1,4 @@
 import types
-import pytest
 
 from brsxss.core.scoring_engine import ScoringEngine
 from brsxss.core.scoring_types import ScoringWeights, SeverityLevel
