@@ -10,7 +10,7 @@
 ![SARIF](https://img.shields.io/badge/SARIF-2.1.0-green?logo=github)
 ![Security](https://img.shields.io/badge/security-hardened-brightgreen?logo=shield)
 ![Performance](https://img.shields.io/badge/benchmark-1k%20URLs%20%2F%2012min-brightgreen)
-![License](https://img.shields.io/badge/license-GPLv3%20%2F%20Commercial-red)
+![License](https://img.shields.io/badge/license-Dual%3A%20GPLv3%2B%20%2F%20Commercial-red)
 
 > Professional XSS vulnerability scanner with intelligent context detection, async performance, and enterprise-grade reporting.
 
@@ -70,6 +70,11 @@ docker run --rm -v $(pwd):/out ghcr.io/eptllc/brs-xss:latest scan https://target
 ### SARIF Integration
 Perfect integration with GitHub Security tab, GitLab Security Dashboard, and SAST platforms:
 
+Notes on SARIF 2.1.0 compliance:
+- Includes driver.semanticVersion matching package version
+- Each rule provides help text and helpUri
+- run-level properties columnKind=utf16CodeUnits and defaultEncoding=utf-8 are set on save
+
 ```bash
 # Scan and upload to GitHub Security
 brs-xss scan https://app.example.com -o security.sarif
@@ -89,8 +94,8 @@ Machine-readable results with full JSON Schema validation:
 ```json
 {
   "scan_info": {
-    "timestamp": "2025-09-04T09:03:08Z",
-    "scanner": "BRS-XSS v1.0.4",
+  "timestamp": "2025-09-08T09:03:08Z",
+  "scanner": "BRS-XSS v1.0.5",
     "targets_scanned": 47,
     "vulnerabilities_found": 8,
     "false_positive_rate": "3.2%"
@@ -133,6 +138,17 @@ Machine-readable results with full JSON Schema validation:
 - **Intelligent Selection** - ML-enhanced payload effectiveness scoring  
 - **Aggr Mode** - Multi-encoding polyglots for maximum coverage
 - **WAF Metrics** - Hit rates tested on 10+ demo targets
+
+---
+
+## License
+
+Dual License: GPL-3.0-or-later OR Commercial License.
+
+- Open Source (GPLv3+): for education, research, open-source, and non-commercial usage.
+- Commercial License: for commercial use, proprietary integrations, or when GPL is not suitable.
+
+See the LICENSE file for full terms and contact details.
 
 ---
 
@@ -193,6 +209,13 @@ brs-xss replay https://target.tld/vuln?param=payload
 # Merge multiple scan reports  
 brs-xss report merge scan1.json scan2.json -o combined.sarif
 ```
+
+---
+
+## CI/CD & Docker
+
+- Dockerfile included for local builds
+- Multi-arch Docker builds via GitHub Actions (linux/amd64, linux/arm64). To push images, set repository secrets DOCKERHUB_USERNAME and DOCKERHUB_TOKEN.
 
 ---
 
@@ -266,9 +289,9 @@ pip install -e .
 ## Roadmap
 
 ### Sprint 1 (Current)
-- [ ] SARIF 2.1.0 full compliance
+- [x] SARIF 2.1.0 full compliance
 - [ ] Performance benchmarks
-- [ ] Docker multi-arch builds
+- [x] Docker multi-arch builds
 
 ### Sprint 2 (Next)
 - [ ] GraphQL endpoint scanning
@@ -278,6 +301,6 @@ pip install -e .
 
 ---
 
-**BRS-XSS v1.0.4** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v1.0.5** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Context-aware async XSS scanner for CI*

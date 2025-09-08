@@ -1,4 +1,4 @@
-# BRS-XSS v1.0.4 Release Notes
+# BRS-XSS v1.0.5 Release Notes
 
 **Context-aware async XSS scanner for CI**
 
@@ -15,7 +15,7 @@
 pip install -U brs-xss
 
 # Docker
-docker pull ghcr.io/eptllc/brs-xss:1.0.4
+docker pull ghcr.io/eptllc/brs-xss:1.0.5
 
 # From source
 git clone https://github.com/EPTLLC/brs-xss.git
@@ -33,13 +33,11 @@ brs-xss scan https://target.tld -o report.sarif
 brs-xss scan $CI_PROJECT_URL --safe-mode --timeout 30
 ```
 
-## What's New in v1.0.4
+## What's New in v1.0.5
 
 ### Core Improvements
-- **SARIF 2.1.0 Compliance**: Full GitHub Code Scanning integration
-- **Context Matrix**: 6-context payload system with 1200+ specialized payloads
-- **Performance Optimization**: 5000+ payloads/sec with deterministic results
-- **Configuration Validation**: Comprehensive parameter validation with safe ranges
+- **SARIF 2.1.0 Compliance (stabilized)**: Fixed reporter structure, added `driver.semanticVersion`, rule help/helpUri, CWE mapping, and run-level properties
+- **Reliability**: New SARIF structure tests to prevent regressions
 
 ### Security & Safety
 - **Safe Mode by Default**: Production-safe scanning with robots.txt compliance
@@ -48,10 +46,10 @@ brs-xss scan $CI_PROJECT_URL --safe-mode --timeout 30
 - **Pool Size Control**: Hard caps to prevent memory issues
 
 ### Developer Experience
-- **Enhanced Documentation**: 6 How-to guides covering all integration scenarios
-- **Docker Multi-Arch**: Optimized containers for linux/amd64 and linux/arm64
-- **GitHub Actions**: Complete CI/CD pipeline with quality gates
-- **Test Coverage**: 8 critical tests with 100% pass rate
+- **Documentation**: README updated with SARIF compliance notes
+- **Docker Multi-Arch**: GHCR workflow for linux/amd64 and linux/arm64
+- **CI**: Multi-arch build workflow cleaned and validated
+- **Test Coverage**: 70+ tests passing; coverage ≥80%
 
 ### Configuration
 - **TOML Support**: User-friendly configuration in ~/.config/brs-xss/config.toml
@@ -111,7 +109,6 @@ No migration required from v1.0.3. All existing configurations remain valid.
 
 - DOM XSS analysis requires `playwright install` for browser provisioning
 - WAF bypass techniques need validation on production configurations
-- Coverage at 35% (focused on core PayloadGenerator at 70%)
 
 ## Next Steps
 

@@ -60,6 +60,7 @@ class SARIFReporter:
             "driver": {
                 "name": self.tool_name,
                 "version": self.version,
+                "semanticVersion": self.version,
                 "informationUri": "https://github.com/EPTLLC/brs-xss",
                 "organization": self.vendor,
                 "shortDescription": {
@@ -89,6 +90,8 @@ class SARIFReporter:
                 "fullDescription": {
                     "text": "User input is reflected in the response without proper sanitization, allowing script injection."
                 },
+                "help": {"text": "Sanitize user input and encode output appropriately. See CWE-79."},
+                "helpUri": "https://cwe.mitre.org/data/definitions/79.html",
                 "messageStrings": {
                     "default": {
                         "text": "Reflected XSS vulnerability detected in parameter '{0}' with payload '{1}'"
@@ -115,12 +118,14 @@ class SARIFReporter:
                 ]
             },
             {
-                "id": "XSS002", 
+                "id": "XSS002",
                 "name": "StoredXSS",
                 "shortDescription": {"text": "Stored Cross-Site Scripting"},
                 "fullDescription": {
                     "text": "User input is stored and later displayed without proper sanitization, allowing persistent script injection."
                 },
+                "help": {"text": "Validate and sanitize stored user input. Apply output encoding. See CWE-79."},
+                "helpUri": "https://cwe.mitre.org/data/definitions/79.html",
                 "messageStrings": {
                     "default": {
                         "text": "Stored XSS vulnerability detected in parameter '{0}' with payload '{1}'"
@@ -129,17 +134,19 @@ class SARIFReporter:
                 "defaultConfiguration": {"level": "error"},
                 "properties": {
                     "security-severity": "9.0",
-                    "precision": "high", 
+                    "precision": "high",
                     "tags": ["security", "external/cwe/cwe-79"]
                 }
             },
             {
                 "id": "XSS003",
-                "name": "DOMXSS", 
+                "name": "DOMXSS",
                 "shortDescription": {"text": "DOM-based Cross-Site Scripting"},
                 "fullDescription": {
                     "text": "Client-side JavaScript processes user input unsafely, allowing script injection through DOM manipulation."
                 },
+                "help": {"text": "Avoid using untrusted input in DOM sinks. Use safe APIs. See CWE-79."},
+                "helpUri": "https://cwe.mitre.org/data/definitions/79.html",
                 "messageStrings": {
                     "default": {
                         "text": "DOM XSS vulnerability detected with source '{0}' and sink '{1}'"
@@ -193,42 +200,33 @@ class SARIFReporter:
     
     def _build_results(self, vulnerabilities: List[VulnerabilityData]) -> List[Dict[str, Any]]:
         """Build SARIF results from vulnerabilities"""
-        results = []
-        
+        results: List[Dict[str, Any]] = []
         for vuln in vulnerabilities:
             rule_id = self._get_rule_id(vuln)
-            
-            result = {
+            result: Dict[str, Any] = {
                 "ruleId": rule_id,
                 "ruleIndex": self._get_rule_index(rule_id),
                 "message": {
                     "id": "default",
                     "arguments": [
                         vuln.parameter or "unknown",
-                        vuln.payload[:100] + "..." if len(vuln.payload) > 100 else vuln.payload
-                    ]
+                        vuln.payload[:100] + "..." if len(vuln.payload) > 100 else vuln.payload,
+                    ],
                 },
                 "level": self._get_severity_level(vuln.severity),
                 "locations": [
                     {
                         "physicalLocation": {
-                            "artifactLocation": {
-                                "uri": self._get_base_url(vuln.url)
-                            },
+                            "artifactLocation": {"uri": self._get_base_url(vuln.url)},
                             "region": {
                                 "startLine": 1,
                                 "startColumn": 1,
-                                "snippet": {
-                                    "text": f"Parameter: {vuln.parameter}, Payload: {vuln.payload}"
-                                }
-                            }
+                                "snippet": {"text": f"Parameter: {vuln.parameter}, Payload: {vuln.payload}"},
+                            },
                         },
                         "logicalLocations": [
-                            {
-                                "name": vuln.parameter or "unknown_parameter",
-                                "kind": "parameter"
-                            }
-                        ]
+                            {"name": vuln.parameter or "unknown_parameter", "kind": "parameter"}
+                        ],
                     }
                 ],
                 "partialFingerprints": {
@@ -242,7 +240,7 @@ class SARIFReporter:
                     "parameter": vuln.parameter,
                     "payload": vuln.payload,
                     "method": vuln.method,
-                    "scan_engine": vuln.scan_engine
+                    "scan_engine": vuln.scan_engine,
                 },
                 "fixes": [
                     {
@@ -251,28 +249,23 @@ class SARIFReporter:
                         },
                         "artifactChanges": [
                             {
-                                "artifactLocation": {
-                                    "uri": self._get_base_url(vuln.url)
-                                },
+                                "artifactLocation": {"uri": self._get_base_url(vuln.url)},
                                 "replacements": [
                                     {
-                                        "deletedRegion": {
-                                            "startLine": 1,
-                                            "startColumn": 1
-                                        },
+                                        "deletedRegion": {"startLine": 1, "startColumn": 1},
                                         "insertedContent": {
                                             "text": f"// TODO: Sanitize parameter '{vuln.parameter}' for {vuln.context_type} context"
-                                        }
+                                        },
                                     }
-                                ]
+                                ],
                             }
-                        ]
+                        ],
                     }
-                ]
+                ],
             }
-            
+            # Recommended additional metadata
+            result["properties"]["tags"] = ["xss", vuln.vulnerability_type]
             results.append(result)
-        
         return results
     
     def _build_taxonomy(self) -> Dict[str, Any]:
@@ -333,6 +326,10 @@ class SARIFReporter:
                    scan_info: Dict[str, Any], output_path: str) -> None:
         """Save SARIF report to file"""
         sarif_report = self.generate_sarif(vulnerabilities, scan_info)
+        # Add run-wide recommended properties
+        if sarif_report.get("runs"):
+            sarif_report["runs"][0].setdefault("columnKind", "utf16CodeUnits")
+            sarif_report["runs"][0].setdefault("defaultEncoding", "utf-8")
         
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(sarif_report, f, indent=2, ensure_ascii=False)

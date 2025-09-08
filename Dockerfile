@@ -1,4 +1,4 @@
-# Project: BRS-XSS v1.0.4 (XSS Detection Suite)
+# Project: BRS-XSS v1.0.5 (XSS Detection Suite)
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
 # Date: Wed 04 Sep 2025 13:22:00 MSK
@@ -61,7 +61,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Labels for better container management
 LABEL org.opencontainers.image.title="BRS-XSS" \
       org.opencontainers.image.description="Context-aware async XSS scanner for CI" \
-      org.opencontainers.image.version="1.0.4" \
+    org.opencontainers.image.version="1.0.5" \
       org.opencontainers.image.vendor="EasyProTech LLC" \
       org.opencontainers.image.source="https://github.com/EPTLLC/brs-xss" \
-      org.opencontainers.image.licenses="GPL-3.0-or-later"
+    org.opencontainers.image.licenses="GPL-3.0-or-later OR LicenseRef-Commercial"
