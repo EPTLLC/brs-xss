@@ -1,6 +1,6 @@
-Company: EasyProTech LLC (www.easypro.tech)
-Dev: Brabus
-Contact: https://t.me/EasyProTech
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Contact: https://t.me/EasyProTech
 
 # BRS-XSS
 
