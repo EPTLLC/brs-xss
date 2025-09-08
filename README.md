@@ -101,7 +101,7 @@ Machine-readable results with full JSON Schema validation:
 {
   "scan_info": {
   "timestamp": "2025-09-08T09:03:08Z",
-  "scanner": "BRS-XSS v1.0.5",
+  "scanner": "BRS-XSS v1.0.5.1",
     "targets_scanned": 47,
     "vulnerabilities_found": 8,
     "false_positive_rate": "3.2%"
@@ -307,6 +307,6 @@ pip install -e .
 
 ---
 
-**BRS-XSS v1.0.5** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v1.0.5.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Context-aware async XSS scanner for CI*

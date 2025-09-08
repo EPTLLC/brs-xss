@@ -1,4 +1,4 @@
-# BRS-XSS v1.0.5 Release Notes
+# BRS-XSS v1.0.5.1 Release Notes
 
 **Context-aware async XSS scanner for CI**
 
@@ -15,7 +15,7 @@
 pip install -U brs-xss
 
 # Docker
-docker pull ghcr.io/eptllc/brs-xss:1.0.5
+docker pull ghcr.io/eptllc/brs-xss:1.0.5.1
 
 # From source
 git clone https://github.com/EPTLLC/brs-xss.git
@@ -33,7 +33,7 @@ brs-xss scan https://target.tld -o report.sarif
 brs-xss scan $CI_PROJECT_URL --safe-mode --timeout 30
 ```
 
-## What's New in v1.0.5
+## What's New in v1.0.5.1
 
 ### Core Improvements
 - **SARIF 2.1.0 Compliance (stabilized)**: Fixed reporter structure, added `driver.semanticVersion`, rule help/helpUri, CWE mapping, and run-level properties

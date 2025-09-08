@@ -54,7 +54,7 @@ BRS-XSS generates SARIF 2.1.0 compliant reports with:
 
 ### Tool Information
 - Tool name: BRS-XSS
- - Version: 1.0.5
+ - Version: 1.0.5.1
 - Organization: EasyProTech LLC
 - Rules for different XSS types
 

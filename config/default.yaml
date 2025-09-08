@@ -1,4 +1,4 @@
-# BRS-XSS v1.0.5 Configuration  
+# BRS-XSS v1.0.5.1 Configuration  
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
 # Date: Wed 04 Sep 2025 09:03:08 MSK
@@ -8,7 +8,7 @@
 # Global settings
 app:
   name: "BRS-XSS"
-  version: "1.0.5"
+  version: "1.0.5.1"
   locale: "en"                    # Base locale (English)
   fallback_locale: "en"           # Fallback locale
 
@@ -16,7 +16,7 @@ app:
 scanner:
   max_depth: 3                    # Safe crawling depth
   timeout: 15                     # Request timeout in seconds
-  user_agent: "BRS-XSS v1.0.5"
+  user_agent: "BRS-XSS v1.0.5.1"
   concurrency: 32                 # Concurrent requests limit
   rate_limit: 8.0                 # Requests per second (RPS)
   delay: 0.125                    # Delay between requests (1/8 second)

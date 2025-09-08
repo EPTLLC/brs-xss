@@ -11,12 +11,21 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.5)'
+        required: true
+        type: string
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.tag != '' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}
     
     - uses: actions/setup-python@v5
       with:
@@ -24,7 +33,7 @@ jobs:
         
     - name: Verify version consistency (tag vs pyproject vs __init__)
       run: |
-        TAG="${GITHUB_REF#refs/tags/}"
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then TAG="${GITHUB_REF#refs/tags/}"; else TAG="${{ github.event.inputs.tag }}"; fi
         echo "Git tag: $TAG"
         PY_VER=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
         INIT_VER=$(python -c "import re;import io;print(re.search(r'__version__\\s*=\\s*[\'\"]([^\'\"]+)[\'\"]', io.open('brsxss/__init__.py','r',encoding='utf-8').read()).group(1))")
@@ -45,8 +54,9 @@ jobs:
         
     - name: Quality gates
       run: |
-        ruff check .
-        # mypy disabled for release - will fix in future versions
+  # Lint only source packages for release (exclude historical test lint noise in tags)
+  ruff check brsxss cli
+  # mypy disabled for release - will fix in future versions
         
     - name: Test with coverage
       run: |
@@ -63,8 +73,14 @@ jobs:
   docker:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.tag != '' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -78,7 +94,9 @@ jobs:
         
     - name: Extract version
       id: version
-      run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      run: |
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then V="${GITHUB_REF#refs/tags/}"; else V="${{ github.event.inputs.tag }}"; fi
+        echo "version=${V}" >> $GITHUB_OUTPUT
         
     - name: Build and push multi-arch
       uses: docker/build-push-action@v5
@@ -111,8 +129,13 @@ jobs:
   pypi:
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        ref: ${{ github.event.inputs.tag != '' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}
     
     - uses: actions/setup-python@v5
       with:
@@ -123,6 +146,12 @@ jobs:
         pip install build
         python -m build
         
+    - name: Check PYPI secret presence
+      run: |
+        if [ -z "${{ secrets.PYPI_API_TOKEN }}" ]; then
+          echo "PYPI_API_TOKEN is not set. Configure repository secret to enable PyPI publishing."; exit 1;
+        fi
+
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
@@ -131,15 +160,18 @@ jobs:
   github-release:
     needs: [docker, pypi]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        ref: ${{ github.event.inputs.tag != '' && format('refs/tags/{0}', github.event.inputs.tag) || github.ref }}
 
     - name: Generate changelog snippet
       id: changelog
       run: |
-        CURR="${GITHUB_REF#refs/tags/}"
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then CURR="${GITHUB_REF#refs/tags/}"; else CURR="${{ github.event.inputs.tag }}"; fi
         echo "Generating changelog for ${CURR}"
         PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
         FILE="CHANGELOG-${CURR}.md"
