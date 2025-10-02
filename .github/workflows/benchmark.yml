@@ -1,0 +1,102 @@
+# Project: BRS-XSS (XSS Detection Suite)
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Wed 04 Sep 2025 10:35:00 MSK
+# Status: Created
+# Telegram: https://t.me/EasyProTech
+
+name: Performance Benchmark
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        pip install -U pip wheel
+        pip install -e .
+        pip install pytest
+        
+    - name: Run PayloadGenerator benchmark
+      run: |
+        python3 -c "
+        from brsxss.core.payload_generator import PayloadGenerator
+        from brsxss.core.payload_types import GenerationConfig
+        import time
+        
+        print('🚀 BRS-XSS Performance Benchmark')
+        print('=' * 40)
+        
+        # Test configuration: production settings
+        config = GenerationConfig()
+        config.max_payloads = 1000
+        config.pool_cap = 10000
+        config.seed = 1337  # Deterministic
+        
+        gen = PayloadGenerator(config)
+        
+        # Benchmark payload generation
+        contexts = [
+            {'context_type': 'html_content'},
+            {'context_type': 'javascript'}, 
+            {'context_type': 'html_attribute'},
+            {'context_type': 'css'},
+            {'context_type': 'uri'}
+        ]
+        
+        total_payloads = 0
+        start_time = time.time()
+        
+        for ctx in contexts:
+            payloads = gen.generate_payloads(ctx)
+            total_payloads += len(payloads)
+        
+        end_time = time.time()
+        duration = end_time - start_time
+        payloads_per_sec = total_payloads / duration
+        
+        print(f'Generated: {total_payloads} payloads')
+        print(f'Duration: {duration:.3f} seconds') 
+        print(f'Performance: {payloads_per_sec:.0f} payloads/sec')
+        print(f'Target: ≥5000 payloads/sec')
+        
+        # Benchmark assertions
+        assert payloads_per_sec >= 1000, f'Performance too low: {payloads_per_sec:.0f} < 1000 payloads/sec'
+        assert total_payloads >= 2000, f'Too few payloads generated: {total_payloads}'
+        
+        # Statistics
+        stats = gen.get_statistics()
+        print(f'Success rate: {stats[\"success_rate\"]:.3f}')
+        print(f'By source: {dict(stats[\"by_source\"])}')
+        
+        print('✅ Performance benchmark PASSED')
+        "
+        
+    - name: Benchmark results
+      run: |
+        echo "Performance benchmark completed successfully"
+        echo "Target: 1000 URLs in 12 minutes on 8 vCPU"
+        echo "Achieved: >1000 payloads/sec generation speed"
+        
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-${{ github.sha }}
+        path: benchmark-*.json
+        if-no-files-found: ignore

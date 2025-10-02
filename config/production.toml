@@ -1,0 +1,51 @@
+# BRS-XSS Production Configuration
+# Copy to ~/.config/brs-xss/config.toml for production deployment
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Wed 04 Sep 2025 10:25:00 MSK
+# Status: Created
+# Telegram: https://t.me/EasyProTech
+
+[generator]
+max_payloads = 500
+effectiveness_threshold = 0.65
+pool_cap = 10000
+payload_max_len = 4096
+safe_mode = true
+include_blind_xss = false
+max_manager_payloads = 2000
+max_evasion_bases = 10
+evasion_variants_per_tech = 2
+waf_bases = 3
+blind_batch_limit = 10
+norm_hash = false
+enable_aggressive = false
+seed = 1337
+
+[generator.weights]
+context_specific = 0.92
+context_matrix = 0.90
+comprehensive = 0.70
+evasion = 0.75
+
+[scanner]
+concurrency = 32
+rate_limit = 8.0
+timeout = 15
+max_depth = 3
+safe_mode = true
+respect_robots = true
+enable_denylist = true
+
+[security]
+denylist_domains = []
+denylist_patterns = [
+    "*/admin/*",
+    "*/logout*", 
+    "*/delete*"
+]
+
+[output]
+formats = ["sarif", "json", "html"]
+include_screenshots = true
+replay_urls = true

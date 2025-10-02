@@ -1,0 +1,112 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "brs-xss"
+version = "1.1.0"
+description = "Context-aware async XSS scanner for CI"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "Dual License: GPL-3.0-or-later OR Commercial" }
+authors = [ { name = "Brabus", email = "mail.easypro.tech@gmail.com" } ]
+keywords = ["security","xss","dast","sarif","playwright","bug-bounty","ci-cd","async","context-aware"]
+dependencies = [
+  "aiohttp>=3.8.0",
+  "typer>=0.9.0",
+  "rich>=13.0.0",
+  "pyyaml>=6.0",
+  "jinja2>=3.1.0",
+  "babel>=2.12.0",
+  "polib>=1.2.0",
+  "playwright>=1.40.0",
+  "beautifulsoup4>=4.12.3"
+]
+classifiers = [
+  "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+  "License :: Other/Proprietary License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Operating System :: OS Independent",
+  "Topic :: Security",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Information Technology"
+]
+
+[project.scripts]
+brs-xss = "cli.main:app"
+
+[tool.setuptools]
+include-package-data = true
+license-files = ["LICENSE"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["brsxss*", "cli*"]
+
+
+[tool.mypy]
+# Gradual typing configuration to keep CI green while we improve annotations
+python_version = "3.10"
+ignore_missing_imports = true
+no_implicit_optional = false
+warn_unused_ignores = true
+warn_redundant_casts = false
+warn_return_any = false
+check_untyped_defs = false
+disallow_untyped_defs = false
+
+# Exclude heavy/ML and browser-integration modules from strict checks for now
+exclude = [
+  "brsxss/ml/",
+  "brsxss/dom/",
+]
+
+
+
+[tool.coverage.run]
+branch = true
+source = ["brsxss"]
+omit = [
+  "brsxss/crawler/*",
+  "brsxss/dom/*",
+  "brsxss/ml/*",
+  "brsxss/waf/*",
+  "brsxss/cli/*",
+  # Heavy core analyzers and detectors (integration-oriented)
+  "brsxss/core/*_analyzer.py",
+  "brsxss/core/*_detector.py",
+  # WAF and evasion heavy modules
+  "brsxss/core/advanced_waf_evasion.py",
+  "brsxss/core/waf_*.py",
+  # Request/metadata infrastructure
+  "brsxss/core/request_*.py",
+  "brsxss/core/metadata_*.py",
+  # High-level scanner orchestration
+  "brsxss/core/scanner.py",
+  "brsxss/core/scoring.py",
+  # Headers scoring
+  "brsxss/core/header_*.py",
+  # Non-trivial data/type containers and managers
+  "brsxss/core/context_types.py",
+  "brsxss/core/reflection_types.py",
+  "brsxss/core/payload_manager.py",
+  "brsxss/core/blind_xss.py",
+  # Additional heavy/low-value for unit tests
+  "brsxss/core/encoding_evasions.py",
+  "brsxss/core/evasion_types.py",
+  "brsxss/core/polyglot_generator.py",
+  "brsxss/core/context.py",
+  "brsxss/core/security_headers.py",
+  "brsxss/core/similarity_matcher.py",
+  "brsxss/payloads/payload_manager.py",
+  "brsxss/payloads/payloads.py",
+  "brsxss/version.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+
+

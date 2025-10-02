@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+
+"""
+BRS-XSS Crawl Command
+
+Command for crawling entire websites.
+
+Company: EasyProTech LLC (www.easypro.tech)
+Dev: Brabus
+Created: Thu 31 Jul 00:17:37 MSK 2025
+Telegram: https://t.me/EasyProTech
+"""
+
+from typing import Optional
+import time
+import asyncio
+
+import typer
+from rich.console import Console
+
+from brsxss import _
+from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
+from brsxss.utils.logger import Logger
+from brsxss.utils.validators import URLValidator
+
+
+def crawl_command(
+    url: str = typer.Argument(
+        ...,
+        help="Starting URLs for website crawling",
+        metavar="URLs"
+    ),
+    depth: int = typer.Option(
+        3,
+        "--depth", "-d",
+        help=_("cli.option_depth"),
+        min=1,
+        max=10
+    ),
+    threads: int = typer.Option(
+        10,
+        "--threads", "-t",
+        help=_("cli.option_threads"), 
+        min=1,
+        max=50
+    ),
+    output: Optional[str] = typer.Option(
+        None,
+        "--output", "-o",
+        help=_("cli.option_output"),
+        metavar="FILE"
+    ),
+):
+    """Crawl entire website for XSS vulnerabilities"""
+    
+    console = Console()
+    logger = Logger("cli.crawl")
+    
+    console.print("[bold blue]Website crawling mode[/bold blue]")
+    console.print(_("Target: {url}").format(url=url))
+    console.print(_("Depth: {depth}").format(depth=depth))
+    console.print(_("Threads: {threads}").format(threads=threads))
+    
+    # Validate URL
+    validation_result = URLValidator.validate_url(url)
+    if not validation_result.valid:
+        console.print(f"[red]Invalid URL: {url}[/red]")
+        for error in validation_result.errors:
+            console.print(f"[red]Error: {error}[/red]")
+        raise typer.Exit(1)
+    
+    normalized_url = validation_result.normalized_value or url
+    
+    try:
+        # Initialize crawler
+        console.print("Initializing crawler engine...")
+        
+        crawl_config = CrawlConfig(
+            max_depth=depth,
+            max_urls=100,
+            max_concurrent=threads,
+            timeout=30
+        )
+        
+        crawler = CrawlerEngine(crawl_config)
+        
+        # Start crawling
+        console.print("Starting website crawl...")
+        start_time = time.time()
+        
+        # Run crawler asynchronously
+        crawl_result = asyncio.run(crawler.crawl(normalized_url))
+        
+        crawl_duration = time.time() - start_time
+        console.print("\nCrawl completed")
+        
+        # Aggregate results from all crawled pages
+        all_discovered_urls = []
+        all_forms = []
+        all_parameters = set()
+        
+        for result in crawl_result:
+            if hasattr(result, 'discovered_urls') and result.discovered_urls:
+                all_discovered_urls.extend(result.discovered_urls)
+            if hasattr(result, 'extracted_forms') and result.extracted_forms:
+                all_forms.extend(result.extracted_forms)
+            if hasattr(result, 'potential_parameters') and result.potential_parameters:
+                all_parameters.update(result.potential_parameters)
+        
+        # Statistics
+        stats = {
+            _("URLss discovered"): len(all_discovered_urls),
+            _("Forms found"): len(all_forms),
+            _("Parameters discovered"): len(all_parameters),
+            _("Crawl duration"): f"{crawl_duration:.1f} sec",
+        }
+        
+        # Print statistics
+        console.print("\n[bold cyan]Crawl Statistics:[/bold cyan]")
+        for key, value in stats.items():
+            console.print(f"  {key}: {value}")
+        
+        # Save results if requested
+        if output:
+            console.print(f"Saving crawl results: {output}")
+            import json
+            crawl_data = {
+                "target_url": normalized_url,
+                "discovered_urls": [url.url if hasattr(url, 'url') else str(url) for url in all_discovered_urls],
+                "forms": [{"action": str(f.action), "method": f.method} if hasattr(f, 'action') else {"action": str(f), "method": "GET"} for f in all_forms],
+                "parameters": list(all_parameters),
+                "crawl_duration": crawl_duration,
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            with open(output if output.endswith('.json') else f"{output}.json", 'w') as f:
+                json.dump(crawl_data, f, indent=2)
+            console.print("📄 " + _("Crawl results saved: {filepath}").format(filepath=output))
+        
+        console.print(f"\n[green]Crawl successful: {len(all_discovered_urls)} URLs discovered[/green]")
+            
+    except KeyboardInterrupt:
+        console.print("\nCrawl interrupted by user")
+        raise typer.Exit(130)
+        
+    except Exception as e:
+        logger.error(f"Crawl error: {str(e)}")
+        raise typer.Exit(1)
+
+
+# Create typer app for this command
+app = typer.Typer()
+app.command()(crawl_command)
