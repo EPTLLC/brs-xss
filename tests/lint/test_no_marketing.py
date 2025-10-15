@@ -15,10 +15,10 @@ from pathlib import Path
 def test_no_marketing_wording_in_user_facing_text():
     repo = Path(__file__).resolve().parents[2]
     banned = [
-        "",
-        "",
+        "production-ready",
         "enterprise-grade",
         "world-class",
+        "state-of-the-art",
     ]
     # Scope: CLI, top-level README/CHANGELOG, report module (excluding KB content)
     include_paths = [
