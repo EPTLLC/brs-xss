@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-10-15
+
+### Fixed
+- Critical scanner bug: parameter extraction in simple_scan.py
+- Scanner now correctly tests GET parameters
+- Verified on http://testphp.vulnweb.com (70+ XSS detected)
+
+### Improved
+- Type safety: fixed 178 MyPy errors (100% clean)
+- Added type annotations across 90+ files
+- Fixed Optional, List, Dict, Mapping usage
+
+### Changed
+- Removed all emojis from code
+- Removed marketing language from technical code
+- Updated README for BRS-KB reference (https://github.com/EPTLLC/BRS-KB)
+- Removed outdated Roadmap section
+
+### Added
+- ML integration layer (brsxss/core/ml_integration.py)
+- WAF bypass test suite (30+ tests)
+- API documentation (docs/api-reference.md)
+- Usage examples (5 practical examples)
+- WAF bypass testing guide (docs/waf-bypass-testing.md)
+
 ## [2.0.0] - 2025-10-10
 
 ### Major Release - Knowledge Base System & Improvements
