@@ -1,6 +1,6 @@
-# BRS-XSS v2.0.0 Release Notes
+# BRS-XSS v2.0.1 Release Notes
 - **Date**: 2025-10-10
-- **Tag**: `v2.0.0`
+- **Tag**: `v2.0.1`
 
 ## Major Release - Knowledge Base System
 
@@ -47,10 +47,10 @@ This is a major version release introducing a comprehensive expert system for XS
 
 ```bash
 # PyPI (recommended)
-pip install brs-xss==2.0.0
+pip install brs-xss==2.0.1
 
 # Docker
-docker pull ghcr.io/eptllc/brs-xss:2.0.0
+docker pull ghcr.io/eptllc/brs-xss:2.0.1
 docker pull ghcr.io/eptllc/brs-xss:latest
 
 # From source
@@ -162,6 +162,6 @@ No migration required from v1.0.3. All existing configurations remain valid.
 
 ---
 
-**BRS-XSS v2.0.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.0.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Production-ready XSS scanner for authorized security testing*

@@ -3,7 +3,7 @@
 **Project:** BRS-XSS (XSS Detection Suite)  
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
-**Version:** 2.0.0  
+**Version:** 2.0.1  
 **Date:** Wed 15 Oct 2025 02:30:00 MSK  
 **Telegram:** https://t.me/EasyProTech
 
@@ -184,7 +184,7 @@ async def test_request():
     response = await client.get(
         "https://example.com/api",
         params={"key": "value"},
-        headers={"User-Agent": "BRS-XSS v2.0.0"}
+        headers={"User-Agent": "BRS-XSS v2.0.1"}
     )
     
     print(f"Status: {response.status_code}")
@@ -809,5 +809,5 @@ For API questions and support:
 
 ---
 
-**BRS-XSS v2.0.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.0.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 

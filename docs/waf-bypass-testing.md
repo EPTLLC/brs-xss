@@ -299,5 +299,5 @@ For questions about WAF bypass testing:
 
 ---
 
-**BRS-XSS v2.0.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.0.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 

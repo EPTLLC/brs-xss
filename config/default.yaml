@@ -1,4 +1,4 @@
-# BRS-XSS v2.0.0 Configuration  
+# BRS-XSS v2.0.1 Configuration  
 # ==================================
 # Default settings for the scanner.
 # For user-specific overrides, create a `config.toml` in `~/.config/brs-xss/`.
@@ -15,13 +15,13 @@ scanner:
   timeout: 15
 
   # Scanner version (for reporting)
-  version: "2.0.0"
+  version: "2.0.1"
 
   # Max crawl depth for parameter discovery
   max_depth: 3
   
   # User agent string
-  user_agent: "BRS-XSS v2.0.0"
+  user_agent: "BRS-XSS v2.0.1"
 
   # Enable safe mode for production environments (disables risky payloads)
   safe_mode: true

@@ -45,7 +45,7 @@
 
 ## Quickstart (60 seconds)
 
-> **Note:** Version `2.0.0` includes a critical fix for a bug that prevented the scanner from correctly detecting vulnerabilities in HTML forms (POST requests). Please upgrade if you are using an older version.
+> **Note:** Version `2.0.1` includes a critical fix for a bug that prevented the scanner from correctly detecting vulnerabilities in HTML forms (POST requests). Please upgrade if you are using an older version.
 
 ### Install & Scan
 ```bash
@@ -103,7 +103,7 @@ Machine-readable results with full JSON Schema validation:
 {
   "scan_info": {
   "timestamp": "2025-09-08T09:03:08Z",
-  "scanner": "BRS-XSS v2.0.0",
+  "scanner": "BRS-XSS v2.0.1",
     "targets_scanned": 47,
     "vulnerabilities_found": 8,
     "false_positive_rate": "3.2%"
@@ -367,6 +367,6 @@ pip install -e .
 
 ---
 
-**BRS-XSS v2.0.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.0.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Context-aware async XSS scanner for CI*
