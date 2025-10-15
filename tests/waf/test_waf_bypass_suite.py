@@ -55,8 +55,7 @@ class TestWAFBypassTechniques:
             confidence=0.95,
             detection_method="header_detection",
             response_headers={"CF-Ray": "test"},
-            error_pages=field(default_factory=list),
-            blocking_patterns=field(default_factory=list)
+            error_pages=[]
         )
     
     def test_url_encoding_bypass(self, encoding_engine, sample_payload):
@@ -142,8 +141,8 @@ class TestWAFBypassTechniques:
             confidence=0.9,
             detection_method="content_detection",
             response_headers={},
-            error_pages=field(default_factory=list),
-            blocking_patterns=field(default_factory=list)
+            error_pages=[]
+            
         )
         
         evasions = evasion_engine.generate_evasions(
@@ -162,8 +161,8 @@ class TestWAFBypassTechniques:
             confidence=0.85,
             detection_method="header_detection",
             response_headers={"x-amzn-RequestId": "test"},
-            error_pages=field(default_factory=list),
-            blocking_patterns=field(default_factory=list)
+            error_pages=[]
+            
         )
         
         evasions = evasion_engine.generate_evasions(
@@ -342,5 +341,4 @@ class TestWAFDetectionBypass:
 
 
 # Import fix for field
-from dataclasses import field
 
