@@ -16,6 +16,7 @@ from rich.text import Text
 
 from .commands import simple_scan
 from .commands.kb import kb_group
+from .commands.payloads import payloads_group
 from brsxss import __version__
 from brsxss.report.knowledge_base import KB_VERSION
 
@@ -61,6 +62,9 @@ def scan(
 
 # Knowledge Base commands
 app.add_typer(kb_group, name="kb", help="Knowledge Base - view vulnerability information")
+
+# Payloads commands
+app.add_typer(payloads_group, name="payloads", help="List available XSS payloads")
 
 
 @app.command()
