@@ -188,14 +188,14 @@ class TestWAFBypassTechniques:
         payload = "<script>alert(1)</script>"
         obfuscated = obfuscation_engine.inject_null_bytes(payload)
         
-        assert "\x00" in obfuscated or "\\0" in obfuscated
+        assert "\\x00" in obfuscated
     
     def test_tab_variation_bypass(self, obfuscation_engine):
         """Test tab character variation bypass"""
         payload = "<script>alert(1)</script>"
         obfuscated = obfuscation_engine.use_tab_variations(payload)
         
-        assert "\t" in obfuscated or "\\t" in obfuscated or len(obfuscated) != len(payload)
+        assert "\\t" in obfuscated
     
     def test_payload_splitting(self, evasion_engine, sample_payload):
         """Test payload splitting technique"""
