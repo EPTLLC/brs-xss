@@ -8,7 +8,7 @@
 **Context-aware async XSS scanner for CI**
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue)
-![Tests](https://img.shields.io/github/actions/workflow/status/EPTLLC/brs-xss/test.yml?label=tests&logo=github)
+![Tests](https://img.shields.io/github/actions/workflow/status/EPTLLC/brs-xss/test.yml?branch=main&label=tests&logo=github)
 ![Coverage](https://img.shields.io/codecov/c/github/EPTLLC/brs-xss?label=coverage&logo=codecov)
 ![Docker](https://img.shields.io/badge/docker-multi--arch-blue?logo=docker)
 ![PyPI](https://img.shields.io/pypi/v/brs-xss?label=pypi&logo=pypi)
