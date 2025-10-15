@@ -40,7 +40,7 @@ jobs:
         from brsxss.core.payload_types import GenerationConfig
         import time
         
-        print('🚀 BRS-XSS Performance Benchmark')
+        print('BRS-XSS Performance Benchmark')
         print('=' * 40)
         
         # Test configuration: production settings
@@ -85,7 +85,7 @@ jobs:
         print(f'Success rate: {stats[\"success_rate\"]:.3f}')
         print(f'By source: {dict(stats[\"by_source\"])}')
         
-        print('✅ Performance benchmark PASSED')
+        print('Performance benchmark PASSED')
         "
         
     - name: Benchmark results
