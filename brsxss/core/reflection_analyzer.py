@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import List, Optional
+from typing import List
 from .reflection_types import ReflectionPoint, ReflectionType, ReflectionContext
 from ..utils.logger import Logger
 
@@ -237,7 +237,7 @@ class ReflectionAnalyzer:
         
         # Check for character removal
         dangerous_chars = ['<', '>', '"', "'", '&']
-        removed_chars = sum(1 for char in dangerous_chars if char in original and char not in reflected)
+        sum(1 for char in dangerous_chars if char in original and char not in reflected)
         
         return filters
     

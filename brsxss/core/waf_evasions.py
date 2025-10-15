@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Any, Optional
+from typing import List, Any
 from .payload_types import GeneratedPayload
 from ..utils.logger import Logger
 

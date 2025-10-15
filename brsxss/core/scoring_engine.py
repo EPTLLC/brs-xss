@@ -10,14 +10,12 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import Dict, Any, Optional, List
-from dataclasses import asdict
 
 from .scoring_types import ScoringResult, SeverityLevel, ScoringWeights
 from .impact_calculator import ImpactCalculator
 from .exploitability_calculator import ExploitabilityCalculator
 from .context_calculator import ContextCalculator
 from .confidence_calculator import ConfidenceCalculator
-from .risk_analyzer import RiskAnalyzer
 from ..utils.logger import Logger
 from .config_manager import ConfigManager
 

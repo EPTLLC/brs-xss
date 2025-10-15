@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import time
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 from .prediction_types import ConfidenceLevel, PredictionResult
 from .prediction_cache import PredictionCache

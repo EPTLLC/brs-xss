@@ -265,7 +265,10 @@ class HeadlessDOMDetector:
             page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
             page.on("pageerror", lambda exc: error_logs.append(str(exc)))
             # Capture dialogs (alert/confirm/prompt)
-            page.on("dialog", lambda dlg: (console_logs.append(f"dialog: {dlg.type} {dlg.message}"), asyncio.create_task(dlg.dismiss()))); page  # type: ignore[func-returns-value]
+            page.on("dialog", lambda dlg: (
+                console_logs.append(f"dialog: {dlg.type} {dlg.message}"),
+                asyncio.create_task(dlg.dismiss())
+            ))  # type: ignore[func-returns-value]
             
             # Navigate to page with payload
             await page.goto(test_url, timeout=self.timeout * 1000, wait_until="networkidle")
@@ -317,7 +320,10 @@ class HeadlessDOMDetector:
             
             page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
             page.on("pageerror", lambda exc: error_logs.append(str(exc)))
-            page.on("dialog", lambda dlg: (console_logs.append(f"dialog: {dlg.type} {dlg.message}"), asyncio.create_task(dlg.dismiss()))); page  # type: ignore[func-returns-value]
+            page.on("dialog", lambda dlg: (
+                console_logs.append(f"dialog: {dlg.type} {dlg.message}"),
+                asyncio.create_task(dlg.dismiss())
+            ))  # type: ignore[func-returns-value]
             
             # Navigate to page
             await page.goto(url, timeout=self.timeout * 1000, wait_until="networkidle")

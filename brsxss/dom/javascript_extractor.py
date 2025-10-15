@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 from pathlib import Path
 
 from ..utils.logger import Logger

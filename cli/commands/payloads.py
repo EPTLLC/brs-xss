@@ -12,6 +12,7 @@ CLI: Payloads Command
 """
 
 import typer
+from typing import Optional
 from rich.console import Console
 from rich.table import Table
 
@@ -31,7 +32,7 @@ def payloads_callback():
 
 @payloads_group.command(name='list')
 def list_payloads(
-    context: str = typer.Option(None, "--context", help="Filter by context (html, javascript, css, etc.)")
+    context: Optional[str] = typer.Option(None, "--context", help="Filter by context (html, javascript, css, etc.)")
 ):
     """List available XSS payloads"""
     

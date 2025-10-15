@@ -16,13 +16,11 @@ import json
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.markdown import Markdown
 
 from brsxss.report.knowledge_base import (
     get_vulnerability_details,
     get_kb_info,
-    list_contexts,
-    KB_VERSION
+    list_contexts
 )
 
 console = Console()

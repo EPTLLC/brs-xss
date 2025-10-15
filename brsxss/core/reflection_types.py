@@ -11,7 +11,7 @@ Modified: Wed 15 Oct 2025 01:50:12 MSK - Fixed MyPy type errors
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Optional
+from typing import List
 from dataclasses import dataclass, field
 from enum import Enum
 

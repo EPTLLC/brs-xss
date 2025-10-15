@@ -54,9 +54,9 @@ class ExtractedForm:
         # Look for CSRF tokens
         csrf_patterns = ['csrf', 'token', '_token', 'authenticity_token', 'xsrf']
         
-        for field in self.fields:
+        for form_field in self.fields:
             # Check for file uploads
-            if field.is_file_upload:
+            if form_field.is_file_upload:
                 self.has_file_upload = True
             
             # Check for CSRF tokens

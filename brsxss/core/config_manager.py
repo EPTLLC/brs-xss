@@ -235,7 +235,6 @@ class ConfigManager:
         """
         result: Dict[str, Any] = {}
         current: Dict[str, Any] = result
-        current_section: Optional[str] = None
 
         for raw_line in text.splitlines():
             line = raw_line.strip()
@@ -245,7 +244,6 @@ class ConfigManager:
                 section = line[1:-1].strip()
                 if not section:
                     continue
-                current_section = section
                 if section not in result:
                     result[section] = {}
                 current = result[section]

@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Optional
+from typing import List
 
 
 class BasicXSSPayloads:

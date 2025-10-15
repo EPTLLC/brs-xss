@@ -11,7 +11,7 @@ Modified: Вс 10 авг 2025 19:31:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Any, Optional, Mapping
+from typing import List, Any, Mapping
 from ..utils.logger import Logger
 
 logger = Logger("core.context_payloads")

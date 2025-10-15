@@ -9,7 +9,7 @@ Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 

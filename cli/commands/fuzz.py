@@ -70,7 +70,6 @@ def fuzz_command(ctx: typer.Context):
     
     try:
         from brsxss.waf.detector import WAFDetector
-        from brsxss.waf.fingerprinter import WAFFingerprinter
         from brsxss.utils.validators import URLValidator
         from brsxss.utils.logger import Logger
         import time
@@ -89,7 +88,6 @@ def fuzz_command(ctx: typer.Context):
         # Initialize WAF components
         console.print("Starting WAF fuzzing...")
         waf_detector = WAFDetector()
-        waf_fingerprinter = WAFFingerprinter()
         
         start_time = time.time()
         

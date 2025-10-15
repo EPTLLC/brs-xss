@@ -14,7 +14,6 @@ Telegram: https://t.me/EasyProTech
 from typing import Dict, Any, Optional
 from ..utils.logger import Logger
 from .config_manager import ConfigManager
-from .context_types import ContextType
 
 logger = Logger("core.context_calculator")
 

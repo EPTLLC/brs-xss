@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import List, Optional
+from typing import List
 
 from .ast_types import ASTNode, NodeType
 

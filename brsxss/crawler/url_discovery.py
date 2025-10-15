@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import re
 from urllib.parse import urljoin
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from dataclasses import dataclass, field
 from enum import Enum
 

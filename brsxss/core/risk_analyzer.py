@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from .scoring_types import SeverityLevel
 from ..utils.logger import Logger
 

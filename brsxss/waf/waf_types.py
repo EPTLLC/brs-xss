@@ -59,7 +59,7 @@ class WAFInfo:
             self.error_pages = []
 
     @property
-    def brand(self) -> "WAFBrand":  # type: ignore[name-defined]
+    def brand(self):  # type: ignore[no-untyped-def]
         """Compatibility layer exposing WAF brand for tests."""
         # Lazy import to avoid circular dependency during module init
         from .models import WAFBrand as _WAFBrand

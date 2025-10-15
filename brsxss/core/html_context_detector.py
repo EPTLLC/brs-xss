@@ -195,7 +195,7 @@ class HTMLContextDetector:
     
     def _find_dangerous_attributes(self, html_content: str, marker_pos: int) -> list:
         """Find dangerous attributes in the current tag"""
-        dangerous_attrs: "List[str]" = []  # type: ignore[name-defined]
+        dangerous_attrs: list = []
         
         # Get tag content
         tag_start = html_content.rfind('<', 0, marker_pos)

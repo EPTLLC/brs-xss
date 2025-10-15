@@ -364,7 +364,7 @@ async def _discover_parameters(url: str, deep_scan: bool = False, http_client=No
     entry_points = []
     
     # 1. Extract parameters from the initial URL itself (GET request)
-    from urllib.parse import urlparse, parse_qs
+    from urllib.parse import parse_qs
     parsed = urlparse(url)
     url_params = parse_qs(parsed.query)
     

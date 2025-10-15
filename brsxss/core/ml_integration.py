@@ -13,14 +13,14 @@ ML Integration Layer for XSS Scanner
 Provides seamless integration of ML predictions into the core scanning engine.
 """
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from ..utils.logger import Logger
 
 logger = Logger("core.ml_integration")
 
 # Try to import ML modules
 try:
-    from ..ml import MLPredictor, PredictionResult, ConfidenceLevel
+    from ..ml import MLPredictor
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False

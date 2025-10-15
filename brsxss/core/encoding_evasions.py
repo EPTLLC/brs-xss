@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import random
-from typing import List, Optional
+from typing import List
 from urllib.parse import quote, quote_plus
 from .evasion_types import UNICODE_ALTERNATIVES, HTML_ENTITY_MAP, WHITESPACE_CHARS
 

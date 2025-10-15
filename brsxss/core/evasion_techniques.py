@@ -13,7 +13,7 @@ Telegram: https://t.me/EasyProTech
 
 import re
 import random
-from typing import List, Optional
+from typing import List
 from urllib.parse import quote
 from ..utils.logger import Logger
 

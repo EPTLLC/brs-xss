@@ -82,8 +82,7 @@ disallow_untyped_defs = false
 exclude = []
 
 [tool.pytest.ini_options]
-# Always run full coverage report by default
-addopts = "--cov=brsxss --cov=cli --cov-report=term-missing -q"
+addopts = "-q"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 

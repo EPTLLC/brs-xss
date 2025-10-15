@@ -11,7 +11,7 @@ Telegram: https://t.me/easyprotech
 Reverse Mapping System: Payload → Context → Defense
 """
 
-from typing import List, Dict, Set
+from typing import List, Dict
 
 # Payload → Context mapping
 PAYLOAD_TO_CONTEXT = {

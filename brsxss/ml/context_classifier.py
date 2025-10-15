@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pickle
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 from .model_types import ModelType
 from .feature_extractor import FeatureExtractor

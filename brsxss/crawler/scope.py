@@ -13,8 +13,8 @@ Telegram: https://t.me/EasyProTech
 
 import re
 from urllib.parse import urlparse
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, field
+from typing import List, Dict, Any
+from dataclasses import dataclass
 
 from ..utils.logger import Logger
 logger = Logger("crawler.scope")

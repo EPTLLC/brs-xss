@@ -13,7 +13,7 @@ Telegram: https://t.me/EasyProTech
 
 import platform as _platform
 from ..version import VERSION
-from typing import Dict, List, Optional
+from typing import Dict, List
 from dataclasses import dataclass, field
 
 

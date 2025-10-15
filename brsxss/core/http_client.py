@@ -13,7 +13,7 @@ import aiohttp
 import asyncio
 import time
 from typing import Dict, Optional, Any, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from ..utils.logger import Logger
 logger = Logger("core.http_client")
