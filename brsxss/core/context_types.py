@@ -11,8 +11,8 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
-from dataclasses import dataclass
+from typing import List, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -63,9 +63,9 @@ class InjectionPoint:
     quote_char: str = ""
     
     # Analysis results
-    filters_detected: List[str] = None
+    filters_detected: List[str] = field(default_factory=list)
     encoding_detected: str = ""
-    escape_sequences: List[str] = None
+    escape_sequences: List[str] = field(default_factory=list)
     
     # Position information
     position: int = -1
@@ -74,13 +74,6 @@ class InjectionPoint:
     
     # Confidence metrics
     detection_confidence: float = 1.0
-    
-    def __post_init__(self):
-        """Initialize default values"""
-        if self.filters_detected is None:
-            self.filters_detected = []
-        if self.escape_sequences is None:
-            self.escape_sequences = []
 
 
 @dataclass
@@ -93,23 +86,17 @@ class ContextAnalysisResult:
     
     # Summary information
     total_injections: int = 0
-    unique_contexts: List[ContextType] = None
+    unique_contexts: List[ContextType] = field(default_factory=list)
     risk_level: str = "unknown"
     
     # Recommendations
-    payload_recommendations: List[str] = None
-    bypass_recommendations: List[str] = None
+    payload_recommendations: List[str] = field(default_factory=list)
+    bypass_recommendations: List[str] = field(default_factory=list)
     
     def __post_init__(self):
         """Initialize computed values"""
-        if self.unique_contexts is None:
+        if not self.unique_contexts:
             self.unique_contexts = list(set(ip.context_type for ip in self.injection_points))
-        
-        if self.payload_recommendations is None:
-            self.payload_recommendations = []
-        
-        if self.bypass_recommendations is None:
-            self.bypass_recommendations = []
         
         self.total_injections = len(self.injection_points)
         

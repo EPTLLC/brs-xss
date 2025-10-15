@@ -1,0 +1,18 @@
+# Include license and documentation
+include LICENSE
+include README.md
+
+# Include config and schema files
+recursive-include brsxss *.yaml *.yml *.json *.j2 *.jinja2 *.toml
+recursive-include config *.toml
+
+# Include templates, static, and KB metadata
+recursive-include brsxss/report/knowledge_base *.py *.yaml *.json *.png
+recursive-include brsxss/report/templates *.j2 *.jinja2
+recursive-include brsxss/report/static *
+
+# Include localization files
+recursive-include brsxss/i18n *.po *.mo
+
+# Include tests only in source (not in wheel)
+prune tests

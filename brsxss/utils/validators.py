@@ -43,8 +43,8 @@ class URLValidator:
     @staticmethod
     def validate_url(url: str) -> ValidationResult:
         """Validate URL format and structure"""
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         normalized_url = url.strip()
         
         if not url:
@@ -104,7 +104,7 @@ class URLValidator:
         """Check if URLs belong to same domain"""
         domain1 = URLValidator.extract_domain(url1)
         domain2 = URLValidator.extract_domain(url2)
-        return domain1 and domain2 and domain1 == domain2
+        return bool(domain1 and domain2 and domain1 == domain2)
 
 
 class ParameterValidator:
@@ -113,8 +113,8 @@ class ParameterValidator:
     @staticmethod
     def validate_parameter_name(name: str) -> ValidationResult:
         """Validate parameter name"""
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         
         if not name:
             errors.append("Parameter name cannot be empty")
@@ -150,49 +150,54 @@ class ParameterValidator:
     @staticmethod
     def analyze_parameter_value(value: str) -> Dict[str, Any]:
         """Analyze parameter value characteristics"""
-        analysis = {
+        type_hints: List[str] = []
+        encoding_detected: List[str] = []
+        special_chars_list: List[str] = []
+        patterns: List[str] = []
+        
+        analysis: Dict[str, Any] = {
             'length': len(value),
-            'type_hints': [],
-            'encoding_detected': [],
-            'special_chars': [],
-            'patterns': []
+            'type_hints': type_hints,
+            'encoding_detected': encoding_detected,
+            'special_chars': special_chars_list,
+            'patterns': patterns
         }
         
         # Type detection
         if value.isdigit():
-            analysis['type_hints'].append('integer')
+            type_hints.append('integer')
         elif re.match(r'^\d+\.\d+$', value):
-            analysis['type_hints'].append('float')
+            type_hints.append('float')
         elif value.lower() in ['true', 'false', '1', '0']:
-            analysis['type_hints'].append('boolean')
+            type_hints.append('boolean')
         elif re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', value):
-            analysis['type_hints'].append('email')
+            type_hints.append('email')
         elif re.match(r'^https?://', value):
-            analysis['type_hints'].append('url')
+            type_hints.append('url')
         elif re.match(r'^\d{4}-\d{2}-\d{2}', value):
-            analysis['type_hints'].append('date')
+            type_hints.append('date')
         
         # Encoding detection
         if '%' in value and re.search(r'%[0-9a-fA-F]{2}', value):
-            analysis['encoding_detected'].append('url_encoded')
+            encoding_detected.append('url_encoded')
         if '&lt;' in value or '&gt;' in value or '&quot;' in value:
-            analysis['encoding_detected'].append('html_entities')
+            encoding_detected.append('html_entities')
         if '\\u' in value and re.search(r'\\u[0-9a-fA-F]{4}', value):
-            analysis['encoding_detected'].append('unicode_escaped')
+            encoding_detected.append('unicode_escaped')
         
         # Special characters
         special_chars = set(re.findall(r'[<>"\'\(\)\{\}\[\];,&|]', value))
-        analysis['special_chars'] = list(special_chars)
+        special_chars_list.extend(list(special_chars))
         
         # Pattern detection
         if re.search(r'<[^>]*>', value):
-            analysis['patterns'].append('html_tags')
+            patterns.append('html_tags')
         if re.search(r'javascript:', value, re.IGNORECASE):
-            analysis['patterns'].append('javascript_protocol')
+            patterns.append('javascript_protocol')
         if re.search(r'(alert|prompt|confirm)\s*\(', value, re.IGNORECASE):
-            analysis['patterns'].append('javascript_functions')
+            patterns.append('javascript_functions')
         if re.search(r'(script|iframe|object|embed)', value, re.IGNORECASE):
-            analysis['patterns'].append('dangerous_tags')
+            patterns.append('dangerous_tags')
         
         return analysis
     
@@ -224,8 +229,8 @@ class PayloadValidator:
     @staticmethod
     def validate_payload(payload: str) -> ValidationResult:
         """Validate XSS payload"""
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         
         if not payload:
             errors.append("Payload cannot be empty")
@@ -284,8 +289,8 @@ class ConfigValidator:
     @staticmethod
     def validate_scan_config(config: Dict[str, Any]) -> ValidationResult:
         """Validate scan configuration"""
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         
         # Check required fields
         required_fields = ['target_url']
@@ -331,8 +336,8 @@ class FileValidator:
     @staticmethod
     def validate_output_path(path: str) -> ValidationResult:
         """Validate output file path"""
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         
         if not path:
             errors.append("Output path cannot be empty")

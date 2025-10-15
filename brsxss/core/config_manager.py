@@ -4,13 +4,13 @@
 Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Date: Sun 10 Aug 2025 21:38:09 MSK
+Date: Fri 10 Oct 2025 13:58:30 UTC
 Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
 import os
-import yaml
+import yaml  # type: ignore[import-untyped]
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 
@@ -32,8 +32,11 @@ class ConfigManager:
     
     def __init__(self, config_path: Optional[str] = None):
         """Initialize configuration manager"""
-        self.config_path = config_path or self._find_config_file()
-        self.config_data = {}
+        # Respect environment-provided config paths first
+        env_config_path = os.getenv("BRS_XSS_CONFIG_PATH")
+        self.config_path = config_path or env_config_path or self._find_config_file()
+        self.user_config_path = os.getenv("BRS_XSS_USER_CONFIG_PATH")
+        self.config_data: Dict[str, Any] = {}
         self.defaults = self._load_defaults()
         
         # Load configuration
@@ -57,33 +60,43 @@ class ConfigManager:
     
     def _load_config(self):
         """Load configuration from file"""
+        loaded_config: Dict[str, Any] = {}
+
+        # Load base YAML config
         try:
-            if Path(self.config_path).exists():
+            if self.config_path and Path(self.config_path).exists():
                 with open(self.config_path, 'r', encoding='utf-8') as f:
-                    self.config_data = yaml.safe_load(f) or {}
+                    loaded_config = yaml.safe_load(f) or {}
                 logger.info(f"Configuration loaded from: {self.config_path}")
             else:
                 logger.warning(f"Configuration file not found: {self.config_path}")
-                self.config_data = {}
-        
         except yaml.YAMLError as e:
             logger.error(f"YAML parsing error: {e}")
-            self.config_data = {}
-        
         except Exception as e:
             logger.error(f"Error loading configuration: {e}")
-            self.config_data = {}
-        
-        # Merge with defaults
-        self.config_data = self._merge_configs(self.defaults, self.config_data)
-        
-        # Apply environment overrides
+
+        # Merge defaults -> base config
+        merged = self._merge_configs(self.defaults, loaded_config)
+
+        # Load and merge user config (TOML) if provided
+        try:
+            if self.user_config_path and Path(self.user_config_path).exists():
+                user_cfg = self._load_user_config(self.user_config_path)
+                merged = self._merge_configs(merged, user_cfg)
+                logger.info(f"User configuration loaded from: {self.user_config_path}")
+        except Exception as e:
+            logger.warning(f"User configuration load failed: {e}")
+
+        self.config_data = merged
+
+        # Apply environment overrides (BRSXSS_*)
         self._apply_env_overrides()
     
     def _load_defaults(self) -> Dict[str, Any]:
         """Load default configuration values"""
         return {
             'scanner': {
+                'timeout': 15,
                 'max_depth': 3,
                 'max_urls': 1000,
                 'max_concurrent': 10,
@@ -196,6 +209,88 @@ class ConfigManager:
         
         # Return as string
         return value
+
+    def _load_user_config(self, path: str) -> Dict[str, Any]:
+        """Load user configuration from TOML file with safe fallbacks."""
+        # Prefer stdlib tomllib when available (Py>=3.11)
+        try:
+            import tomllib
+            with open(path, 'rb') as f:
+                return tomllib.load(f) or {}
+        except Exception:
+            # Try tomli if installed
+            try:
+                import tomli
+                with open(path, 'rb') as f:
+                    return tomli.load(f) or {}
+            except Exception:
+                # Minimal parser for simple key=value under [section]
+                with open(path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+                return self._parse_simple_toml(text)
+
+    def _parse_simple_toml(self, text: str) -> Dict[str, Any]:
+        """Very small TOML subset parser supporting [section] and key=value.
+        Supports ints, floats, booleans, quoted strings, and simple string arrays.
+        """
+        result: Dict[str, Any] = {}
+        current: Dict[str, Any] = result
+        current_section: Optional[str] = None
+
+        for raw_line in text.splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith('#'):
+                continue
+            if line.startswith('[') and line.endswith(']'):
+                section = line[1:-1].strip()
+                if not section:
+                    continue
+                current_section = section
+                if section not in result:
+                    result[section] = {}
+                current = result[section]
+                continue
+            if '=' not in line:
+                continue
+            key, val = line.split('=', 1)
+            key = key.strip()
+            val = val.strip()
+
+            # Strip comments at end of line
+            if '#' in val:
+                val = val.split('#', 1)[0].strip()
+
+            # Parse value
+            parsed: Any
+            if val.startswith('[') and val.endswith(']'):
+                # Simple array of strings/numbers
+                inner = val[1:-1].strip()
+                items: List[Any] = []
+                if inner:
+                    for part in inner.split(','):
+                        items.append(self._parse_simple_toml_value(part.strip()))
+                parsed = items
+            else:
+                parsed = self._parse_simple_toml_value(val)
+
+            current[key] = parsed
+
+        return result
+
+    def _parse_simple_toml_value(self, val: str) -> Any:
+        """Parse a single TOML primitive value for the simple parser."""
+        if not val:
+            return ""
+        if val.lower() in ('true', 'false'):
+            return val.lower() == 'true'
+        if (val.startswith('"') and val.endswith('"')) or (val.startswith("'") and val.endswith("'")):
+            return val[1:-1]
+        try:
+            if '.' in val:
+                return float(val)
+            return int(val)
+        except ValueError:
+            return val
     
     def get(self, key: str, default: Any = None) -> Any:
         """

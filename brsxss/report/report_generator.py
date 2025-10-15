@@ -1,27 +1,29 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Report Generator
-
-Central report generation system with multiple format support.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sun 10 Aug 2025 21:38:09 MSK (modified)
+Date: Fri 10 Oct 2025 14:20:00 UTC
+Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
 import time
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Tuple, Optional
+from datetime import datetime
+from dataclasses import asdict, field
 
-from .report_types import ReportFormat, ReportConfig
+from .report_types import ReportConfig, ReportFormat
 from .data_models import VulnerabilityData, ScanStatistics
 from .templates import HTMLTemplate, SARIFTemplate, JUnitTemplate, JSONTemplate
 from .sarif_reporter import SARIFReporter
+from .knowledge_base import get_vulnerability_details
 from ..utils.logger import Logger
+from .. import __version__
 
-logger = Logger("report.generator")
+logger = Logger("report.report_generator")
 
 
 class ReportGenerator:
@@ -36,7 +38,7 @@ class ReportGenerator:
     - Automated reporting
     """
     
-    def __init__(self, config: ReportConfig = None):
+    def __init__(self, config: Optional[ReportConfig] = None):
         """
         Initialize generator.
         
@@ -65,7 +67,7 @@ class ReportGenerator:
         self,
         vulnerabilities: List[VulnerabilityData],
         statistics: ScanStatistics,
-        target_info: Dict[str, Any] = None
+        target_info: Dict[str, Any] = field(default_factory=dict)
     ) -> Dict[ReportFormat, str]:
         """
         Main report generation method.
@@ -78,7 +80,7 @@ class ReportGenerator:
         Returns:
             Dictionary {format: file_path}
         """
-        logger.info(f"🔄 Generating report: {len(vulnerabilities)} vulnerabilities, {len(self.config.formats)} formats")
+        logger.info(f"Generating report: {len(vulnerabilities)} vulnerabilities, {len(self.config.formats)} formats")
         
         if target_info is None:
             target_info = {}
@@ -102,7 +104,7 @@ class ReportGenerator:
             except Exception as e:
                 logger.error(f"Error generating {report_format.value} report: {e}")
         
-        logger.success(f"🎉 Report generated in {len(generated_files)} formats")
+        logger.info(f"Report generated in {len(generated_files)} formats")
         
         return generated_files
     
@@ -140,62 +142,54 @@ class ReportGenerator:
     
     def _prepare_report_data(
         self,
-        vulnerabilities: List[VulnerabilityData],
-        statistics: ScanStatistics,
+        vuln_data: List[VulnerabilityData],
+        scan_stats: ScanStatistics,
         target_info: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """Prepare data for report"""
+        """Prepare context for Jinja2 templates"""
         
-        # Group vulnerabilities by severity
-        vulns_by_severity = {
-            'critical': [v for v in vulnerabilities if v.severity == 'critical'],
-            'high': [v for v in vulnerabilities if v.severity == 'high'],
-            'medium': [v for v in vulnerabilities if v.severity == 'medium'],
-            'low': [v for v in vulnerabilities if v.severity == 'low']
-        }
-        
-        # Group by types
-        vulns_by_type = {}
-        for vuln in vulnerabilities:
-            vuln_type = vuln.vulnerability_type
-            if vuln_type not in vulns_by_type:
-                vulns_by_type[vuln_type] = []
-            vulns_by_type[vuln_type].append(vuln)
-        
-        # Top URLs with vulnerabilities
-        url_counts = {}
-        for vuln in vulnerabilities:
-            url = vuln.url
-            url_counts[url] = url_counts.get(url, 0) + 1
-        
-        top_vulnerable_urls = sorted(url_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-        
-        # Overall risk assessment
-        risk_score = self._calculate_risk_score(vulns_by_severity)
-        
-        return {
-            'config': self.config,
-            'vulnerabilities': vulnerabilities,
-            'vulns_by_severity': vulns_by_severity,
-            'vulns_by_type': vulns_by_type,
-            'statistics': statistics,
-            'target_info': target_info,
+        # Enhance vulnerability data with details from knowledge base
+        enhanced_vulns = []
+        for vuln in vuln_data:
+            details = get_vulnerability_details(vuln.context)
+            
+            # Convert dataclass to dict and merge knowledge base details
+            vuln_dict = asdict(vuln)
+            # Preserve original fields like title/description if already provided
+            for k, v in (details or {}).items():
+                if k not in vuln_dict or not vuln_dict.get(k):
+                    vuln_dict[k] = v
+            enhanced_vulns.append(vuln_dict)
+
+        context = {
+            'report_title': target_info.get('title', 'BRS-XSS Scan Report'),
+            'scan_date': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'scanner_name': target_info.get('scanner_name', 'BRS-XSS'),
+            'scanner_version': __version__,
+            'target_url': target_info.get('url', ''),
+            'vulnerabilities': enhanced_vulns,
+            'vulnerabilities_raw': vuln_data,
+            'total_vulnerabilities': len(vuln_data),
+            'scan_stats': asdict(scan_stats),
+            'severity_counts': self._count_severities(vuln_data),
             'policy': target_info.get('policy', {}),
             'summary': {
-                'total_vulnerabilities': len(vulnerabilities),
-                'critical_count': len(vulns_by_severity['critical']),
-                'high_count': len(vulns_by_severity['high']),
-                'medium_count': len(vulns_by_severity['medium']),
-                'low_count': len(vulns_by_severity['low']),
-                'risk_score': risk_score,
-                'risk_level': self._get_risk_level(risk_score),
-                'top_vulnerable_urls': top_vulnerable_urls
+                'total_vulnerabilities': len(vuln_data),
+                'critical_count': self._count_severities(vuln_data)['critical'],
+                'high_count': self._count_severities(vuln_data)['high'],
+                'medium_count': self._count_severities(vuln_data)['medium'],
+                'low_count': self._count_severities(vuln_data)['low'],
+                'risk_score': self._calculate_risk_score(self._count_severities(vuln_data)),
+                'risk_level': self._get_risk_level(self._calculate_risk_score(self._count_severities(vuln_data))),
+                'top_vulnerable_urls': self._get_top_vulnerable_urls(vuln_data)
             },
-            'recommendations': self._generate_recommendations(vulnerabilities),
+            'recommendations': self._generate_recommendations(vuln_data),
             'methodology': self._get_methodology_info(),
             'timestamp': time.time(),
             'generation_date': time.strftime("%Y-%m-%d %H:%M:%S")
         }
+        
+        return context
     
     def _generate_single_format(self, report_format: ReportFormat, report_data: Dict[str, Any]) -> str:
         """Generate report in single format"""
@@ -224,7 +218,7 @@ class ReportGenerator:
         # Special handling for SARIF 2.1.0 compliant reports
         if report_format == ReportFormat.SARIF:
             # Use new SARIF reporter for GitHub Security integration
-            vulnerabilities = report_data.get('vulnerabilities', [])
+            vulnerabilities = report_data.get('vulnerabilities_raw', report_data.get('vulnerabilities', []))
             scan_info = {
                 'start_time': report_data.get('scan_info', {}).get('start_time'),
                 'end_time': report_data.get('scan_info', {}).get('end_time'),
@@ -250,7 +244,7 @@ class ReportGenerator:
         
         return str(file_path)
     
-    def _calculate_risk_score(self, vulns_by_severity: Dict[str, List]) -> int:
+    def _calculate_risk_score(self, severity_counts: Dict[str, int]) -> int:
         """Calculate overall risk score (0-100)"""
         
         # Weights by severity
@@ -262,8 +256,7 @@ class ReportGenerator:
         }
         
         total_score = 0
-        for severity, vulns in vulns_by_severity.items():
-            count = len(vulns)
+        for severity, count in severity_counts.items():
             weight = weights.get(severity, 1)
             total_score += count * weight
         
@@ -316,7 +309,7 @@ class ReportGenerator:
         """Testing methodology information"""
         return {
             'scanner_name': 'BRS-XSS',
-            'scanner_version': '1.0.0',
+            'scanner_version': __version__,
             'methodology': 'OWASP Testing Guide',
             'techniques_used': [
                 'Reflected XSS Testing',
@@ -329,6 +322,23 @@ class ReportGenerator:
             'coverage': 'All input vectors including forms, URLs parameters, and HTTP headers'
         }
     
+    def _count_severities(self, vulnerabilities: List[VulnerabilityData]) -> Dict[str, int]:
+        """Count vulnerabilities by severity"""
+        severity_counts = {'critical': 0, 'high': 0, 'medium': 0, 'low': 0}
+        for vuln in vulnerabilities:
+            severity = vuln.severity
+            if severity in severity_counts:
+                severity_counts[severity] += 1
+        return severity_counts
+
+    def _get_top_vulnerable_urls(self, vulnerabilities: List[VulnerabilityData]) -> List[Tuple[str, int]]:
+        """Get top 10 URLs with the most vulnerabilities"""
+        url_counts: Dict[str, int] = {}
+        for vuln in vulnerabilities:
+            url = vuln.url
+            url_counts[url] = url_counts.get(url, 0) + 1
+        return sorted(url_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+    
     def generate_summary_report(self, scan_results: List[Dict[str, Any]]) -> str:
         """
         Generate summary report for multiple scans.
@@ -339,7 +349,7 @@ class ReportGenerator:
         Returns:
             Path to summary report
         """
-        logger.info(f"📋 Generating summary report for {len(scan_results)} scans")
+        logger.info(f"Generating summary report for {len(scan_results)} scans")
         
         # Aggregate data
         total_vulns = 0

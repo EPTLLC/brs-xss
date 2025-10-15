@@ -67,7 +67,7 @@ class SARIFReporter:
                     "text": "Context-aware async XSS scanner for CI"
                 },
                 "fullDescription": {
-                    "text": "Professional XSS vulnerability scanner with intelligent context detection, async performance, and enterprise-grade reporting."
+                    "text": "BRS-XSS scanner with context detection, async performance, and multi-format reporting."
                 },
                 "rules": self._build_rules(),
                 "supportedTaxonomies": [
@@ -239,7 +239,8 @@ class SARIFReporter:
                     "url": vuln.url,
                     "parameter": vuln.parameter,
                     "payload": vuln.payload,
-                    "method": vuln.method,
+                    # Optional fields; not all data models include http method
+                    "method": getattr(vuln, "method", "unknown"),
                     "scan_engine": vuln.scan_engine,
                 },
                 "fixes": [

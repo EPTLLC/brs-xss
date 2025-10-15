@@ -1,24 +1,31 @@
-# BRS-XSS Default Configuration
-# Company: EasyProTech LLC (www.easypro.tech)
-# Dev: Brabus
-# Created: Thu 31 Jul 00:17:37 MSK 2025
-# Telegram: https://t.me/EasyProTech
+# BRS-XSS v2.0.0 Configuration (Backup)
+# ==================================
+# Default settings for the scanner.
+# This file serves as a backup and is not loaded by the application.
 
-# Global settings
-app:
-  name: "BRS-XSS"
-  version: "1.0.0"
-  locale: "en"                    # Base locale (English)
-  fallback_locale: "en"           # Fallback locale
-
-# Scanner settings  
+# General scanner settings
 scanner:
+  # Number of concurrent requests
+  concurrency: 32
+
+  # Global rate limit in requests per second (RPS)
+  rate_limit: 8.0
+
+  # Request timeout in seconds
+  timeout: 15
+
+  # Scanner version (for reporting)
+  version: "2.0.0"
+
+  # Max crawl depth for parameter discovery
   max_depth: 3
-  timeout: 10
-  user_agent: "BRS-XSS v1.0.0"
-  threads: 10
-  delay: 0.0
   
+  # User agent string
+  user_agent: "BRS-XSS v2.0.0"
+
+  # Enable safe mode for production environments (disables risky payloads)
+  safe_mode: true
+
 # Payload settings
 payloads:
   max_generation: 1000

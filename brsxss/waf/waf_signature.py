@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .waf_types import WAFType
 
@@ -35,10 +35,10 @@ class WAFSignature:
     status_codes: List[int]              # Characteristic status codes
     response_timing: Optional[float] = None     # Characteristic response time
     
-    # Advanced signatures
+    # signatures
     ssl_fingerprint: Optional[str] = None       # SSL fingerprint
     server_signature: Optional[str] = None      # Server signature
-    cdn_indicators: List[str] = None           # CDN indicators
+    cdn_indicators: List[str] = field(default_factory=list)           # CDN indicators
     
     # Metadata
     confidence_weight: float = 1.0       # Signature weight for confidence

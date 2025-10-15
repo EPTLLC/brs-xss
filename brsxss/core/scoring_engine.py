@@ -1,54 +1,62 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Scoring Engine
-
-Main orchestrator for vulnerability scoring system.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 11:25:00 MSK
+Date: Fri 10 Oct 2025 13:11:55 UTC
+Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
+from dataclasses import asdict
 
-from .scoring_types import ScoringResult, ScoringWeights, SeverityLevel
+from .scoring_types import ScoringResult, SeverityLevel, ScoringWeights
 from .impact_calculator import ImpactCalculator
 from .exploitability_calculator import ExploitabilityCalculator
 from .context_calculator import ContextCalculator
-from .reflection_calculator import ReflectionCalculator
 from .confidence_calculator import ConfidenceCalculator
 from .risk_analyzer import RiskAnalyzer
 from ..utils.logger import Logger
+from .config_manager import ConfigManager
 
 logger = Logger("core.scoring_engine")
 
 
 class ScoringEngine:
-    """
-    Main vulnerability scoring and risk assessment engine.
+    """Calculates vulnerability score based on multiple factors"""
     
-    Orchestrates multiple specialized calculators to provide
-    comprehensive vulnerability assessment.
-    """
-    
-    def __init__(self, weights: ScoringWeights = None):
-        """
-        Initialize scoring engine.
+    def __init__(self, config: Optional[ConfigManager] = None):
+        """Initialize scoring engine"""
+        self.config = config or ConfigManager()
         
-        Args:
-            weights: Custom scoring weights
-        """
-        self.weights = weights or ScoringWeights()
-        
-        # Initialize calculators
-        self.impact_calculator = ImpactCalculator()
-        self.exploitability_calculator = ExploitabilityCalculator()
-        self.context_calculator = ContextCalculator()
-        self.reflection_calculator = ReflectionCalculator()
-        self.confidence_calculator = ConfidenceCalculator()
-        self.risk_analyzer = RiskAnalyzer()
+        # Component calculators
+        self.impact_calculator = ImpactCalculator(self.config)
+        self.exploitability_calculator = ExploitabilityCalculator(self.config)
+        self.context_calculator = ContextCalculator(self.config)
+        self.confidence_calculator = ConfidenceCalculator(self.config)
+
+        # Define the weights for combining component scores (validated dataclass)
+        default_weights = {
+            'impact': 0.4,
+            'exploitability': 0.4,
+            'context': 0.2,
+            'reflection': 0.0,
+        }
+        configured = self.config.get('scoring.weights', default_weights)
+        if isinstance(configured, dict):
+            merged = {**default_weights, **configured}
+            self.weights = ScoringWeights(
+                impact=float(merged.get('impact', 0.4)),
+                exploitability=float(merged.get('exploitability', 0.4)),
+                context=float(merged.get('context', 0.2)),
+                reflection=float(merged.get('reflection', 0.0)),
+            )
+        elif isinstance(configured, ScoringWeights):
+            self.weights = configured
+        else:
+            self.weights = ScoringWeights(**default_weights)
         
         # Statistics
         self.total_assessments = 0
@@ -64,97 +72,75 @@ class ScoringEngine:
         response: Any = None
     ) -> ScoringResult:
         """
-        Score vulnerability based on multiple factors.
-        
-        Args:
-            payload: XSS payload
-            reflection_result: Reflection analysis result
-            context_info: Context information
-            response: HTTP response (optional)
-            
-        Returns:
-            Comprehensive scoring result
+        Calculates a score by combining assessments from specialized calculators.
         """
         self.total_assessments += 1
-        
         logger.debug(f"Scoring vulnerability for payload: {payload[:50]}...")
-        
-        # Calculate component scores
-        impact_score = self.impact_calculator.calculate_impact_score(
-            context_info, payload
+
+        # 1. Component Scores (all scaled 0.0 - 1.0)
+        impact = self.impact_calculator.calculate_impact_score(context_info, payload)
+        exploitability = self.exploitability_calculator.calculate_exploitability_score(reflection_result)
+        context = self.context_calculator.calculate_context_score(context_info)
+
+        # 2. Weighted Average
+        w = self.weights
+        score = (
+            (impact * w.impact) +
+            (exploitability * w.exploitability) +
+            (context * w.context)
         )
         
-        exploitability_score = self.exploitability_calculator.calculate_exploitability_score(
-            payload, reflection_result, context_info
-        )
-        
-        context_score = self.context_calculator.calculate_context_score(context_info)
-        
-        reflection_score = self.reflection_calculator.calculate_reflection_score(
-            reflection_result
-        )
-        
-        # Calculate overall score using weights
-        overall_score = (
-            impact_score * self.weights.impact +
-            exploitability_score * self.weights.exploitability +
-            context_score * self.weights.context +
-            reflection_score * self.weights.reflection
-        )
-        
-        # Determine severity level
-        severity = self._determine_severity(overall_score)
-        
-        # Calculate confidence
+        # 3. Final Score & Severity (scaled to 0-10)
+        final_score = min(score * 10.0, 10.0)
+        severity = self._determine_severity(final_score)
+
+        # 4. Confidence Score
         confidence = self.confidence_calculator.calculate_confidence(
             reflection_result, context_info, payload
         )
+
+        logger.info(f"Vulnerability scored: {final_score:.2f} ({severity.value})")
         
-        # Analyze risks and generate recommendations
-        risk_factors = self.risk_analyzer.identify_risk_factors(
-            context_info, payload, reflection_result
-        )
-        
-        mitigating_factors = self.risk_analyzer.identify_mitigating_factors(
-            context_info, response
-        )
-        
-        recommendations = self.risk_analyzer.generate_recommendations(
-            severity, context_info, risk_factors, mitigating_factors
-        )
-        
-        # Create comprehensive result
-        result = ScoringResult(
-            score=round(overall_score, 2),
+        return ScoringResult(
+            score=round(final_score, 2),
             severity=severity,
             confidence=round(confidence, 3),
-            impact_score=round(impact_score, 2),
-            exploitability_score=round(exploitability_score, 2),
-            context_score=round(context_score, 2),
-            reflection_score=round(reflection_score, 2),
-            risk_factors=risk_factors,
-            mitigating_factors=mitigating_factors,
-            recommendations=recommendations
+            exploitation_likelihood=round(exploitability, 3),
+            impact_score=round(impact, 2),
+            context_score=round(context, 2),
+            recommendations=self._get_recommendations(severity)
         )
-        
-        # Update statistics
-        self.vulnerability_counts[severity] += 1
-        
-        logger.info(f"Vulnerability scored: {overall_score:.2f} ({severity.value})")
-        
-        return result
-    
-    def _determine_severity(self, score: float) -> SeverityLevel:
-        """
-        Determine severity level based on score.
-        
-        Args:
-            score: Overall vulnerability score (0-10)
+
+    def _get_recommendations(self, severity: SeverityLevel) -> List[str]:
+        """Get remediation advice based on severity."""
+        if severity == SeverityLevel.CRITICAL:
+            return [
+                "Review and fix vulnerable code immediately",
+                "Implement immediate input validation and sanitization",
+                "Deploy Content Security Policy (CSP) with strict directives"
+            ]
+        elif severity == SeverityLevel.HIGH:
+            return [
+                "Prioritize fixing this vulnerability within the next sprint",
+                "Apply context-specific output encoding (e.g., HTML, URL, JavaScript)",
+                "Use a trusted, well-maintained library for sanitization"
+            ]
+        elif severity == SeverityLevel.MEDIUM:
+            return [
+                "Schedule a code review to identify similar issues",
+                "Validate and sanitize all user input",
+                "Implement proper HTML entity encoding"
+            ]
+        else: # LOW
+            return [
+                "Keep web application frameworks updated",
+                "Perform regular security testing and code reviews",
+                "Train developers on secure coding practices"
+            ]
             
-        Returns:
-            Severity level
-        """
-        if score >= 9.0:
+    def _determine_severity(self, score: float) -> SeverityLevel:
+        """Determine severity level from a score (0-10)"""
+        if score >= 9.5:
             return SeverityLevel.CRITICAL
         elif score >= 7.0:
             return SeverityLevel.HIGH

@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional, Tuple
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -55,7 +55,7 @@ class FormField:
     pattern: Optional[str] = None
     
     # Select/Radio options
-    options: List[Tuple[str, str]] = None  # (value, text)
+    options: List[Tuple[str, str]] = field(default_factory=list)  # (value, text)
     
     # Security attributes
     autocomplete: Optional[str] = None

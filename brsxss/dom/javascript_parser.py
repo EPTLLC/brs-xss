@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from .ast_types import ASTNode, SourceSinkMapping
 from .ast_extractor import ASTExtractor

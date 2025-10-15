@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import List, Tuple, Set, Dict
+from typing import List, Tuple, Set, Dict, Optional
 
 from .ast_types import ASTNode, SourceSinkMapping, NodeType
 from .dom_sources_sinks import DOM_SOURCES, DOM_SINKS

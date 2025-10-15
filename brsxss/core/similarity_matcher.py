@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from ..utils.logger import Logger
 
 logger = Logger("core.similarity_matcher")
@@ -252,7 +252,7 @@ class SimilarityMatcher:
         reflected: str
     ) -> dict:
         """
-        Calculate comprehensive reflection quality metrics.
+        Calculate reflection quality metrics.
         
         Returns:
             Dictionary with quality metrics

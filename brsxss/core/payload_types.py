@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -66,7 +66,7 @@ class PayloadTemplate:
     """Template for payload generation"""
     template: str
     context_type: ContextType
-    variables: List[str] = None
+    variables: List[str] = field(default_factory=list)
     description: str = ""
     
     def __post_init__(self):

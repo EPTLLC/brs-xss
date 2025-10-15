@@ -11,8 +11,8 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
-from dataclasses import dataclass
+from typing import List, Optional
+from dataclasses import dataclass, field
 
 from .data_models import DOMVulnerability
 from .vulnerability_types import RiskLevel

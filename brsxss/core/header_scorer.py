@@ -118,7 +118,7 @@ class HeaderSecurityScorer:
                     'header': header_name,
                     'action': f'Fix {header_name} configuration',
                     'impact': 'Current configuration is unsafe',
-                    'details': analysis.vulnerabilities
+                    'details': analysis.vulnerabilities  # type: ignore[dict-item]
                 })
         
         # Weak configurations
@@ -129,7 +129,7 @@ class HeaderSecurityScorer:
                     'header': header_name,
                     'action': f'Improve {header_name} configuration',
                     'impact': 'Enhanced security',
-                    'details': analysis.recommendations
+                    'details': analysis.recommendations  # type: ignore[dict-item]
                 })
         
         return recommendations

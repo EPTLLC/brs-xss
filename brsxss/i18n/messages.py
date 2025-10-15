@@ -12,7 +12,7 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict
+from typing import Dict, Optional
 
 
 class Messages:
@@ -24,7 +24,7 @@ class Messages:
     # Main application messages
     APP = {
         "welcome": "Welcome to BRS-XSS v{version}",
-        "description": "XSS scanner with advanced detection capabilities",
+        "description": "XSS scanner with detection capabilities",
         "author": "Developed by EasyProTech LLC",
         "exit": "BRS-XSS execution completed",
     }
@@ -141,7 +141,7 @@ class Messages:
         "scan_summary": "Scanned URLs: {urls}, parameters: {params}",
     }
     
-    def get(self, message_key: str, default: str = None) -> str:
+    def get(self, message_key: str, default: Optional[str] = None) -> str:
         """
         Get message by key.
         

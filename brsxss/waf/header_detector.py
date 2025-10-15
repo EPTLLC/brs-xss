@@ -194,7 +194,7 @@ class HeaderDetector:
         
         for header in standard_headers:
             if header not in headers_lower:
-                anomalies['missing_standard_headers'].append(header)
+                anomalies['missing_standard_headers'].append(header)  # type: ignore[attr-defined]
         
         # Suspicious header patterns
         suspicious_patterns = [
@@ -208,7 +208,7 @@ class HeaderDetector:
         for header_name, header_value in headers_lower.items():
             for pattern in suspicious_patterns:
                 if pattern in header_name or pattern in header_value:
-                    anomalies['suspicious_headers'].append(header_name)
+                    anomalies['suspicious_headers'].append(header_name)  # type: ignore[attr-defined]
         
         # Count security headers
         security_headers = [

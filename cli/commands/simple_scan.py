@@ -4,7 +4,7 @@
 Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Date: Sun 10 Aug 2025 21:38:09 MSK
+Date: Sat 11 Oct 2025 02:32:00 UTC
 Status: Modified
 Telegram: https://t.me/EasyProTech
 """
@@ -16,6 +16,7 @@ from urllib.parse import urlparse, urljoin
 import typer
 from rich.console import Console
 from rich.progress import Progress
+from rich.table import Table
 
 from brsxss import __version__
 from brsxss.core.scanner import XSSScanner
@@ -23,63 +24,39 @@ from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig, ReportFormat
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics
 from brsxss.utils.logger import Logger
+from brsxss.crawler.data_models import DiscoveredParameter
 
 console = Console()
 
 
 async def simple_scan(
-    target: str = typer.Argument(
-        ...,
-        help="Domain or IP address to scan (e.g. example.com, 192.168.1.1)",
-        metavar="TARGET"
-    ),
-    threads: int = typer.Option(
-        10,
-        "--threads", "-t", 
-        help="Concurrency (parallel requests)",
-        min=1,
-        max=50
-    ),
-    timeout: int = typer.Option(
-        15,
-        "--timeout",
-        help="Request timeout in seconds",
-        min=5,
-        max=120
-    ),
-    output: Optional[str] = typer.Option(
-        None,
-        "--output", "-o",
-        help="Output file path for report (defaults to results/json/)"
-    ),
-    deep: bool = typer.Option(True, "--deep/--no-deep", help="Enable deep scanning (crawling + forms)"),
-    verbose: bool = typer.Option(
-        False,
-        "--verbose", "-v",
-        help="Enable verbose output with detailed parameter analysis"
-    ),
-    ml_mode: bool = typer.Option(True, "--ml-mode/--no-ml-mode", help="Enable ML-based vulnerability classification"),
-    blind_xss_webhook: Optional[str] = typer.Option(
-        None,
-        "--blind-xss",
-        help="Webhook URL for blind XSS detection"
-    ),
-    no_ssl_verify: bool = typer.Option(False, "--no-ssl-verify", help="Disable SSL certificate verification (useful for internal/self-signed certs)"),
-    safe_mode: bool = typer.Option(True, "--safe-mode/--no-safe-mode", help="Enable safe mode for production scanning"),
-    pool_cap: int = typer.Option(10000, "--pool-cap", help="Maximum payload pool size", min=100, max=200000),
-    max_payloads: int = typer.Option(500, "--max-payloads", help="Maximum payloads per context", min=1, max=10000),
+    target: str,
+    threads: int = 10,
+    timeout: int = 15,
+    output: Optional[str] = None,
+    deep: bool = False,
+    verbose: bool = False,
+    ml_mode: bool = False,
+    blind_xss_webhook: Optional[str] = None,
+    no_ssl_verify: bool = False,
+    safe_mode: bool = True,
+    pool_cap: int = 10000,
+    max_payloads: int = 500,
 ):
     """Scan target for XSS vulnerabilities - specify domain or IP only"""
     
+    # Configure logging based on verbosity
+    Logger.configure_logging(verbose=verbose)
+
     logger = Logger("cli.simple_scan")
     
-    console.print(f"[bold green]BRS-XSS v{__version__}[/bold green] - Serious XSS Scanner")
+    console.print(f"[bold green]BRS-XSS v{__version__}[/bold green]")
     console.print(f"Target: {target}")
     
     if verbose:
         console.print("[dim]Verbose mode enabled - detailed parameter analysis[/dim]")
     if ml_mode:
-        console.print("[dim]ML mode enabled - advanced vulnerability classification[/dim]")
+        console.print("[dim]ML mode enabled - vulnerability classification[/dim]")
     
     # Scanner will be created with progress callback during scanning
     
@@ -89,7 +66,10 @@ async def simple_scan(
     try:
         # Auto-detect protocol and build URLs
         # Force HTTP for internal IPs when SSL verification is disabled
-        force_http = no_ssl_verify and (target.startswith('192.168.') or target.startswith('10.') or target.startswith('172.') or 'localhost' in target)
+        force_http = no_ssl_verify and (
+            target.startswith('192.168.') or target.startswith('10.') or target.startswith('172.') or
+            target.startswith('127.') or 'localhost' in target
+        )
         scan_targets = _build_scan_targets(target, force_http)
         
         console.print(f"Auto-detected {len(scan_targets)} targets to scan")
@@ -109,56 +89,112 @@ async def simple_scan(
                     progress.update(payload_task, completed=percentage, total=100,
                                   description=f"Testing payload {current}/{total}")
             
-            for url in scan_targets:
-                progress.update(url_task, description=f"Scanning {url}")
-                progress.update(payload_task, completed=0, description="Discovering parameters...")
-                
-                try:
-                    # Create temporary HTTP client for parameter discovery
-                    from brsxss.core.http_client import HTTPClient
-                    temp_client = HTTPClient(timeout=timeout, verify_ssl=not no_ssl_verify)
+            # Create a single reusable HTTP client
+            from brsxss.core.http_client import HTTPClient
+            http_client = HTTPClient(timeout=timeout, verify_ssl=not no_ssl_verify)
+            
+            try:
+                for url in scan_targets:
+                    progress.update(url_task, description=f"Scanning {url}")
+                    progress.update(payload_task, completed=0, description="Discovering parameters...")
                     
-                    # Auto-discover parameters
-                    parameters = await _discover_parameters(url, deep, temp_client)
-                    
-                    if parameters:
-                        console.print(f"Found {len(parameters)} parameters in {url}")
+                    try:
+                        # Auto-discover parameters (entry points)
+                        discovered_params = await _discover_parameters(url, deep, http_client)
                         
-                        # Create scanner with progress callback
-                        scanner_with_progress = XSSScanner(
-                            timeout=timeout, 
-                            max_concurrent=threads, 
-                            verify_ssl=not no_ssl_verify, 
-                            blind_xss_webhook=blind_xss_webhook,
-                            progress_callback=update_payload_progress
-                        )
+                        if discovered_params:
+                            progress.print(f"Found {len(discovered_params)} entry points in {url}")
+                            
+                            # Create scanner with progress callback
+                            scanner_with_progress = XSSScanner(
+                                timeout=timeout, 
+                                max_concurrent=threads, 
+                                verify_ssl=not no_ssl_verify, 
+                                blind_xss_webhook=blind_xss_webhook,
+                                progress_callback=update_payload_progress,
+                                http_client=http_client  # Reuse client
+                            )
+                            
+                            # Scan each discovered entry point
+                            for entry_point in discovered_params:
+                                vulns = await scanner_with_progress.scan_url(
+                                    entry_point.url, 
+                                    entry_point.method,
+                                    entry_point.params
+                                )
+                                all_vulnerabilities.extend(vulns)
+                            
+                        progress.advance(url_task)
+                        progress.update(payload_task, completed=100, description="URL scan completed")
                         
-                        # Scan this URL with its parameters
-                        vulns = await scanner_with_progress.scan_url(url, parameters)
-                        all_vulnerabilities.extend(vulns)
-                        
-                        # Cleanup
-                        await scanner_with_progress.close()
-                    
-                    # Cleanup temporary client
-                    await temp_client.close()
-                    
-                    progress.advance(url_task)
-                    progress.update(payload_task, completed=100, description="URL scan completed")
-                    
-                except Exception as e:
-                    logger.warning(f"Error scanning {url}: {e}")
-                    progress.advance(url_task)
-        
-        # Display results
-        console.print(f"\nScan completed: {len(all_vulnerabilities)} vulnerabilities found")
+                    except Exception as e:
+                        logger.warning(f"Error scanning {url}: {e}")
+                        progress.advance(url_task)
+            
+            finally:
+                # Ensure the shared HTTP client is closed
+                await http_client.close()
+
+        # Display results in a rich table
+        console.print("\n[bold]Scan Summary[/bold]")
         
         if all_vulnerabilities:
-            console.print("[red]VULNERABILITIES FOUND:[/red]")
-            for i, vuln in enumerate(all_vulnerabilities, 1):
-                console.print(f"  {i}. {vuln.get('url')} - {vuln.get('parameter')}")
+            def _sev_str(value):
+                try:
+                    # Enum with value
+                    v = getattr(value, 'value', None)
+                    if isinstance(v, str):
+                        return v.lower()
+                    # Enum name
+                    n = getattr(value, 'name', None)
+                    if isinstance(n, str):
+                        return n.lower()
+                except Exception:
+                    pass
+                if isinstance(value, str):
+                    return value.lower()
+                return 'low'
+
+            table = Table(title="Vulnerabilities Found", show_header=True, header_style="bold magenta")
+            table.add_column("Severity", style="dim", width=12)
+            table.add_column("URL", style="cyan")
+            table.add_column("Method", style="green")
+            table.add_column("Parameter", style="yellow")
+            table.add_column("Payload Snippet", style="white")
+
+            severity_colors = {
+                "critical": "bold red",
+                "high": "red",
+                "medium": "yellow",
+                "low": "cyan",
+                "info": "green"
+            }
+
+            # Sort vulnerabilities by severity (high to low)
+            severities = ["critical", "high", "medium", "low", "info"]
+            sorted_vulns = sorted(
+                all_vulnerabilities,
+                key=lambda v: severities.index(_sev_str(v.get('severity', 'low'))) if _sev_str(v.get('severity', 'low')) in severities else 99
+            )
+
+            for vuln in sorted_vulns:
+                severity = _sev_str(vuln.get('severity', 'low'))
+                color = severity_colors.get(severity, "white")
+                
+                payload = vuln.get('payload', '')
+                payload_snippet = (payload[:40] + '...') if len(payload) > 40 else payload
+
+                table.add_row(
+                    f"[{color}]{severity.upper()}[/{color}]",
+                    vuln.get('url', ''),
+                    vuln.get('http_method', 'GET'),
+                    vuln.get('parameter', ''),
+                    payload_snippet
+                )
+            
+            console.print(table)
         else:
-            console.print("[green]No vulnerabilities found - target appears secure[/green]")
+            console.print("[green]✔ No vulnerabilities found - target appears secure.[/green]")
         
         # Save report
         if not output:
@@ -175,14 +211,14 @@ async def simple_scan(
         _save_simple_report(all_vulnerabilities, scan_targets, output)
         console.print(f"Report saved: {output}")
 
-        # Generate professional multi-format report (HTML + JSON)
+        # Generate multi-format report (HTML + JSON)
         try:
             # Convert to VulnerabilityData
             vuln_items = []
             for idx, v in enumerate(all_vulnerabilities, 1):
                 severity = v.get('severity')
                 if hasattr(severity, 'value'):
-                    severity = severity.value
+                    severity = severity.value  # type: ignore[union-attr]
                 elif not isinstance(severity, str):
                     severity = 'low'
                 vuln_items.append(
@@ -247,9 +283,9 @@ async def simple_scan(
                         path = new_path
                 except Exception as move_err:
                     logger.debug(f"Report move error: {move_err}")
-                console.print(f"Professional report generated: {path}")
+                console.print(f"Report generated: {path}")
         except Exception as e:
-            logger.debug(f"Failed to generate professional report: {e}")
+            logger.debug(f"Failed to generate report: {e}")
     
     except Exception as e:
         logger.error(f"Scan failed: {e}")
@@ -279,7 +315,9 @@ def _build_scan_targets(target: str, force_http: bool = False) -> list:
         return [target]
     elif '/' in target or '?' in target:
         # User provided domain with path/query - add protocols
-        if force_http:
+        # If non-SSL port is explicitly specified, avoid adding https
+        non_ssl_port = (":" in target) and not (":443" in target or ":8443" in target)
+        if force_http or non_ssl_port:
             return [f"http://{target}"]
         else:
             return [f"http://{target}", f"https://{target}"]
@@ -320,79 +358,100 @@ def _build_scan_targets(target: str, force_http: bool = False) -> list:
     return targets
 
 
-async def _discover_parameters(url: str, deep_scan: bool = False, http_client=None) -> dict:
-    """Auto-discover parameters in URL and forms with advanced extraction"""
+async def _discover_parameters(url: str, deep_scan: bool = False, http_client=None) -> list[DiscoveredParameter]:
+    """Auto-discover parameters in URL and forms, returning structured entry points."""
     
-    parameters = {}
+    entry_points = []
     
-    # Extract URL parameters
-    from urllib.parse import parse_qs
+    # 1. Extract parameters from the initial URL itself (GET request)
+    from urllib.parse import urlparse, parse_qs
     parsed = urlparse(url)
     url_params = parse_qs(parsed.query)
     
-    for param, values in url_params.items():
-        parameters[param] = values[0] if values else "test"
-    
-    # If deep scan enabled, use advanced form extraction and crawling
+    if url_params:
+        # Create an entry point for GET parameters in the URL
+        # Keep the full URL with query string - scanner needs it
+        entry_points.append(
+            DiscoveredParameter(
+                url=url,
+                method="GET",
+                params={param: values[0] if values else "test" for param, values in url_params.items()}
+            )
+        )
+
+    # 2. If deep scan, crawl and extract forms
     if deep_scan and http_client:
         try:
             from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
             from brsxss.crawler.form_extractor import FormExtractor
             
-            # Use crawler for comprehensive discovery
             config = CrawlConfig(
                 max_depth=2, 
                 max_urls=20, 
-                max_concurrent=3,
+                max_concurrent=5, # Increased concurrency
                 timeout=15,
                 extract_forms=True,
                 extract_links=True
             )
             crawler = CrawlerEngine(config, http_client)
-            
-            # Crawl starting from URL
             crawl_results = await crawler.crawl(url)
             
             form_extractor = FormExtractor()
             
-            # Process each crawled page
             for result in crawl_results:
                 if result.status_code == 200 and result.content:
-                    # Extract forms from each page
                     forms = form_extractor.extract_forms(result.content, result.url)
                     
                     for form in forms:
-                        # Add testable form fields as parameters
+                        # Create an entry point for each discovered form
+                        form_params = {}
                         for field in form.testable_fields:
-                            # Use intelligent default values
                             if field.field_type.name == 'PASSWORD':
-                                parameters[field.name] = "password123"
+                                form_params[field.name] = "password123"
                             elif field.field_type.name == 'EMAIL':
-                                parameters[field.name] = "test@example.com"
-                            elif 'search' in field.name.lower() or 'query' in field.name.lower():
-                                parameters[field.name] = "search_test"
+                                form_params[field.name] = "test@example.com"
                             else:
-                                parameters[field.name] = "test"
-                    
-                    # Also extract URL parameters from discovered URLs
-                    if hasattr(result, 'discovered_urls'):
-                        for discovered_url in result.discovered_urls:
-                            if hasattr(discovered_url, 'parameters') and discovered_url.parameters:
-                                parameters.update(discovered_url.parameters)
-                
-        except Exception:
-            # Fallback to basic form detection if advanced crawling fails
+                                form_params[field.name] = "test"
+                        
+                        entry_points.append(
+                            DiscoveredParameter(
+                                url=form.action,
+                                method=form.method.upper(),
+                                params=form_params
+                            )
+                        )
+
+        except Exception as e:
+            logger = Logger("cli.simple_scan._discover_parameters")
+            logger.error(f"Deep discovery failed: {e}")
+            # Fallback to basic regex on the initial page if deep scan fails
             try:
                 response = await http_client.get(url)
                 if response.status_code == 200:
                     import re
                     form_inputs = re.findall(r'<input[^>]*name=["\']([^"\']+)["\']', response.text, re.I)
-                    for input_name in form_inputs:
-                        parameters[input_name] = "test"
+                    if form_inputs:
+                        entry_points.append(
+                            DiscoveredParameter(
+                                url=url,
+                                method="GET", # Assume GET as a fallback
+                                params={name: "test" for name in form_inputs}
+                            )
+                        )
             except Exception:
-                pass
+                pass # Ignore fallback errors
     
-    return parameters
+    # Remove duplicate entry points
+    unique_entry_points = []
+    seen = set()
+    for ep in entry_points:
+        # Create a unique key for each entry point
+        key = (ep.url, ep.method, tuple(sorted(ep.params.keys())))
+        if key not in seen:
+            unique_entry_points.append(ep)
+            seen.add(key)
+            
+    return unique_entry_points
 
 
 def _save_simple_report(vulnerabilities: list, targets: list, output_path: str):
@@ -447,50 +506,18 @@ def _save_simple_report(vulnerabilities: list, targets: list, output_path: str):
 
 
 def simple_scan_wrapper(
-    target: str = typer.Argument(
-        ...,
-        help="Domain or IP address to scan (e.g. example.com, 192.168.1.1)",
-        metavar="TARGET"
-    ),
-    threads: int = typer.Option(
-        10,
-        "--threads", "-t", 
-        help="Concurrency (parallel requests)",
-        min=1,
-        max=50
-    ),
-    timeout: int = typer.Option(
-        15,
-        "--timeout",
-        help="Request timeout in seconds",
-        min=5,
-        max=120
-    ),
-    output: Optional[str] = typer.Option(
-        None,
-        "--output", "-o",
-        help="Output file path for report (defaults to results/json/)"
-    ),
-    deep: bool = typer.Option(True, "--deep/--no-deep", help="Enable deep scanning (crawling + forms)"),
-    verbose: bool = typer.Option(
-        False,
-        "--verbose", "-v",
-        help="Enable verbose output with detailed parameter analysis"
-    ),
-    ml_mode: bool = typer.Option(True, "--ml-mode/--no-ml-mode", help="Enable ML-based vulnerability classification"),
-    blind_xss_webhook: Optional[str] = typer.Option(
-        None,
-        "--blind-xss",
-        help="Webhook URL for blind XSS detection"
-    ),
-    no_ssl_verify: bool = typer.Option(
-        False,
-        "--no-ssl-verify",
-        help="Disable SSL certificate verification (useful for internal/self-signed certs)"
-    ),
-    safe_mode: bool = typer.Option(True, "--safe-mode/--no-safe-mode", help="Enable safe mode for production scanning"),
-    pool_cap: int = typer.Option(10000, "--pool-cap", help="Maximum payload pool size", min=100, max=200000),
-    max_payloads: int = typer.Option(500, "--max-payloads", help="Maximum payloads per context", min=1, max=10000),
+    target: str,
+    threads: int = 10,
+    timeout: int = 15,
+    output: Optional[str] = None,
+    deep: bool = False,
+    verbose: bool = False,
+    ml_mode: bool = False,
+    blind_xss_webhook: Optional[str] = None,
+    no_ssl_verify: bool = False,
+    safe_mode: bool = True,
+    pool_cap: int = 10000,
+    max_payloads: int = 500,
 ):
     """Wrapper to run async scan function"""
     return asyncio.run(simple_scan(target, threads, timeout, output, deep, verbose, ml_mode, blind_xss_webhook, no_ssl_verify, safe_mode, pool_cap, max_payloads))

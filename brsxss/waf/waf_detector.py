@@ -51,7 +51,7 @@ class WAFDetector:
         
         # Detection state
         self.detected_wafs: List[WAFInfo] = []
-        self.detection_history = []
+        self.detection_history: List[Dict[str, Any]] = []
         
         logger.info("WAF detector initialized")
     
@@ -65,7 +65,7 @@ class WAFDetector:
         Returns:
             List of detected WAFs
         """
-        logger.info(f"Starting comprehensive WAF detection for {url}")
+        logger.info(f"Starting WAF detection for {url}")
         
         detected_wafs = []
         
@@ -253,16 +253,16 @@ class WAFDetector:
             return []
         
         # Group by WAF type
-        waf_groups = {}
+        waf_groups: Dict[str, List[WAFInfo]] = {}
         for waf in detected_wafs:
             waf_type = waf.waf_type
             if waf_type not in waf_groups:
-                waf_groups[waf_type] = []
-            waf_groups[waf_type].append(waf)
+                waf_groups[waf_type] = []  # type: ignore[index]
+            waf_groups[waf_type].append(waf)  # type: ignore[index]
         
         # Merge each group
         merged_wafs = []
-        for waf_type, waf_list in waf_groups.items():
+        for waf_type, waf_list in waf_groups.items():  # type: ignore[assignment]
             if len(waf_list) == 1:
                 merged_wafs.append(waf_list[0])
             else:
@@ -365,7 +365,7 @@ class WAFDetector:
         Returns:
             Dictionary mapping URLs to detected WAFs
         """
-        results = {}
+        results: Dict[str, Any] = {}
         
         logger.info(f"Starting batch WAF detection for {len(urls)} URLs")
         

@@ -3,7 +3,7 @@
 """
 BRS-XSS Report Module
 
-Professional reporting system with support for multiple formats.
+Reporting system with support for multiple formats.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus

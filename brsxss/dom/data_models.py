@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .vulnerability_types import VulnerabilityType, RiskLevel
 
@@ -30,7 +30,7 @@ class DataFlow:
     # Security analysis
     has_sanitization: bool = False     # Has sanitization
     bypasses_sanitization: bool = False # Bypasses sanitization
-    encoding_applied: List[str] = None  # Applied encodings
+    encoding_applied: List[str] = field(default_factory=list)  # Applied encodings
     
     def __post_init__(self):
         if self.encoding_applied is None:
@@ -56,7 +56,7 @@ class DOMVulnerability:
     
     # Context
     function_context: Optional[str] = None  # Function context
-    variable_context: List[str] = None      # Variable context
+    variable_context: List[str] = field(default_factory=list)      # Variable context
     
     # Exploitation
     sample_payload: str = ""           # Sample payload

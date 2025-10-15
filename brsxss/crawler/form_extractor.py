@@ -32,9 +32,9 @@ class FormExtractor:
     """
     HTML form extractor for BRS-XSS.
     
-    Capabilities:
+    Functions:
     - BeautifulSoup parsing with regex fallback
-    - Advanced field analysis
+    - field analysis
     - Automatic form type detection
     - CSRF token detection
     - Security analysis
@@ -252,7 +252,7 @@ class FormExtractor:
             
             # Create form
             form = ExtractedForm(
-                action=action,
+                action=action,  # type: ignore[arg-type]
                 method=method.upper(),
                 encoding=encoding,
                 source_url=base_url

@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .form_field_types import FormField
 
@@ -23,7 +23,7 @@ class ExtractedForm:
     action: str
     method: str = "GET"
     encoding: str = "application/x-www-form-urlencoded"
-    fields: List[FormField] = None
+    fields: List[FormField] = field(default_factory=list)
     
     # Metadata
     form_id: Optional[str] = None

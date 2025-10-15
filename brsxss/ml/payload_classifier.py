@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from .feature_extractor import FeatureExtractor
 from ..utils.logger import Logger

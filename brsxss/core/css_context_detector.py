@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from .context_types import ContextType
 from ..utils.logger import Logger
 

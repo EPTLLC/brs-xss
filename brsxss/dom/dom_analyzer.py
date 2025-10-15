@@ -47,7 +47,7 @@ class DOMAnalyzer:
         self.vulnerabilities: List[DOMVulnerability] = []
         self.data_flows: List[DataFlow] = []
     
-    def analyze_javascript(self, js_code: str, file_path: str = None) -> List[DOMVulnerability]:
+    def analyze_javascript(self, js_code: str, file_path: Optional[str] = None) -> List[DOMVulnerability]:
         """
         Main JavaScript code analysis method.
         
@@ -79,7 +79,7 @@ class DOMAnalyzer:
         
         # 3. Analyze each data flow
         for mapping in source_sink_mappings:
-            vulnerability = self._analyze_source_sink_mapping(mapping, js_code, file_path)
+            vulnerability = self._analyze_source_sink_mapping(mapping, js_code, file_path or "")
             
             if vulnerability:
                 self.vulnerabilities.append(vulnerability)
@@ -257,13 +257,13 @@ class DOMAnalyzer:
             }
         
         # Risk distribution
-        risk_distribution = {}
+        risk_distribution: Dict[str, int] = {}
         for vuln in self.vulnerabilities:
             risk = vuln.risk_level.value
             risk_distribution[risk] = risk_distribution.get(risk, 0) + 1
         
         # Type distribution
-        vuln_types = {}
+        vuln_types: Dict[str, int] = {}
         for vuln in self.vulnerabilities:
             vuln_type = vuln.vulnerability_type.value
             vuln_types[vuln_type] = vuln_types.get(vuln_type, 0) + 1

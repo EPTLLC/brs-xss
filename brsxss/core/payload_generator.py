@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Payload Generator
-
-Main orchestrator for XSS payload generation system.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Вс 10 авг 2025 19:31:00 MSK
+Date: Fri 10 Oct 2025 14:12:02 UTC
+Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
@@ -44,7 +42,7 @@ class PayloadGenerator:
     context-aware payloads with evasion techniques.
     """
     
-    def __init__(self, config: GenerationConfig = None, blind_xss_webhook: str = None):
+    def __init__(self, config: Optional[GenerationConfig] = None, blind_xss_webhook: Optional[str] = None):
         """
         Initialize payload generator.
         
@@ -60,6 +58,8 @@ class PayloadGenerator:
         self.context_matrix = ContextMatrix()  # New context-aware payload system
         self.evasion_techniques = EvasionTechniques()
         self.waf_evasions = WAFEvasions()
+        # Blind XSS manager: if webhook provided explicitly, prefer it and allow generation
+        self._explicit_webhook = bool(blind_xss_webhook)
         self.blind_xss = BlindXSSManager(blind_xss_webhook) if blind_xss_webhook else None
         
         # Statistics with Counter for better performance
@@ -193,7 +193,7 @@ class PayloadGenerator:
         
         # 1. Base context payloads from context generator with error handling
         try:
-            base_payloads = self.context_generator.get_context_payloads(context_type, context_info)
+            base_payloads = self.context_generator.get_context_payloads(context_type, dict(context_info))
         except Exception as e:
             logger.error(f"context_generator failed: {e}")
             base_payloads = []
@@ -201,30 +201,28 @@ class PayloadGenerator:
         pool.extend([self._wrap(context_type, p, "Context-specific", w_ctx) 
                     for p in base_payloads if str(p).strip()])
         
-        # 2. Context Matrix payloads - lazy loading for relevant contexts only
+        # 2. Context Matrix payloads - always include polyglots; context-specific if recognized
         matrix_payloads = []
-        if context_type in ("html_content", "html_attribute", "javascript", "css", "uri", "svg"):
-            context_mapping = {
-                'html_content': Context.HTML,
-                'html_attribute': Context.ATTRIBUTE, 
-                'javascript': Context.JAVASCRIPT,
-                'css': Context.CSS,
-                'uri': Context.URI,
-                'svg': Context.SVG
-            }
-            
+        context_mapping = {
+            'html_content': Context.HTML,
+            'html_attribute': Context.ATTRIBUTE, 
+            'javascript': Context.JAVASCRIPT,
+            'css': Context.CSS,
+            'uri': Context.URI,
+            'svg': Context.SVG
+        }
+        if context_type in context_mapping:
             matrix_context = context_mapping.get(context_type, Context.HTML)
             matrix_payloads = list(self.context_matrix.get_context_payloads(matrix_context))
-            matrix_payloads.extend(self.context_matrix.get_polyglot_payloads())
-            
-            # Add aggressive payloads if enabled
             if getattr(self.config, 'enable_aggressive', False):
                 matrix_payloads.extend(self.context_matrix.get_aggr_payloads())
+        # Polyglots are useful in any context, include them always
+        matrix_payloads.extend(self.context_matrix.get_polyglot_payloads())
         
         pool.extend([self._wrap(context_type, p, "Context-matrix", w_mat) 
                     for p in matrix_payloads if str(p).strip()])
         
-        # 3. Comprehensive payloads with cap to avoid memory issues
+        # 3. payloads with cap to avoid memory issues
         comprehensive_payloads = islice(self.payload_manager.get_all_payloads(), manager_cap)
         pool.extend([self._wrap(context_type, p, "Comprehensive", w_all) 
                     for p in comprehensive_payloads if str(p).strip()])
@@ -239,7 +237,7 @@ class PayloadGenerator:
         if self.config.include_evasions and pool:
             base_for_evasion = [p.payload for p in pool[:min(evasion_bases, len(pool))]]
             evasion_payloads = self._apply_evasion_techniques(
-                base_for_evasion, context_info, limit_per_tech=evasion_variants
+                base_for_evasion, dict(context_info), limit_per_tech=evasion_variants
             )
             pool.extend(evasion_payloads)
         
@@ -248,6 +246,36 @@ class PayloadGenerator:
             base_for_waf = [p.payload for p in pool[:min(waf_bases, len(pool))]]
             waf_payloads = self._generate_waf_specific_payloads(base_for_waf, detected_wafs)
             pool.extend(waf_payloads)
+
+        # 5.1 Blind XSS payloads (insert into pool so they participate in filtering/sorting)
+        explicit_webhook = self._explicit_webhook
+        safe_mode = getattr(self.config, "safe_mode", True)
+        if safe_mode and self.config.include_blind_xss and not explicit_webhook and not self._warned_blind:
+            logger.warning("include_blind_xss ignored due to safe_mode")
+            self._warned_blind = True
+        elif self.blind_xss and ((not safe_mode and self.config.include_blind_xss) or explicit_webhook):
+            ct = context_type
+            if ct == "html_content":
+                bctx = "html"
+            elif ct == "html_attribute":
+                bctx = "attribute"
+            elif ct in ("javascript", "js_string"):
+                bctx = "javascript"
+            elif ct in ("css", "css_style"):
+                bctx = "css"
+            else:
+                bctx = "html"
+            # Support both legacy generate_payloads(ctx, info) and new generate_blind_payloads(ctx)
+            if hasattr(self.blind_xss, "generate_payloads"):
+                blind_payloads = self.blind_xss.generate_payloads(bctx, context_info)
+            else:
+                blind_payloads = self.blind_xss.generate_blind_payloads(bctx)
+            blind_limit = getattr(self.config, "blind_batch_limit", 10)
+            for s in blind_payloads[:blind_limit]:
+                if isinstance(s, GeneratedPayload):
+                    pool.append(s)
+                else:
+                    pool.append(self._wrap(context_type, s, "BlindXSS", 0.95))
         
         # 6. Early filtering, deduplication, and sorting
         thr = getattr(self.config, 'effectiveness_threshold', 0.65)
@@ -269,15 +297,7 @@ class PayloadGenerator:
             key=lambda x: (-x.effectiveness_score, x.payload)
         )[:max_count]
         
-        # Apply blind XSS payloads if enabled and not in safe mode
-        safe_mode = getattr(self.config, "safe_mode", True)
-        if safe_mode and getattr(self.config, "include_blind_xss", False) and not self._warned_blind:
-            logger.warning("include_blind_xss ignored due to safe_mode")
-            self._warned_blind = True
-        elif not safe_mode and self.config.include_blind_xss and self.blind_xss:
-            blind_payloads = self.blind_xss.generate_payloads(context_type, context_info)
-            blind_limit = getattr(self.config, "blind_batch_limit", 10)
-            sorted_payloads.extend(blind_payloads[:min(blind_limit, max_count - len(sorted_payloads))])
+        # (Blind XSS were already inserted into the pool above)
         
         # Final deduplication after blind XSS to prevent duplicates
         seen_final: Set[str] = set()
@@ -301,7 +321,7 @@ class PayloadGenerator:
     def generate_single_payload(
         self,
         context_info: Dict[str, Any],
-        technique: EvasionTechnique = None
+        technique: Optional[EvasionTechnique] = None
     ) -> Optional[GeneratedPayload]:
         """
         Generate a single optimized payload.
@@ -436,17 +456,17 @@ class PayloadGenerator:
         return [payload]
     
     def _update_statistics(self, payloads: List[GeneratedPayload], context_type: str, 
-                          total_candidates: int = None):
+                          total_candidates: Optional[int] = None):
         """Update generation statistics with real success rate calculation"""
         self.generated_count += len(payloads)
         self.generation_stats["total_generated"] = self.generated_count
-        self.generation_stats["by_context"][context_type] += len(payloads)
+        self.generation_stats["by_context"][context_type] += len(payloads)  # type: ignore[index]
         
         # Update technique and source statistics with Counter
         for payload in payloads:
             for t in payload.evasion_techniques:
-                self.generation_stats["by_technique"][t] += 1
-            self.generation_stats["by_source"][payload.description] += 1
+                self.generation_stats["by_technique"][t] += 1  # type: ignore[index]
+            self.generation_stats["by_source"][payload.description] += 1  # type: ignore[index]
         
         # Calculate real success rate: payloads that passed threshold vs total candidates
         prev_rate = self.generation_stats["success_rate"]
@@ -454,7 +474,7 @@ class PayloadGenerator:
             batch_rate = len(payloads) / float(total_candidates)
         else:
             batch_rate = 1.0  # Fallback when no candidate count available
-        self.generation_stats["success_rate"] = 0.9 * prev_rate + 0.1 * batch_rate
+        self.generation_stats["success_rate"] = (0.9 * prev_rate) + (0.1 * batch_rate)  # type: ignore[operator]
     
     def get_statistics(self) -> Dict[str, Any]:
         """Get generation statistics"""
@@ -511,7 +531,7 @@ class PayloadGenerator:
             
             try:
                 payloads = self.generate_payloads(
-                    context_info=context_info,
+                    context_info=dict(context_info),
                     detected_wafs=detected_wafs,
                     max_payloads=quota
                 )

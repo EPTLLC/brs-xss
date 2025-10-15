@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import base64
-from typing import List
+from typing import List, Optional
 
 
 class WAFSpecificEvasion:

@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pickle
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from .model_types import ModelType
 from .feature_extractor import FeatureExtractor
@@ -35,7 +35,7 @@ class ContextClassifier:
     """
     ML context classifier.
     
-    Improves payload reflection context detection.
+    Modifies payload reflection context detection.
     """
     
     def __init__(self, model_type: ModelType = ModelType.RANDOM_FOREST):
@@ -95,10 +95,10 @@ class ContextClassifier:
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
         
         # Train model
-        self.model.fit(X_train, y_train)
+        self.model.fit(X_train, y_train)  # type: ignore
         
         # Evaluate accuracy
-        y_pred = self.model.predict(X_test)
+        y_pred = self.model.predict(X_test)  # type: ignore
         accuracy = accuracy_score(y_test, y_pred)
         
         self.is_trained = True
@@ -117,7 +117,7 @@ class ContextClassifier:
         Returns:
             Tuple[predicted_context, confidence]
         """
-        if not self.is_trained:
+        if not self.is_trained or self.model is None:
             logger.warning("Model not trained, using fallback")
             return self._fallback_prediction(html_content, marker_position)
         

@@ -18,7 +18,7 @@
 ![Performance](https://img.shields.io/badge/benchmark-1k%20URLs%20%2F%2012min-brightgreen)
 ![License](https://img.shields.io/badge/license-Dual%3A%20GPLv3%2B%20%2F%20Commercial-red)
 
-> Professional XSS vulnerability scanner with intelligent context detection, async performance, and enterprise-grade reporting.
+> XSS vulnerability scanner with context detection, async performance, and multi-format reporting.
 
 ---
 
@@ -44,6 +44,8 @@
 ---
 
 ## Quickstart (60 seconds)
+
+> **Note:** Version `2.0.0` includes a critical fix for a bug that prevented the scanner from correctly detecting vulnerabilities in HTML forms (POST requests). Please upgrade if you are using an older version.
 
 ### Install & Scan
 ```bash
@@ -101,7 +103,7 @@ Machine-readable results with full JSON Schema validation:
 {
   "scan_info": {
   "timestamp": "2025-09-08T09:03:08Z",
-  "scanner": "BRS-XSS v1.0.5.1",
+  "scanner": "BRS-XSS v2.0.0",
     "targets_scanned": 47,
     "vulnerabilities_found": 8,
     "false_positive_rate": "3.2%"
@@ -144,6 +146,15 @@ Machine-readable results with full JSON Schema validation:
 - **Intelligent Selection** - ML-enhanced payload effectiveness scoring  
 - **Aggr Mode** - Multi-encoding polyglots for maximum coverage
 - **WAF Metrics** - Hit rates tested on 10+ demo targets
+
+### Knowledge Base System
+- **17 Context Modules** - 5,535 lines of expert vulnerability documentation
+- **SIEM Integration** - CVSS scoring, severity levels, CWE/OWASP mapping
+- **Reverse Mapping** - Payload → Context → Defense correlation
+- **CLI Access** - `brs-xss kb` commands for vulnerability information
+- **Schema Validation** - JSON Schema with pytest test suite
+- **Versioning** - Semantic versioning (KB v1.0.0)
+- **Metadata Export** - YAML files for quick revision without Python import
 
 ---
 
@@ -206,6 +217,14 @@ brs-xss scan https://target.tld
 # Comprehensive scan with all contexts
 brs-xss scan https://target.tld --aggr --deep
 
+# Knowledge Base commands
+brs-xss kb info                              # Show KB information
+brs-xss kb list                              # List all contexts
+brs-xss kb show html_content                 # View context details
+brs-xss kb show html_attribute --section remediation
+brs-xss kb search "dom xss"                  # Search contexts
+brs-xss kb export html_content output.json   # Export to file
+
 # List available payloads by context
 brs-xss payloads list --context html
 
@@ -215,6 +234,55 @@ brs-xss replay https://target.tld/vuln?param=payload
 # Merge multiple scan reports  
 brs-xss report merge scan1.json scan2.json -o combined.sarif
 ```
+
+---
+
+## Knowledge Base
+
+The scanner uses **[BRS-KB](https://github.com/EPTLLC/BRS-KB)** - a standalone open-source XSS knowledge base.
+
+### BRS-KB Integration
+
+BRS-KB provides expert vulnerability information for 17 XSS contexts:
+- HTML contexts (content, attributes, comments)
+- JavaScript contexts (direct injection, strings, objects)
+- CSS contexts (styles, selectors, keyloggers)
+- Data formats (JSON, XML, SVG, Markdown)
+- Advanced vectors (DOM XSS, template injection, PostMessage, WebAssembly)
+
+Each vulnerability includes CVSS scores, CWE/OWASP mappings, attack vectors, and remediation guidance.
+
+### Usage in BRS-XSS
+
+```python
+from brsxss.report.knowledge_base import get_vulnerability_details
+
+details = get_vulnerability_details('html_content')
+cvss = details['cvss_score']      # 8.8
+severity = details['severity']    # 'critical'
+cwe = details['cwe']              # ['CWE-79']
+```
+
+### Standalone Usage
+
+BRS-KB can be used independently in other security tools:
+
+```bash
+pip install brs-kb
+```
+
+```python
+from brs_kb import get_vulnerability_details, list_contexts
+
+# Get all available contexts
+contexts = list_contexts()
+
+# Get details for specific context
+info = get_vulnerability_details('dom_xss')
+```
+
+**Documentation**: https://github.com/EPTLLC/BRS-KB  
+**License**: MIT (separate from BRS-XSS dual license)
 
 ---
 
@@ -292,21 +360,13 @@ pip install -e .
 
 ---
 
-## Roadmap
+## Related Projects
 
-### Sprint 1 (Current)
-- [x] SARIF 2.1.0 full compliance
-- [ ] Performance benchmarks
-- [x] Docker multi-arch builds
-
-### Sprint 2 (Next)
-- [ ] GraphQL endpoint scanning
-- [ ] WebSocket XSS detection  
-- [ ] Custom payload templates
-- [ ] Burp Suite extension
+- **[BRS-KB](https://github.com/EPTLLC/BRS-KB)** - Open XSS Knowledge Base (MIT License)
+- BRS-ATTACK - Network security testing suite (planned)
 
 ---
 
-**BRS-XSS v1.0.5.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.0.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Context-aware async XSS scanner for CI*

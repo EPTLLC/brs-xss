@@ -11,8 +11,8 @@ Created: Tue 05 Aug 2025 18:03:16 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List
-from dataclasses import dataclass
+from typing import Dict, List, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -32,7 +32,7 @@ class HeaderAnalysis:
     security_level: SecurityLevel
     vulnerabilities: List[str]
     recommendations: List[str]
-    bypass_techniques: List[str] = None
+    bypass_techniques: List[str] = field(default_factory=list)
 
 
 @dataclass

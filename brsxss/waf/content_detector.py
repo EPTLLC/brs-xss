@@ -187,7 +187,7 @@ class ContentDetector:
     
     def analyze_error_pages(self, content: str) -> Dict[str, Any]:
         """Analyze error pages for WAF characteristics"""
-        analysis = {
+        analysis: Dict[str, Any] = {
             'is_error_page': False,
             'error_type': None,
             'waf_indicators': [],
@@ -237,7 +237,7 @@ class ContentDetector:
     
     def detect_javascript_challenges(self, content: str) -> Dict[str, Any]:
         """Detect JavaScript challenges (like Cloudflare's)"""
-        js_analysis = {
+        js_analysis: Dict[str, Any] = {
             'has_js_challenge': False,
             'challenge_type': None,
             'challenge_indicators': []

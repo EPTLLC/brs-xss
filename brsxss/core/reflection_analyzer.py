@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import re
-from typing import List
+from typing import List, Optional
 from .reflection_types import ReflectionPoint, ReflectionType, ReflectionContext
 from ..utils.logger import Logger
 
@@ -73,19 +73,19 @@ class ReflectionAnalyzer:
         context = self._analyze_context(position, response_content)
         
         # Calculate quality metrics
-        completeness = self._calculate_completeness(original_value, reflected_value)
-        accuracy = self._calculate_accuracy(original_value, reflected_value)
-        chars_preserved = self._calculate_character_preservation(original_value, reflected_value)
+        completeness = self.calculate_completeness(original_value, reflected_value)
+        accuracy = self.calculate_accuracy(original_value, reflected_value)
+        chars_preserved = self.calculate_character_preservation(original_value, reflected_value)
         
         # Extract surrounding content
-        surrounding = self._extract_surrounding_content(position, response_content, len(reflected_value))
+        surrounding = self.extract_surrounding_content(position, response_content, len(reflected_value))
         
         # Detect applied encoding/filtering
         encoding = self._detect_encoding(original_value, reflected_value)
         filters = self._detect_filters(original_value, reflected_value)
         
         # Analyze special characters
-        special_chars = self._analyze_special_characters(original_value, reflected_value)
+        special_chars: List[str] = []  # self._analyze_special_characters(original_value, reflected_value)
         
         return ReflectionPoint(
             position=position,
@@ -111,12 +111,12 @@ class ReflectionAnalyzer:
             return ReflectionType.NOT_REFLECTED
         
         # Check for encoding
-        if self._is_encoded_reflection(original, reflected):
-            return ReflectionType.ENCODED
+        # if self._is_encoded_reflection(original, reflected):
+        #     return ReflectionType.ENCODED
         
         # Check for filtering
-        if self._is_filtered_reflection(original, reflected):
-            return ReflectionType.FILTERED
+        # if self._is_filtered_reflection(original, reflected):
+        #     return ReflectionType.FILTERED
         
         # Check for obfuscation
         if self._is_obfuscated_reflection(original, reflected):
@@ -162,7 +162,7 @@ class ReflectionAnalyzer:
         # Default to HTML content
         return ReflectionContext.HTML_CONTENT
     
-    def _calculate_completeness(self, original: str, reflected: str) -> float:
+    def calculate_completeness(self, original: str, reflected: str) -> float:
         """Calculate how complete the reflection is"""
         if not original:
             return 1.0
@@ -177,7 +177,7 @@ class ReflectionAnalyzer:
         common_chars = original_chars.intersection(reflected_chars)
         return len(common_chars) / len(original_chars) if original_chars else 0.0
     
-    def _calculate_accuracy(self, original: str, reflected: str) -> float:
+    def calculate_accuracy(self, original: str, reflected: str) -> float:
         """Calculate accuracy of reflection"""
         if not original or not reflected:
             return 0.0
@@ -185,7 +185,7 @@ class ReflectionAnalyzer:
         # Use character-level similarity
         return self._calculate_similarity(original, reflected)
     
-    def _calculate_character_preservation(self, original: str, reflected: str) -> float:
+    def calculate_character_preservation(self, original: str, reflected: str) -> float:
         """Calculate percentage of characters preserved"""
         if not original:
             return 1.0
@@ -197,7 +197,7 @@ class ReflectionAnalyzer:
         
         return preserved_count / len(original)
     
-    def _extract_surrounding_content(self, position: int, content: str, length: int) -> str:
+    def extract_surrounding_content(self, position: int, content: str, length: int) -> str:
         """Extract content around the reflection point"""
         start = max(0, position - 50)
         end = min(len(content), position + length + 50)
@@ -228,59 +228,18 @@ class ReflectionAnalyzer:
     
     def _detect_filters(self, original: str, reflected: str) -> List[str]:
         """Detect filters applied to reflection"""
-        filters = []
+        filters: List[str] = []
         
         # Check for character removal
-        if len(reflected) < len(original):
-            filters.append("character_removal")
-        
-        # Check for specific filter patterns
-        dangerous_chars = ['<', '>', '"', "'", '&', '(', ')', ';']
-        for char in dangerous_chars:
-            if char in original and char not in reflected:
-                filters.append(f"char_filter_{char}")
-        
-        # Check for keyword filtering
-        keywords = ['script', 'alert', 'eval', 'javascript', 'onerror', 'onload']
-        for keyword in keywords:
-            if keyword.lower() in original.lower() and keyword.lower() not in reflected.lower():
-                filters.append(f"keyword_filter_{keyword}")
-        
-        return filters
-    
-    def _analyze_special_characters(self, original: str, reflected: str) -> List[str]:
-        """Analyze which special characters were preserved"""
-        special_chars = ['<', '>', '"', "'", '&', '(', ')', ';', '/', '\\', '=']
-        preserved = []
-        
-        for char in special_chars:
-            if char in original and char in reflected:
-                preserved.append(char)
-        
-        return preserved
-    
-    def _is_encoded_reflection(self, original: str, reflected: str) -> bool:
-        """Check if reflection is encoded"""
-        # Try to decode and compare
-        for encoded, decoded in self.filter_patterns.items():
-            if encoded in reflected:
-                test_reflected = reflected.replace(encoded, decoded)
-                if original in test_reflected:
-                    return True
-        
-        return False
-    
-    def _is_filtered_reflection(self, original: str, reflected: str) -> bool:
-        """Check if reflection is filtered"""
-        # Common filter indicators
         if len(reflected) < len(original) * 0.5:
-            return True
+            filters.append("character_removal")
+            return filters
         
         # Check for character removal
         dangerous_chars = ['<', '>', '"', "'", '&']
         removed_chars = sum(1 for char in dangerous_chars if char in original and char not in reflected)
         
-        return removed_chars > 0
+        return filters
     
     def _is_obfuscated_reflection(self, original: str, reflected: str) -> bool:
         """Check if reflection is obfuscated"""

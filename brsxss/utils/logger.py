@@ -14,6 +14,8 @@ import sys
 from typing import Optional
 from pathlib import Path
 
+from rich.logging import RichHandler
+
 
 class ColorFormatter(logging.Formatter):
     """Colored log formatter"""
@@ -39,7 +41,7 @@ class ColorFormatter(logging.Formatter):
 
 class Logger:
     """
-    Advanced logger for BRS-XSS.
+    logger for BRS-XSS.
     
     Features:
     - Colored console output
@@ -49,7 +51,9 @@ class Logger:
     - Performance tracking
     """
     
-    def __init__(self, name: str, level: str = "INFO"):
+    _configured = False
+
+    def __init__(self, name: str, level: str = "WARNING"):
         """Initialize logger"""
         self.name = name
         self.logger = logging.getLogger(name)
@@ -70,8 +74,7 @@ class Logger:
         console_handler.setLevel(logging.DEBUG)
         
         console_formatter = ColorFormatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%H:%M:%S'
+            '%(message)s'  # Simplified format for cleaner output
         )
         console_handler.setFormatter(console_formatter)
         
@@ -126,6 +129,46 @@ class Logger:
         self.logger.setLevel(getattr(logging, level.upper(), logging.INFO))
     
     @staticmethod
+    def configure_logging(verbose: bool = False, log_file: Optional[str] = None):
+        """Configure global logging settings based on verbosity."""
+        if Logger._configured:
+            return
+
+        level = "INFO" if verbose else "WARNING"
+        
+        root_logger = logging.getLogger()
+        root_logger.setLevel(level)
+        
+        # Clear existing handlers to prevent conflicts
+        for handler in root_logger.handlers[:]:
+            root_logger.removeHandler(handler)
+
+        # Use RichHandler for beautiful, conflict-free console logging
+        rich_handler = RichHandler(
+            show_path=False,
+            log_time_format="[%X]", # e.g., [14:32:56]
+            level=level,
+            show_level=verbose, # Only show level name in verbose mode
+            show_time=verbose   # Only show timestamp in verbose mode
+        )
+        root_logger.addHandler(rich_handler)
+
+        if log_file:
+            try:
+                Path(log_file).parent.mkdir(parents=True, exist_ok=True)
+                file_handler = logging.FileHandler(log_file, encoding='utf-8')
+                file_formatter = logging.Formatter(
+                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+                )
+                file_handler.setFormatter(file_formatter)
+                root_logger.addHandler(file_handler)
+            except Exception as e:
+                # Use print here since logger might not be fully configured
+                print(f"Error setting up file logger: {e}")
+
+        Logger._configured = True
+    
+    @staticmethod
     def setup_global_logging(level: str = "INFO", log_file: Optional[str] = None):
         """Setup global logging configuration"""
         # Clear existing handlers to prevent duplication
@@ -153,4 +196,5 @@ class Logger:
 # Global logger instance
 def get_logger(name: str) -> Logger:
     """Get logger instance"""
-    return Logger(name)
+    # Default level is now WARNING, will be overridden by global config
+    return Logger(name, level="WARNING")

@@ -3,7 +3,7 @@
 """
 BRS-XSS Payload Library
 
-Professional XSS payload collection with maximum coverage.
+XSS payload collection with broad coverage.
 Organized by context, evasion technique, and target type.
 
 Company: EasyProTech LLC (www.easypro.tech)

@@ -9,8 +9,8 @@ Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
-from dataclasses import dataclass
+from typing import List, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -39,11 +39,11 @@ class ScoringResult:
     reflection_score: float = 0.0  # Reflection quality score
     
     # Risk factors
-    risk_factors: List[str] = None
-    mitigating_factors: List[str] = None
+    risk_factors: List[str] = field(default_factory=list)
+    mitigating_factors: List[str] = field(default_factory=list)
     
     # Recommendations
-    recommendations: List[str] = None
+    recommendations: List[str] = field(default_factory=list)
     
     def __post_init__(self):
         if self.risk_factors is None:
@@ -75,7 +75,7 @@ class ContextInfo:
     context_type: str = "unknown"
     tag_name: str = ""
     attribute_name: str = ""
-    filters_detected: List[str] = None
+    filters_detected: List[str] = field(default_factory=list)
     encoding_detected: str = "none"
     position: str = "unknown"
     page_sensitive: bool = False

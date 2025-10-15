@@ -1,32 +1,40 @@
-# BRS-XSS v1.0.5.1 Configuration  
-# Company: EasyProTech LLC (www.easypro.tech)
-# Dev: Brabus
-# Date: Wed 04 Sep 2025 09:03:08 MSK
-# Status: Modified
-# Telegram: https://t.me/EasyProTech
+# BRS-XSS v2.0.0 Configuration  
+# ==================================
+# Default settings for the scanner.
+# For user-specific overrides, create a `config.toml` in `~/.config/brs-xss/`.
 
-# Global settings
-app:
-  name: "BRS-XSS"
-  version: "1.1.0"
-  locale: "en"                    # Base locale (English)
-  fallback_locale: "en"           # Fallback locale
-
-# Scanner settings with production-safe defaults
+# General scanner settings
 scanner:
-  max_depth: 3                    # Safe crawling depth
-  timeout: 15                     # Request timeout in seconds
-  user_agent: "BRS-XSS v1.0.5.1"
-  concurrency: 32                 # Concurrent requests limit
-  rate_limit: 8.0                 # Requests per second (RPS)
-  delay: 0.125                    # Delay between requests (1/8 second)
-  min_vulnerability_score: 2.0    # Minimum score for vulnerability detection
-  safe_mode: true                 # Enable production-safe defaults
-  respect_robots: true            # Respect robots.txt
-  enable_denylist: true           # Enable URL denylist
-  max_retries: 3                  # HTTP retry attempts
-  backoff_factor: 2.0             # Exponential backoff multiplier
+  # Number of concurrent requests
+  concurrency: 32
+
+  # Global rate limit in requests per second (RPS)
+  rate_limit: 8.0
+
+  # Request timeout in seconds
+  timeout: 15
+
+  # Scanner version (for reporting)
+  version: "2.0.0"
+
+  # Max crawl depth for parameter discovery
+  max_depth: 3
   
+  # User agent string
+  user_agent: "BRS-XSS v2.0.0"
+
+  # Enable safe mode for production environments (disables risky payloads)
+  safe_mode: true
+
+  # Respect robots.txt
+  respect_robots: true
+  # Enable URL denylist
+  enable_denylist: true
+  # HTTP retry attempts
+  max_retries: 3
+  # Exponential backoff multiplier
+  backoff_factor: 2.0
+
 # Performance and caching
 performance:
   enable_caching: true            # Enable reflection caching

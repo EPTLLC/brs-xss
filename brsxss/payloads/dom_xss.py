@@ -11,7 +11,7 @@ Created: Вс 10 авг 2025 19:35:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
+from typing import List, Optional
 
 
 class DOMXSSPayloads:

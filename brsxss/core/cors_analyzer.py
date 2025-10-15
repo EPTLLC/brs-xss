@@ -11,7 +11,7 @@ Created: Tue 05 Aug 2025 18:03:16 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 from .header_types import HeaderAnalysis, SecurityLevel
 
 from ..utils.logger import Logger

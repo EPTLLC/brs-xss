@@ -3,7 +3,7 @@
 """
 BRS-XSS Metadata Types
 
-Data types for comprehensive scan metadata collection.
+Data types for scan metadata collection.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
@@ -11,19 +11,19 @@ Created: Tue 05 Aug 2025 18:03:16 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-import platform
+import platform as _platform
 from ..version import VERSION
-from typing import Dict, List
-from dataclasses import dataclass
+from typing import Dict, List, Optional
+from dataclasses import dataclass, field
 
 
 @dataclass
 class ScanEnvironment:
     """Scan environment information"""
     scanner_version: str = VERSION
-    python_version: str = platform.python_version()
-    platform: str = platform.platform()
-    hostname: str = platform.node()
+    python_version: str = _platform.python_version()
+    platform: str = _platform.platform()
+    hostname: str = _platform.node()
     scan_id: str = ""
     start_time: float = 0.0
     end_time: float = 0.0
@@ -35,11 +35,11 @@ class TargetMetadata:
     url: str = ""
     domain: str = ""
     ip_address: str = ""
-    technologies: List[str] = None
+    technologies: List[str] = field(default_factory=list)
     cms_detected: str = ""
     server_software: str = ""
-    response_headers: Dict[str, str] = None
-    status_codes_seen: List[int] = None
+    response_headers: Dict[str, str] = field(default_factory=dict)
+    status_codes_seen: List[int] = field(default_factory=list)
 
 
 @dataclass
@@ -63,9 +63,9 @@ class SecurityFindings:
     high_severity: int = 0
     medium_severity: int = 0
     low_severity: int = 0
-    contexts_tested: List[str] = None
-    waf_detected: List[str] = None
-    bypass_techniques_used: List[str] = None
+    contexts_tested: List[str] = field(default_factory=list)
+    waf_detected: List[str] = field(default_factory=list)
+    bypass_techniques_used: List[str] = field(default_factory=list)
     unique_contexts: int = 0
 
 

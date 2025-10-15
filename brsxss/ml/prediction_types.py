@@ -11,8 +11,8 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Tuple, Any
-from dataclasses import dataclass
+from typing import Dict, List, Tuple, Any, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -35,8 +35,8 @@ class PredictionResult:
     prediction_time: float
     
     # Additional data
-    alternatives: List[Tuple[str, float]] = None  # Alternative predictions
-    features_used: List[str] = None              # Used features
+    alternatives: List[Tuple[str, float]] = field(default_factory=list)  # Alternative predictions
+    features_used: List[str] = field(default_factory=list)              # Used features
     explanation: str = ""                        # Prediction explanation
     
     def __post_init__(self):

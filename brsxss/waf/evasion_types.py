@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 from .detector import WAFType
@@ -55,7 +55,7 @@ class EvasionTechnique(Enum):
     DATA_URI = "data_uri"
     JAVASCRIPT_URI = "javascript_uri"
     
-    # Advanced techniques
+    # techniques
     POLYGLOT_PAYLOAD = "polyglot_payload"
     CONTEXT_BREAKING = "context_breaking"
     MUTATION_FUZZING = "mutation_fuzzing"

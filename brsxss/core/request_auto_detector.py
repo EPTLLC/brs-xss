@@ -106,7 +106,7 @@ class RequestAutoDetector:
         else:
             return "application/x-www-form-urlencoded"
     
-    def detect_injection_points(self, url: str, data: Dict[str, Any] = None) -> list:
+    def detect_injection_points(self, url: str, data: Optional[Dict[str, Any]] = None) -> list:
         """Detect potential injection points"""
         
         injection_points = []

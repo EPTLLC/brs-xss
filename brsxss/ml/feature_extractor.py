@@ -93,7 +93,7 @@ class FeatureExtractor:
         # Basic characteristics
         features['length'] = len(payload)
         features['word_count'] = len(payload.split())
-        features['char_diversity'] = len(set(payload)) / len(payload) if payload else 0
+        features['char_diversity'] = len(set(payload)) / len(payload) if payload else 0  # type: ignore[assignment]
         
         # HTML tags
         features['has_script_tag'] = '<script' in payload_lower

@@ -14,7 +14,7 @@ Telegram: https://t.me/EasyProTech
 import time
 import hashlib
 import platform
-from typing import Optional
+from typing import Optional, List
 from .metadata_types import (
     ScanEnvironment, TargetMetadata, ScanConfiguration,
     SecurityFindings, PerformanceMetrics, QualityMetrics
@@ -51,10 +51,10 @@ class ScanMetadataCollector:
         self.quality = QualityMetrics()
         
         # Additional tracking
-        self.request_times = []
-        self.tested_parameters = set()
-        self.tested_contexts = set()
-        self.payload_types_used = set()
+        self.request_times: List[float] = []
+        self.tested_parameters: set[str] = set()
+        self.tested_contexts: set[str] = set()
+        self.payload_types_used: set[str] = set()
         
         logger.info(f"Scan metadata collector initialized: {self.scan_id}")
     

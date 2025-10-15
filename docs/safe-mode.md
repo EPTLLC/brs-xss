@@ -20,7 +20,7 @@ Safe mode enables conservative scanning suitable for production environments:
 # Enable safe mode
 brs-xss scan https://example.com --safe-mode
 
-# Safe mode is enabled by default in v1.0.5.1
+# Safe mode is enabled by default in v2.0.0+
 brs-xss scan https://example.com
 ```
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Advanced XSS Payloads
+XSS Payloads
 
-Complex and sophisticated XSS vectors for advanced testing.
+Complex and sophisticated XSS vectors for testing.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
@@ -11,11 +11,11 @@ Created: Вс 10 авг 2025 19:35:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
+from typing import List, Optional
 
 
 class AdvancedXSSPayloads:
-    """Advanced XSS payload collection"""
+    """XSS payload collection"""
     
     @staticmethod
     def get_obfuscated_payloads() -> List[str]:
@@ -224,7 +224,7 @@ class AdvancedXSSPayloads:
     
     @staticmethod
     def get_all() -> List[str]:
-        """Get all advanced XSS payloads"""
+        """Get all XSS payloads"""
         payloads = []
         payloads.extend(AdvancedXSSPayloads.get_obfuscated_payloads())
         payloads.extend(AdvancedXSSPayloads.get_context_breaking_payloads())

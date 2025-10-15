@@ -3,7 +3,7 @@
 """
 BRS-XSS Form Parser
 
-HTML form extraction and parsing with advanced field analysis.
+HTML form extraction and parsing with field analysis.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus

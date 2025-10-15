@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BRS-XSS Knowledge Base Module Schema",
+  "description": "Schema for validating knowledge base DETAILS structure",
+  "type": "object",
+  "required": [
+    "title",
+    "description",
+    "attack_vector",
+    "remediation"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 10,
+      "description": "Vulnerability title"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"],
+      "description": "Severity level"
+    },
+    "cvss_score": {
+      "type": "number",
+      "minimum": 0.0,
+      "maximum": 10.0,
+      "description": "CVSS 3.1 base score"
+    },
+    "cvss_vector": {
+      "type": "string",
+      "pattern": "^CVSS:3\\.[01]/",
+      "description": "CVSS vector string"
+    },
+    "reliability": {
+      "type": "string",
+      "enum": ["tentative", "firm", "certain"],
+      "description": "Confidence level in detection"
+    },
+    "cwe": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^CWE-[0-9]+$"
+      },
+      "description": "CWE identifiers"
+    },
+    "owasp": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "OWASP Top 10 references"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Classification tags"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 50,
+      "description": "Detailed vulnerability description"
+    },
+    "attack_vector": {
+      "type": "string",
+      "minLength": 50,
+      "description": "Attack vectors and techniques"
+    },
+    "remediation": {
+      "type": "string",
+      "minLength": 50,
+      "description": "Remediation and prevention guidance"
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "payload"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Example name"
+          },
+          "payload": {
+            "type": "string",
+            "description": "Attack payload"
+          },
+          "poc_url": {
+            "type": "string",
+            "description": "Proof of concept URL"
+          },
+          "screenshot": {
+            "type": "string",
+            "description": "Screenshot path"
+          }
+        }
+      },
+      "description": "Practical examples and POCs"
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "description": "External references"
+    }
+  },
+  "additionalProperties": false
+}
+

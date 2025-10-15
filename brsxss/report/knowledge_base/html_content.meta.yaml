@@ -1,0 +1,40 @@
+# Knowledge Base Module Metadata
+# This file allows quick revision without importing Python
+
+module: html_content
+version: 1.0.0
+last_updated: 2025-10-10
+author: Brabus
+status: stable
+
+# Classification
+severity: critical
+cvss_score: 8.8
+cvss_vector: CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N
+reliability: certain
+
+# Standards
+cwe:
+  - CWE-79
+owasp:
+  - A03:2021
+  
+# Content stats
+lines: 398
+size_kb: 11
+
+# Tags for categorization
+tags:
+  - xss
+  - html
+  - reflected
+  - stored
+  - injection
+  - critical
+  
+# Related contexts
+related:
+  - html_attribute
+  - javascript_context
+  - dom_xss
+

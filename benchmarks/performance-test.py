@@ -18,9 +18,10 @@ import psutil
 import json
 import statistics
 from typing import List, Dict, Any
+from rich.table import Table
 
 # Use hardcoded version for benchmarks to avoid import issues
-VERSION = "1.0.4"
+VERSION = "2.0.0"
 
 
 class BRSXSSBenchmark:
@@ -292,7 +293,7 @@ class BRSXSSBenchmark:
 
 
 async def main():
-    """Run comprehensive benchmark suite"""
+    """Run benchmark suite"""
     benchmark = BRSXSSBenchmark()
     
     # Generate test URLs (replace with actual test targets)

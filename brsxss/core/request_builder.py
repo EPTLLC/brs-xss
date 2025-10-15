@@ -50,8 +50,8 @@ class UniversalRequestBuilder:
         base_url: str,
         param_name: str,
         payload: str,
-        request_config: RequestConfig = None,
-        original_params: Dict[str, Any] = None
+        request_config: Optional[RequestConfig] = None,
+        original_params: Optional[Dict[str, Any]] = None
     ) -> TestRequest:
         """Build universal test request with payload injection"""
         
@@ -109,7 +109,7 @@ class UniversalRequestBuilder:
         if config.content_type == "application/x-www-form-urlencoded":
             data = urlencode(form_data)
         else:
-            data = form_data
+            data = form_data  # type: ignore[assignment]
         
         return TestRequest(
             method="POST", url=base_url, headers=headers, data=data,

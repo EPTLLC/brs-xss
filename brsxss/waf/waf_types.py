@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS WAF Types
-
-WAF types and data structures for detection results.
-
+Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Sat 02 Aug 2025 09:35:54 MSK
+Date: Fri 10 Oct 2025 13:33:15 UTC
+Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
 from typing import Dict, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -44,11 +42,11 @@ class WAFInfo:
     detection_method: str = "unknown"     # Detection method
     vendor: Optional[str] = None
     blocking_level: str = "unknown"       # low/medium/high/extreme
-    detected_features: List[str] = None   # Detected features
+    detected_features: List[str] = field(default_factory=list)   # Detected features
     
     # Technical details
-    response_headers: Dict[str, str] = None
-    error_pages: List[str] = None
+    response_headers: Dict[str, str] = field(default_factory=dict)
+    error_pages: List[str] = field(default_factory=list)
     rate_limiting: bool = False
     geo_blocking: bool = False
     
@@ -59,3 +57,21 @@ class WAFInfo:
             self.response_headers = {}
         if self.error_pages is None:
             self.error_pages = []
+
+    @property
+    def brand(self) -> "WAFBrand":  # type: ignore[name-defined]
+        """Compatibility layer exposing WAF brand for tests."""
+        # Lazy import to avoid circular dependency during module init
+        from .models import WAFBrand as _WAFBrand
+        mapping = {
+            WAFType.CLOUDFLARE: _WAFBrand.CLOUDFLARE,
+            WAFType.AWS_WAF: _WAFBrand.AWS_WAF,
+            WAFType.AKAMAI: _WAFBrand.AKAMAI,
+            WAFType.INCAPSULA: getattr(_WAFBrand, "IMPERVA", _WAFBrand.INCAPSULA),
+            WAFType.SUCURI: getattr(_WAFBrand, "SUCURI", _WAFBrand.UNKNOWN),
+            WAFType.BARRACUDA: _WAFBrand.BARRACUDA,
+            WAFType.F5_BIG_IP: getattr(_WAFBrand, "F5_BIG_IP", _WAFBrand.UNKNOWN),
+            WAFType.FORTINET: getattr(_WAFBrand, "FORTINET", _WAFBrand.UNKNOWN),
+            WAFType.MODSECURITY: _WAFBrand.MODSECURITY,
+        }
+        return mapping.get(self.waf_type, _WAFBrand.UNKNOWN)

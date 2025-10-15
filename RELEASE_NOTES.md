@@ -1,4 +1,39 @@
+# BRS-XSS v2.0.0 Release Notes
+- **Date**: 2025-10-10
+- **Tag**: `v2.0.0`
+
+## Major Release - Knowledge Base System
+
+This is a major version release introducing a comprehensive expert system for XSS vulnerability analysis and reporting.
+
+### Knowledge Base System
+- **17 Context Modules**: 5,535 lines of expert vulnerability documentation covering HTML, JavaScript, CSS, SVG, DOM XSS, template injection, and more
+- **SIEM Integration**: CVSS 3.1 scoring, severity levels, reliability scoring, CWE/OWASP mapping for enterprise security tools
+- **CLI Access**: New `brs-xss kb` commands for viewing vulnerability information (info, list, show, search, export)
+- **Versioning**: Semantic versioning system (KB v1.0.0) with API functions
+- **Schema Validation**: JSON Schema for CI/CD validation with pytest test suite (16 tests)
+- **Reverse Mapping**: Payload-Context-Defense correlation system
+- **YAML Metadata**: Quick module revision without Python import
+
+### Breaking Changes
+- DETAILS structure extended with new optional metadata fields (severity, cvss_score, cvss_vector, reliability, cwe, owasp, tags)
+- New API functions in knowledge_base module
+
+### Technical Details
+- Total: 6,749 lines of code (Python, JSON, YAML, Markdown)
+- Average module size: 307 lines
+- Zero linter errors
+- All content in English per project policy
+
+### Previous Fixes (from v1.1.1)
+- Critical bugfix: HTML forms POST method scanning
+- Improved UI with clean progress bar and summary table
+- Logging system refactored for quiet default operation
+
+---
 # BRS-XSS v1.0.5.1 Release Notes
+- **Date**: 2025-09-09
+- **Tag**: `v1.0.5.1`
 
 **Context-aware async XSS scanner for CI**
 
@@ -12,10 +47,11 @@
 
 ```bash
 # PyPI (recommended)
-pip install -U brs-xss
+pip install brs-xss==2.0.0
 
 # Docker
-docker pull ghcr.io/eptllc/brs-xss:1.0.5.1
+docker pull ghcr.io/eptllc/brs-xss:2.0.0
+docker pull ghcr.io/eptllc/brs-xss:latest
 
 # From source
 git clone https://github.com/EPTLLC/brs-xss.git
@@ -126,6 +162,6 @@ No migration required from v1.0.3. All existing configurations remain valid.
 
 ---
 
-**BRS-XSS v1.0.4** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.0.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Production-ready XSS scanner for authorized security testing*

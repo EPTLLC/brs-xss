@@ -36,15 +36,15 @@ class XSSScanner:
     """
     Main XSS vulnerability scanner.
     
-    Capabilities:
+    Functions:
     - Parameter discovery and testing
     - Context-aware payload generation
     - Reflection detection and analysis
     - WAF detection and evasion
-    - Comprehensive vulnerability scoring
+    - vulnerability scoring
     """
     
-    def __init__(self, config: Optional[ConfigManager] = None, timeout: int = 10, max_concurrent: int = 10, verify_ssl: bool = True, enable_dom_xss: bool = True, blind_xss_webhook: Optional[str] = None, progress_callback: Optional[Callable[[int, int], None]] = None, max_payloads: Optional[int] = None):
+    def __init__(self, config: Optional[ConfigManager] = None, timeout: int = 10, max_concurrent: int = 10, verify_ssl: bool = True, enable_dom_xss: bool = True, blind_xss_webhook: Optional[str] = None, progress_callback: Optional[Callable[[int, int], None]] = None, max_payloads: Optional[int] = None, http_client: Optional[HTTPClient] = None):
         """Initialize XSS scanner"""
         self.config = config or ConfigManager()
         self.timeout = timeout
@@ -52,10 +52,13 @@ class XSSScanner:
         self.verify_ssl = verify_ssl
         self.enable_dom_xss = enable_dom_xss and DOM_XSS_AVAILABLE
         self.max_payloads = max_payloads
-        self.http_client = HTTPClient(timeout=timeout, verify_ssl=verify_ssl)
         
+        # Use provided HTTP client or create a new one
+        self.http_client = http_client or HTTPClient(timeout=timeout, verify_ssl=verify_ssl)
+        self._owns_http_client = http_client is None
+
         # Track sessions for cleanup
-        self._sessions_created = []
+        self._sessions_created: List[Any] = []
         self.payload_generator = PayloadGenerator(blind_xss_webhook=blind_xss_webhook)
         self.reflection_detector = ReflectionDetector()
         self.context_analyzer = ContextAnalyzer()
@@ -73,9 +76,9 @@ class XSSScanner:
                 self.enable_dom_xss = False
         
         # State
-        self.scan_results = []
-        self.tested_parameters = set()
-        self.detected_wafs = []
+        self.scan_results: List[Dict[str, Any]] = []
+        self.tested_parameters: set[tuple[str, str, str]] = set()
+        self.detected_wafs: List[Any] = []
         
         # Progress tracking
         self.progress_callback = progress_callback
@@ -86,57 +89,51 @@ class XSSScanner:
         self.total_tests = 0
         self.vulnerabilities_found = 0
         self.dom_vulnerabilities_found = 0
-        self.scan_start_time = 0
+        self.scan_start_time: float = 0.0
     
-    async def scan_url(self, url: str, parameters: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
+    async def scan_url(self, url: str, method: str = "GET", parameters: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
         """
-        Scan URL for XSS vulnerabilities.
+        Scan a specific entry point (URL + method + parameters) for XSS.
         
         Args:
             url: Target URL
+            method: HTTP method (GET or POST)
             parameters: Parameters to test
             
         Returns:
             List of vulnerability findings
         """
-        logger.info(f"Starting XSS scan of: {url}")
-        self.scan_start_time = time.time()
-        
-        # Detect WAF
-        self.detected_wafs = await self.waf_detector.detect_waf(url)
-        if self.detected_wafs:
-            logger.info(f"WAF detected: {self.detected_wafs[0].name}")
-        
-        # Discover parameters if not provided
-        if not parameters:
-            parameters = await self._discover_parameters(url)
-        
+        logger.info(f"Scanning entry point: {method.upper()} {url} with params {list(parameters.keys()) if parameters else '[]'}")
+
         if not parameters:
             logger.warning("No parameters found for testing")
             return []
-        
-        logger.info(f"Testing {len(parameters)} parameters")
+
+        # Detect WAF on the base URL
+        waf_check_url = urlparse(url)._replace(query="").geturl()
+        self.detected_wafs = await self.waf_detector.detect_waf(waf_check_url)
+        if self.detected_wafs:
+            logger.info(f"WAF detected: {self.detected_wafs[0].name}")
         
         # Calculate total payloads for progress tracking
         if self.progress_callback:
-            # Estimate total payloads (will be updated with actual count during generation)
-            estimated_payloads_per_param = 950  # ~901 from PayloadManager + ~50 context
+            estimated_payloads_per_param = 950
             self.total_payloads_count = len(parameters) * estimated_payloads_per_param
             self.current_payload_index = 0
         
-        # Test each parameter for reflected XSS
+        # Test each parameter
         vulnerabilities = []
         for param_name, param_value in parameters.items():
-            if param_name in self.tested_parameters:
+            if (url, method, param_name) in self.tested_parameters:
                 continue
             
-            self.tested_parameters.add(param_name)
+            self.tested_parameters.add((url, method, param_name))
             
-            vuln_results = await self._test_parameter(url, param_name, param_value)
+            vuln_results = await self._test_parameter(url, method, param_name, param_value, parameters)
             vulnerabilities.extend(vuln_results)
         
-        # Test for DOM XSS if enabled
-        if self.enable_dom_xss and self.dom_detector:
+        # DOM XSS scan (runs on GET requests to the URL)
+        if self.enable_dom_xss and self.dom_detector and method.upper() == "GET":
             try:
                 await self.dom_detector.start()
                 dom_results = await self.dom_detector.detect_dom_xss(url, parameters)
@@ -144,24 +141,7 @@ class XSSScanner:
                 # Convert DOM XSS results to standard format
                 for dom_result in dom_results:
                     if dom_result.vulnerable:
-                        dom_vuln = {
-                            'url': dom_result.url,
-                            'parameter': 'DOM_XSS',
-                            'payload': dom_result.payload,
-                            'vulnerable': True,
-                            'reflection_type': 'dom_based',
-                            'context': dom_result.execution_context,
-                            'severity': 'high',
-                            'score': dom_result.score,
-                            'confidence': 0.95,
-                            'timestamp': time.time(),
-                            'trigger_method': dom_result.trigger_method,
-                            'console_logs': dom_result.console_logs,
-                            'error_logs': dom_result.error_logs,
-                            'screenshot_path': dom_result.screenshot_path,
-                            'dom_xss': True  # Special flag for DOM XSS
-                        }
-                        vulnerabilities.append(dom_vuln)
+                        vulnerabilities.append(self._format_dom_vulnerability(dom_result))
                         self.dom_vulnerabilities_found += 1
                         logger.warning(f"DOM XSS vulnerability found via {dom_result.trigger_method}")
                 
@@ -170,123 +150,86 @@ class XSSScanner:
             except Exception as e:
                 logger.error(f"DOM XSS detection failed: {e}")
         
-        # Generate scan summary
         scan_duration = time.time() - self.scan_start_time
-        total_vulns = len(vulnerabilities)
-        dom_vulns = sum(1 for v in vulnerabilities if v.get('dom_xss', False))
-        reflected_vulns = total_vulns - dom_vulns
-        
-        logger.success(f"Scan completed in {scan_duration:.2f}s. Found {total_vulns} vulnerabilities ({reflected_vulns} reflected, {dom_vulns} DOM)")
+        logger.info(f"Entry point scan completed in {scan_duration:.2f}s. Found {len(vulnerabilities)} vulnerabilities.")
         
         return vulnerabilities
     
-    async def _discover_parameters(self, url: str) -> Dict[str, str]:
-        """Discover parameters from URL and forms"""
-        parameters = {}
-        
-        try:
-            # Get parameters from URL
-            from urllib.parse import parse_qs, urlparse
-            parsed_url = urlparse(url)
-            if parsed_url.query:
-                url_params = parse_qs(parsed_url.query)
-                for key, values in url_params.items():
-                    parameters[key] = values[0] if values else ""
-            
-            # Get page content to find forms
-            response = await self.http_client.get(url)
-            if response.status_code == 200:
-                # Extract form parameters
-                form_params = self._extract_form_parameters(response.text)
-                parameters.update(form_params)
-        
-        except Exception as e:
-            logger.error(f"Error discovering parameters: {e}")
-        
-        return parameters
-    
-    def _extract_form_parameters(self, html_content: str) -> Dict[str, str]:
-        """Extract parameters from HTML forms"""
-        import re
-        parameters = {}
-        
-        # Simple regex to find input fields
-        input_pattern = r'<input[^>]*name\s*=\s*["\']([^"\']*)["\'][^>]*>'
-        for match in re.finditer(input_pattern, html_content, re.IGNORECASE):
-            param_name = match.group(1)
-            if param_name and param_name not in ['submit', 'reset', 'button']:
-                parameters[param_name] = "test"
-        
-        return parameters
-    
-    async def _test_parameter(self, url: str, param_name: str, param_value: str) -> List[Dict[str, Any]]:
-        """Test single parameter for XSS"""
-        logger.debug(f"Testing parameter: {param_name}")
+    def _format_dom_vulnerability(self, dom_result) -> Dict[str, Any]:
+        """Formats a DOM XSS result into the standard vulnerability dictionary."""
+        return {
+            'url': dom_result.url,
+            'parameter': 'DOM_XSS',
+            'payload': dom_result.payload,
+            'vulnerable': True,
+            'reflection_type': 'dom_based',
+            'context': dom_result.execution_context,
+            'severity': 'high',
+            'score': dom_result.score,
+            'confidence': 0.95,
+            'timestamp': time.time(),
+            'trigger_method': dom_result.trigger_method,
+            'console_logs': dom_result.console_logs,
+            'error_logs': dom_result.error_logs,
+            'screenshot_path': dom_result.screenshot_path,
+            'dom_xss': True
+        }
+
+    async def _test_parameter(self, url: str, method: str, param_name: str, param_value: str, all_params: Dict[str, str]) -> List[Dict[str, Any]]:
+        """Test single parameter for XSS using the specified HTTP method."""
+        logger.debug(f"Testing parameter: {param_name} via {method}")
         vulnerabilities = []
         
         try:
-            # Get initial response for context analysis
-            test_url = self._build_test_url(url, param_name, param_value)
-            initial_response = await self.http_client.get(test_url)
-            
-            # Proceed with context analysis for any HTTP status if content exists
-            if initial_response.status_code != 200:
-                if initial_response.status_code in [403, 404, 405]:
-                    logger.debug(f"Server returned {initial_response.status_code} for context analysis (possible WAF/security behavior)")
-                elif initial_response.status_code >= 500:
-                    logger.info(f"Server error during context analysis: {initial_response.status_code}")
-                else:
-                    logger.debug(f"Non-200 response for context analysis: {initial_response.status_code}")
-            
-            # Analyze context
+            # 1. Get initial response for context analysis
+            # We send a benign request first to see where the parameter reflects.
+            if method.upper() == 'GET':
+                context_url = self._build_test_url(url, {param_name: param_value})
+                initial_response = await self.http_client.get(context_url)
+            else: # POST
+                initial_response = await self.http_client.post(url, data={param_name: param_value})
+
+            if initial_response.status_code >= 400:
+                logger.debug(f"Server returned {initial_response.status_code} for context analysis.")
+
+            # 2. Analyze context
             context_analysis_result = self.context_analyzer.analyze_context(
                 param_name, param_value, initial_response.text
             )
-            
-            # Convert ContextAnalysisResult to dict for backward compatibility
             context_info = self._convert_context_result(context_analysis_result)
             
-            # Generate payloads based on context
+            # 3. Generate payloads
             payloads = self.payload_generator.generate_payloads(
-                context_info, 
-                self.detected_wafs,
-                max_payloads=self.max_payloads
+                context_info, self.detected_wafs, max_payloads=self.max_payloads
             )
-            
             logger.debug(f"Generated {len(payloads)} payloads for {param_name}")
             
-            # Update total payload count with actual number (if not set yet)
-            actual_payload_count = len(payloads)
             if self.progress_callback and self.total_payloads_count == 0:
-                # Use estimated count since we don't know total parameters in this scope
-                self.total_payloads_count = actual_payload_count
+                self.total_payloads_count = len(payloads)
             
-            # Test each payload
-            max_payloads = self.config.get('max_payloads_per_param', actual_payload_count)
-            for i, payload_obj in enumerate(payloads[:max_payloads]):
+            # 4. Test each payload
+            for payload_obj in payloads:
                 self.total_tests += 1
                 self.current_payload_index += 1
                 
-                # Extract payload string from GeneratedPayload object
-                payload = payload_obj.payload if hasattr(payload_obj, 'payload') else str(payload_obj)
+                payload_str = payload_obj.payload if hasattr(payload_obj, 'payload') else str(payload_obj)
                 
-                # Update progress
                 if self.progress_callback:
                     self.progress_callback(self.current_payload_index, self.total_payloads_count)
                 
-                # Test payload
-                result = await self._test_payload(url, param_name, payload, context_info)
+                # Create a mutable copy of all params for this test
+                current_test_params = all_params.copy()
+                current_test_params[param_name] = payload_str
+
+                result = await self._test_payload(url, method, param_name, payload_str, current_test_params, context_info)
                 
                 if result and result.get('vulnerable'):
                     vulnerabilities.append(result)
                     self.vulnerabilities_found += 1
-                    logger.warning(f"Vulnerability found in {param_name}: {payload[:50]}...")
+                    logger.info(f"Vulnerability found in {param_name} via {method}: {payload_str[:50]}...")
         
         except Exception as e:
             logger.error(f"Error testing parameter {param_name}: {e}")
-        finally:
-            # Ensure sessions are closed
-            await self._cleanup_sessions()
         
         return vulnerabilities
     
@@ -300,7 +243,9 @@ class XSSScanner:
     
     async def close(self):
         """Close scanner and cleanup resources"""
-        await self._cleanup_sessions()
+        # Only close the client if this scanner instance created it
+        if self._owns_http_client:
+            await self._cleanup_sessions()
         # Close WAF detector if it owns an HTTP client
         if hasattr(self.waf_detector, 'close'):
             await self.waf_detector.close()
@@ -318,8 +263,12 @@ class XSSScanner:
         # Extract primary injection point info if available
         primary_injection = context_result.injection_points[0] if context_result.injection_points else None
         
+        # Use the most specific context from the first injection point for reporting
+        specific_context = primary_injection.context_type.value if (primary_injection and primary_injection.context_type) else 'unknown'
+
         return {
             'context_type': context_result.primary_context.value if context_result.primary_context else 'unknown',
+            'specific_context': specific_context,
             'injection_points': context_result.injection_points,
             'total_injections': context_result.total_injections,
             'risk_level': context_result.risk_level,
@@ -334,54 +283,48 @@ class XSSScanner:
             'bypass_recommendations': context_result.bypass_recommendations
         }
     
-    async def _test_payload(self, url: str, param_name: str, payload: str, context_info: Dict) -> Optional[Dict[str, Any]]:
-        """Test individual payload"""
+    async def _test_payload(self, url: str, method: str, param_name: str, payload: str, all_params: Dict[str, str], context_info: Dict) -> Optional[Dict[str, Any]]:
+        """Test individual payload via the specified HTTP method."""
         try:
-            # Prepare request
-            test_url = self._build_test_url(url, param_name, payload)
+            test_url = url
+            if method.upper() == 'GET':
+                test_url = self._build_test_url(url, all_params)
+                response = await self.http_client.get(test_url)
+            else: # POST
+                response = await self.http_client.post(url, data=all_params)
             
-            # Make request
-            response = await self.http_client.get(test_url)
-            
-            # Process any HTTP response that has content (not just 200)
-            # Many XSS vulnerabilities appear in error pages (4xx, 5xx) and redirects (3xx)
             if not response.text or len(response.text.strip()) == 0:
                 return None
             
-            # Check for reflection (reflected XSS path)
+            # Check for reflection
             reflection_result = self.reflection_detector.detect_reflections(
                 payload, response.text
             )
             
-            # Require reflections for reflected XSS; allow optional blind XSS flow
             has_reflections = reflection_result and len(getattr(reflection_result, 'reflection_points', [])) > 0
             blind_mode_enabled = bool(self.payload_generator and getattr(self.payload_generator, 'blind_xss', None) is not None)
             if not has_reflections and not blind_mode_enabled:
-                logger.debug(f"No reflections found for payload: {payload[:30]}...")
                 return None
                 
-            # Score vulnerability based on reflection quality
+            # Score vulnerability
             vulnerability_score = self.scoring_engine.score_vulnerability(
                 payload, reflection_result, context_info, response
             )
             
-            # Reasonable threshold for real-world XSS detection (scanner namespace)
             min_score = self.config.get('scanner.min_vulnerability_score', 2.0)
             if vulnerability_score.score < min_score:
-                logger.debug(f"Payload scored {vulnerability_score.score:.2f}, below threshold {min_score}")
                 return None
             
-            # Heuristic exploitation likelihood
             exploitation_likelihood = self._estimate_exploitation_likelihood(context_info, reflection_result)
 
-            # Create comprehensive vulnerability report
-            vulnerability = {
+            # Create vulnerability report
+            return {
                 'url': url,
                 'parameter': param_name,
                 'payload': payload,
                 'vulnerable': True,
                 'reflection_type': (reflection_result.overall_reflection_type.value if (reflection_result and getattr(reflection_result, 'overall_reflection_type', None)) else 'none'),
-                'context': context_info.get('context_type', 'unknown'),
+                'context': context_info.get('specific_context', 'unknown'), # Use specific context for report
                 'severity': vulnerability_score.severity,
                 'detection_score': round(vulnerability_score.score, 2),
                 'exploitation_likelihood': round(exploitation_likelihood, 2),
@@ -391,19 +334,18 @@ class XSSScanner:
                 'response_snippet': (reflection_result.reflection_points[0].reflected_value[:200] if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else ''),
                 'timestamp': time.time(),
                 
-                # Additional detailed information for debugging
+                # Additional detailed information
+                'http_method': method.upper(),
                 'http_status': response.status_code,
                 'response_headers': dict(response.headers) if hasattr(response, 'headers') else {},
                 'response_length': len(response.text),
                 'reflections_found': (len(reflection_result.reflection_points) if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else 0),
                 'reflection_positions': ([rp.position for rp in reflection_result.reflection_points] if (reflection_result and getattr(reflection_result, 'reflection_points', None)) else []),
-                'test_url': test_url,
+                'test_url': test_url, # For GET, this includes the payload
                 'exploitation_confidence': (getattr(reflection_result, 'exploitation_confidence', 0.0) if reflection_result else 0.0),
                 'payload_type': getattr(payload, 'payload_type', 'unknown'),
                 'context_analysis': context_info
             }
-            
-            return vulnerability
         
         except Exception as e:
             logger.error(f"Error testing payload {payload[:30]}: {e}")
@@ -417,7 +359,7 @@ class XSSScanner:
         elif ctx in ('html_content', 'html_attribute'):
             score += 0.2
         rtype = getattr(reflection_result, 'overall_reflection_type', None)
-        rvalue = rtype.value if hasattr(rtype, 'value') else (str(rtype) if rtype else '')
+        rvalue = rtype.value if hasattr(rtype, 'value') else (str(rtype) if rtype else '')  # type: ignore[union-attr]
         if rvalue == 'exact':
             score += 0.3
         elif rvalue in ('partial', 'modified'):
@@ -439,7 +381,7 @@ class XSSScanner:
     def _likelihood_reason(self, context_info: Dict[str, Any], reflection_result: Any) -> str:
         ctx = (context_info or {}).get('context_type', 'unknown')
         rtype = getattr(reflection_result, 'overall_reflection_type', None)
-        rvalue = rtype.value if hasattr(rtype, 'value') else (str(rtype) if rtype else 'none')
+        rvalue = rtype.value if hasattr(rtype, 'value') else (str(rtype) if rtype else 'none')  # type: ignore[union-attr]
         parts = []
         parts.append(f"context={ctx}")
         parts.append(f"reflection={rvalue}")
@@ -448,19 +390,21 @@ class XSSScanner:
             parts.append(f"filters={len(filters)}")
         return ", ".join(parts)
     
-    def _build_test_url(self, base_url: str, param_name: str, payload: str) -> str:
-        """Build test URL with payload"""
-        from urllib.parse import urlencode, parse_qs, urlunparse
+    def _build_test_url(self, base_url: str, params: Dict[str, str]) -> str:
+        """Build test URL with payload in query string for GET requests."""
+        from urllib.parse import urlencode, parse_qs, urlunparse, urlparse
         
         parsed_url = urlparse(base_url)
+        # Start with existing query params from base_url
         query_params = parse_qs(parsed_url.query)
         
-        # Add or update parameter
-        query_params[param_name] = [payload]
+        # Update/add new params
+        for name, value in params.items():
+            query_params[name] = [value]
         
         # Rebuild URL
         new_query = urlencode(query_params, doseq=True)
-        new_url = urlunparse((
+        return urlunparse((
             parsed_url.scheme,
             parsed_url.netloc,
             parsed_url.path,
@@ -468,8 +412,6 @@ class XSSScanner:
             new_query,
             parsed_url.fragment
         ))
-        
-        return new_url
     
     def get_scan_statistics(self) -> Dict[str, Any]:
         """Get scan statistics"""

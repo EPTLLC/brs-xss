@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -41,7 +41,7 @@ class ASTNode:
     
     # JavaScript-specific fields
     function_name: Optional[str] = None
-    arguments: List[str] = None
+    arguments: List[str] = field(default_factory=list)
     object_name: Optional[str] = None
     property_name: Optional[str] = None
     variable_name: Optional[str] = None

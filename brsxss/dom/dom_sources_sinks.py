@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 09:35:54 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
+from typing import List, Optional
 
 
 # DOM data sources

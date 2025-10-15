@@ -11,7 +11,7 @@ Created: Tue 05 Aug 2025 18:03:16 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
+from typing import List, Optional
 from .header_types import HeaderAnalysis, CSPAnalysis, SecurityLevel
 
 from ..utils.logger import Logger
@@ -51,7 +51,7 @@ class CSPAnalyzer:
                 recommendations=["Implement Content-Security-Policy header"]
             )
         
-        vulnerabilities = []
+        vulnerabilities: List[str] = []
         bypass_techniques = []
         
         # Check for dangerous directives
@@ -114,12 +114,12 @@ class CSPAnalyzer:
             else:
                 directives[part] = []
         
-        vulnerabilities = []
+        vulnerabilities: List[str] = []
         bypass_opportunities = []
         unsafe_sources = []
         
         # Analyze each directive
-        for directive, sources in directives.items():
+        for directive, sources in directives.items():  # type: ignore[assignment]
             for source in sources:
                 if source in self.dangerous_keywords:
                     unsafe_sources.append(f"{directive}: {source}")

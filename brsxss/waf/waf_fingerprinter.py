@@ -27,7 +27,7 @@ class WAFFingerprinter:
     """
     WAF fingerprinting system.
     
-    Capabilities:
+    Functions:
     - Signature analysis
     - ML classification
     - Learning from data
@@ -206,11 +206,11 @@ class WAFFingerprinter:
         """Deduplicate and sort results"""
         
         # Group by WAF type
-        waf_groups = {}
+        waf_groups: Dict[str, List[Any]] = {}
         for waf in detected_wafs:
             if waf.waf_type not in waf_groups:
-                waf_groups[waf.waf_type] = []
-            waf_groups[waf.waf_type].append(waf)
+                waf_groups[waf.waf_type] = []  # type: ignore[index]
+            waf_groups[waf.waf_type].append(waf)  # type: ignore[index]
         
         # Merge duplicates
         final_results = []

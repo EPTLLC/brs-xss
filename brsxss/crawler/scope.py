@@ -13,8 +13,8 @@ Telegram: https://t.me/EasyProTech
 
 import re
 from urllib.parse import urlparse
-from typing import List, Dict, Any
-from dataclasses import dataclass
+from typing import List, Dict, Any, Optional
+from dataclasses import dataclass, field
 
 from ..utils.logger import Logger
 logger = Logger("crawler.scope")
@@ -33,7 +33,7 @@ class ScopeManager:
     """
     URL scope manager for web crawling.
     
-    Capabilities:
+    Functions:
     - Domain-based filtering
     - Path-based filtering  
     - Regex pattern matching

@@ -52,11 +52,11 @@ gh api repos/:owner/:repo/code-scanning/sarifs \
 
 BRS-XSS generates SARIF 2.1.0 compliant reports with:
 
-### Tool Information
-- Tool name: BRS-XSS
- - Version: 1.0.5.1
-- Organization: EasyProTech LLC
-- Rules for different XSS types
+- **Schema Compliance**: Validates against the official SARIF 2.1.0 schema.
+- **Rich Diagnostics**: Includes vulnerability details, severity, CWE, and context.
+- **Fingerprinting**: Uses stable identifiers for vulnerability tracking.
+- **Version**: 2.0.0
+- **Help URIs**: Provides links to detailed vulnerability explanations.
 
 ### Vulnerability Rules
 - **XSS001**: Reflected XSS (High severity)

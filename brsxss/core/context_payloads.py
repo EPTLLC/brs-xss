@@ -11,7 +11,7 @@ Modified: Вс 10 авг 2025 19:31:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional, Mapping
 from ..utils.logger import Logger
 
 logger = Logger("core.context_payloads")
@@ -50,7 +50,7 @@ class ContextPayloadGenerator:
             '<embed src=javascript:alert(1)>'
         ]
     
-    def get_html_attribute_payloads(self, context_info: Dict[str, Any]) -> List[str]:
+    def get_html_attribute_payloads(self, context_info: Mapping[str, Any]) -> List[str]:
         """Get HTML attribute context payloads"""
         quote_char = context_info.get('quote_char', '"')
         attr_name = context_info.get('attribute_name', '')
@@ -112,7 +112,7 @@ class ContextPayloadGenerator:
             'globalThis["alert"](1)'
         ]
     
-    def get_js_string_payloads(self, context_info: Dict[str, Any]) -> List[str]:
+    def get_js_string_payloads(self, context_info: Mapping[str, Any]) -> List[str]:
         """Get JavaScript string context payloads"""
         quote_char = context_info.get('quote_char', '"')
         
@@ -196,7 +196,7 @@ class ContextPayloadGenerator:
             '<marquee onstart=alert(1)>'
         ]
     
-    def get_context_payloads(self, context_type: str, context_info: Dict[str, Any]) -> List[str]:
+    def get_context_payloads(self, context_type: str, context_info: Mapping[str, Any]) -> List[str]:
         """
         Get payloads for specific context.
         

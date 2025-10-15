@@ -28,7 +28,7 @@ class ContextAnalyzer:
     Main context analyzer for XSS vulnerability detection.
     
     Orchestrates multiple specialized detectors to provide
-    comprehensive context analysis.
+    context analysis.
     """
     
     def __init__(self):
@@ -65,7 +65,7 @@ class ContextAnalyzer:
             original_request: Original request (optional)
             
         Returns:
-            Comprehensive context analysis result
+            context analysis result
         """
         self.analysis_count += 1
         
@@ -77,7 +77,7 @@ class ContextAnalyzer:
         )
         
         if not injection_points:
-            logger.warning(f"No injection points found for {parameter_name}")
+            logger.info(f"No injection points found for {parameter_name}")
             return self._create_empty_result(parameter_name, parameter_value)
         
         # Determine primary context
@@ -253,11 +253,11 @@ class ContextAnalyzer:
         # Priority order for context types
         priority_order = [
             ContextType.JAVASCRIPT,
-            ContextType.HTML_CONTENT,
             ContextType.JS_STRING,
+            ContextType.JS_OBJECT,
+            ContextType.HTML_CONTENT,
             ContextType.HTML_ATTRIBUTE,
             ContextType.CSS_STYLE,
-            ContextType.JS_OBJECT,
             ContextType.HTML_COMMENT,
             ContextType.JSON_VALUE,
             ContextType.URL_PARAMETER,
@@ -266,8 +266,13 @@ class ContextAnalyzer:
         ]
         
         # Find highest priority context
+        found_contexts = {ip.context_type for ip in injection_points}
+
         for context_type in priority_order:
-            if any(ip.context_type == context_type for ip in injection_points):
+            if context_type in found_contexts:
+                # Group JS sub-contexts under the main JAVASCRIPT context
+                if context_type in [ContextType.JS_STRING, ContextType.JS_OBJECT]:
+                    return ContextType.JAVASCRIPT
                 return context_type
         
         return injection_points[0].context_type

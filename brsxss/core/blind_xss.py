@@ -13,8 +13,8 @@ Telegram: https://t.me/EasyProTech
 
 import uuid
 import time
-from typing import Dict, List, Any
-from dataclasses import dataclass
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass, field
 from urllib.parse import urlencode
 
 from ..utils.logger import Logger

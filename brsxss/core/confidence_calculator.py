@@ -11,14 +11,25 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from ..utils.logger import Logger
+from .config_manager import ConfigManager
 
 logger = Logger("core.confidence_calculator")
 
 
 class ConfidenceCalculator:
-    """Calculates confidence scores for vulnerability assessments"""
+    """Calculates the confidence score of a potential XSS vulnerability"""
+    
+    def __init__(self, config: Optional[ConfigManager] = None):
+        """Initialize confidence calculator"""
+        self.config = config or ConfigManager()
+        self.weights = self.config.get('scoring.confidence_weights', {
+            'reflection_quality': 0.4,
+            'context_certainty': 0.3,
+            'response_consistency': 0.2,
+            'payload_success': 0.1
+        })
     
     def calculate_confidence(
         self,
@@ -53,18 +64,11 @@ class ConfidenceCalculator:
         )
         
         # Weighted combination
-        weights = {
-            'reflection': 0.4,
-            'context': 0.25,
-            'payload': 0.2,
-            'detection': 0.15
-        }
-        
         final_confidence = (
-            reflection_confidence * weights['reflection'] +
-            context_confidence * weights['context'] +
-            payload_confidence * weights['payload'] +
-            detection_confidence * weights['detection']
+            reflection_confidence * self.weights['reflection_quality'] +
+            context_confidence * self.weights['context_certainty'] +
+            payload_confidence * self.weights['payload_success'] +
+            detection_confidence * self.weights['response_consistency']
         )
         
         final_confidence = max(0.0, min(1.0, final_confidence))

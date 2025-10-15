@@ -3,7 +3,7 @@
 """
 BRS-XSS Scan Metadata
 
-Main coordinator for comprehensive scan metadata management.
+Main coordinator for scan metadata management.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus

@@ -11,7 +11,7 @@ Created: Вс 10 авг 2025 19:35:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
+from typing import List, Optional
 
 
 class PolyglotPayloads:
@@ -50,7 +50,7 @@ class PolyglotPayloads:
     
     @staticmethod
     def get_advanced_polyglots() -> List[str]:
-        """Advanced polyglot payloads with multiple escape techniques"""
+        """polyglot payloads with multiple escape techniques"""
         return [
             # Multi-context escapes
             '</script><script>alert(1)</script>',

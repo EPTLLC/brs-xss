@@ -18,6 +18,7 @@ from .context_analyzer import ContextType, InjectionPoint, ContextAnalyzer
 from .payload_generator import GeneratedPayload, PayloadGenerator
 from .reflection import ReflectionDetector, ReflectionResult, ReflectionType
 from .scoring_engine import SeverityLevel, ScoringResult, ScoringEngine
+from .ml_integration import MLIntegration
 
 __all__ = [
     "ConfigManager",
@@ -34,5 +35,6 @@ __all__ = [
     "ReflectionDetector",
     "SeverityLevel",
     "ScoringResult",
-    "ScoringEngine"
+    "ScoringEngine",
+    "MLIntegration"
 ]

@@ -125,7 +125,7 @@ class BehaviorDetector:
     def _analyze_status_patterns(self, responses: List[Any]) -> Dict[str, Any]:
         """Analyze HTTP status code patterns"""
         status_codes = [response.status_code for response in responses]
-        status_distribution = {}
+        status_distribution: Dict[int, int] = {}
         
         for code in status_codes:
             status_distribution[code] = status_distribution.get(code, 0) + 1
@@ -221,7 +221,7 @@ class BehaviorDetector:
     
     def detect_geo_blocking(self, responses: List[Any]) -> Dict[str, Any]:
         """Detect geographical blocking patterns"""
-        geo_analysis = {
+        geo_analysis: Dict[str, Any] = {
             'likely_geo_blocked': False,
             'geo_indicators': [],
             'confidence': 0.0
@@ -249,7 +249,7 @@ class BehaviorDetector:
     
     def analyze_progressive_blocking(self, responses: List[Any]) -> Dict[str, Any]:
         """Analyze progressive blocking patterns"""
-        progressive_analysis = {
+        progressive_analysis: Dict[str, Any] = {
             'has_progressive_blocking': False,
             'blocking_escalation': [],
             'pattern_detected': False

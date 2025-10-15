@@ -28,7 +28,7 @@ class EvasionEngine:
     """
     Main WAF evasion system for BRS-XSS.
     
-    Capabilities:
+    Functions:
     - Adaptive strategies for specific WAFs
     - ML approach to technique selection
     - Multiple technique combination
@@ -75,7 +75,7 @@ class EvasionEngine:
                 waf_evasions = self._generate_waf_specific_evasions(payload, waf)
                 evasions.extend(waf_evasions)
         
-        # Add advanced techniques
+        # Add techniques
         evasions.extend(self._generate_advanced_evasions(payload))
         
         # Combined techniques
@@ -226,7 +226,7 @@ class EvasionEngine:
         return evasions
     
     def _generate_advanced_evasions(self, payload: str) -> List[EvasionResult]:
-        """Generate advanced evasion techniques"""
+        """Generate evasion techniques"""
         evasions = []
         
         # JavaScript obfuscation (if JS payload)
@@ -445,14 +445,14 @@ class EvasionEngine:
     
     def _get_most_successful_technique(self) -> Optional[str]:
         """Get most successful technique"""
-        technique_counts = {}
+        technique_counts: Dict[EvasionTechnique, int] = {}
         
         for techniques in self.successful_techniques.values():
             for technique in techniques:
                 technique_counts[technique] = technique_counts.get(technique, 0) + 1
         
         if technique_counts:
-            best_technique = max(technique_counts, key=technique_counts.get)
-            return best_technique.value
+            best_technique = max(technique_counts.items(), key=lambda x: x[1])[0] if technique_counts else None  # technique_counts.get)
+            return best_technique.value if best_technique else "unknown"
         
         return None

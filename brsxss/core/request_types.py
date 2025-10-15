@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from typing import Dict, Optional, Union
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -40,8 +40,8 @@ class RequestConfig:
     """Configuration for building test requests"""
     method: RequestMethod = RequestMethod.GET
     content_type: str = "application/x-www-form-urlencoded"
-    headers: Dict[str, str] = None
-    cookies: Dict[str, str] = None
+    headers: Dict[str, str] = field(default_factory=dict)
+    cookies: Dict[str, str] = field(default_factory=dict)
     follow_redirects: bool = True
     
 

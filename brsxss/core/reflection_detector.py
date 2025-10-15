@@ -11,9 +11,18 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
+import re
 from typing import List, Optional, Dict, Any
+from dataclasses import dataclass, field
+import html
 
-from .reflection_types import ReflectionResult, ReflectionPoint, ReflectionConfig, ReflectionType
+from .reflection_types import (
+    ReflectionResult, 
+    ReflectionPoint, 
+    ReflectionConfig, 
+    ReflectionType,
+    ReflectionContext
+)
 from .reflection_analyzer import ReflectionAnalyzer
 from .similarity_matcher import SimilarityMatcher
 from ..utils.logger import Logger
@@ -26,7 +35,7 @@ class ReflectionDetector:
     Main reflection detector orchestrator.
     
     Coordinates reflection analysis components to provide
-    comprehensive reflection detection and analysis.
+    reflection detection and analysis.
     """
     
     def __init__(self, config: Optional[ReflectionConfig] = None):
@@ -55,35 +64,33 @@ class ReflectionDetector:
     def detect_reflections(
         self,
         input_value: str,
-        response_content: str
+        response_text: str
     ) -> ReflectionResult:
-        """
-        Main reflection detection method.
+        """Detect reflections of an input value in a response"""
         
-        Args:
-            input_value: Original input value to search for
-            response_content: Response content to search in
-            
-        Returns:
-            Comprehensive reflection analysis result
-        """
         self.detection_count += 1
         
-        logger.debug(f"Detecting reflections for input: {input_value[:50]}...")
+        # Performance optimization: if exact match not found, skip further analysis
+        if input_value not in response_text and html.escape(input_value) not in response_text:
+            return ReflectionResult(input_value=input_value)
+
+        # Decode response for broader matching
+        decoded_response_text = html.unescape(response_text)
         
-        # Limit search length for performance
-        search_content = response_content[:self.config.max_search_length]
+        # Find all occurrences of the original and decoded value
+        reflection_points = self._find_all_occurrences(input_value, response_text, decoded_response_text)
         
-        # Find all potential reflections
-        reflection_points = self._find_all_reflections(input_value, search_content)
-        
-        # Create result
+        # If no reflections found, return empty result
+        if not reflection_points:
+            return ReflectionResult(input_value=input_value)
+
+        # Create the result object first
         result = ReflectionResult(
             input_value=input_value,
             reflection_points=reflection_points
         )
         
-        # Analyze exploitability
+        # Analyze exploitability and add to the result
         if reflection_points:
             result.is_exploitable = self._assess_exploitability(reflection_points)
             result.exploitation_confidence = self._calculate_exploitation_confidence(reflection_points)
@@ -95,140 +102,155 @@ class ReflectionDetector:
         logger.info(f"Detection complete: {len(reflection_points)} reflections found")
         return result
     
-    def _find_all_reflections(
+    def _find_all_occurrences(
         self,
         input_value: str,
-        content: str
+        original_response: str,
+        decoded_response: str
     ) -> List[ReflectionPoint]:
-        """Find all reflections of input value in content"""
-        reflection_points = []
+        """Find all occurrences of the input value in its original and decoded forms."""
         
-        # 1. Find exact matches
-        exact_matches = self._find_exact_reflections(input_value, content)
-        reflection_points.extend(exact_matches)
+        points = []
         
-        # 2. Find encoded reflections
-        if self.config.analyze_encoding:
-            encoded_matches = self._find_encoded_reflections(input_value, content)
-            reflection_points.extend(encoded_matches)
-        
-        # 3. Find similar reflections
-        similar_matches = self._find_similar_reflections(input_value, content)
-        reflection_points.extend(similar_matches)
-        
-        # Remove duplicates and limit count
-        unique_points = self._remove_duplicate_reflections(reflection_points)
-        limited_points = unique_points[:self.config.max_reflections_per_input]
-        
-        logger.debug(f"Found {len(limited_points)} unique reflection points")
-        return limited_points
-    
-    def _find_exact_reflections(
-        self,
-        input_value: str,
-        content: str
-    ) -> List[ReflectionPoint]:
-        """Find exact reflections"""
-        reflection_points = []
-        search_value = input_value if self.config.case_sensitive else input_value.lower()
-        search_content = content if self.config.case_sensitive else content.lower()
-        
-        start = 0
-        while True:
-            pos = search_content.find(search_value, start)
-            if pos == -1:
-                break
-            
-            # Extract actual reflected value from original content
-            reflected_value = content[pos:pos + len(input_value)]
-            
-            # Analyze this reflection point
-            reflection_point = self.analyzer.analyze_reflection_point(
-                input_value, reflected_value, pos, content
-            )
-            
-            reflection_points.append(reflection_point)
-            start = pos + 1
-        
-        return reflection_points
-    
-    def _find_encoded_reflections(
-        self,
-        input_value: str,
-        content: str
-    ) -> List[ReflectionPoint]:
-        """Find encoded reflections"""
-        reflection_points = []
-        
-        # Find encoded matches using similarity matcher
-        encoded_matches = self.matcher.find_encoded_reflections(input_value, content)
-        
-        for pos, encoded_value, encoding_type in encoded_matches:
-            reflection_point = self.analyzer.analyze_reflection_point(
-                input_value, encoded_value, pos, content
-            )
-            
-            # Update encoding information
-            reflection_point.encoding_applied = encoding_type
-            reflection_point.reflection_type = ReflectionType.ENCODED
-            
-            reflection_points.append(reflection_point)
-        
-        return reflection_points
-    
-    def _find_similar_reflections(
-        self,
-        input_value: str,
-        content: str
-    ) -> List[ReflectionPoint]:
-        """Find similar/partial reflections"""
-        reflection_points = []
-        
-        # Use similarity matcher to find similar strings
-        similar_matches = self.matcher.find_similar_reflections(
-            input_value, content, self.config.min_reflection_length
-        )
-        
-        for pos, similar_value, similarity_score in similar_matches:
-            reflection_point = self.analyzer.analyze_reflection_point(
-                input_value, similar_value, pos, content
-            )
-            
-            # Adjust accuracy based on similarity score
-            reflection_point.accuracy = similarity_score
-            
-            reflection_points.append(reflection_point)
-        
-        return reflection_points
-    
-    def _remove_duplicate_reflections(
-        self,
-        reflection_points: List[ReflectionPoint]
-    ) -> List[ReflectionPoint]:
-        """Remove duplicate reflection points"""
-        unique_points = []
-        seen_positions = set()
-        
-        # Sort by quality (best first)
-        sorted_points = sorted(
-            reflection_points,
-            key=lambda rp: (rp.accuracy, rp.completeness, rp.characters_preserved),
-            reverse=True
-        )
-        
-        for point in sorted_points:
-            # Check if this position is too close to an existing one
-            is_duplicate = False
-            for seen_pos in seen_positions:
-                if abs(point.position - seen_pos) < 10:  # Within 10 characters
-                    is_duplicate = True
-                    break
-            
+        # 1. Search for exact, unfiltered reflection in the original response
+        for match in re.finditer(re.escape(input_value), original_response, re.IGNORECASE):
+            points.append(self._analyze_reflection_point(
+                input_value=input_value,
+                reflected_value=match.group(0),
+                position=match.start(),
+                response_text=original_response
+            ))
+
+        # 2. Search for encoded/modified reflection in the decoded response
+        # We need to find the match in the decoded text, but report its position and content
+        # from the *original* response to be accurate.
+        encoded_input = html.escape(input_value)
+        for match in re.finditer(re.escape(encoded_input), original_response, re.IGNORECASE):
+            # Avoid duplicating exact matches found above
+            is_duplicate = any(p.position == match.start() for p in points)
             if not is_duplicate:
-                unique_points.append(point)
-                seen_positions.add(point.position)
+                points.append(self._analyze_reflection_point(
+                    input_value=input_value,
+                    reflected_value=match.group(0),
+                    position=match.start(),
+                    response_text=original_response
+                ))
+
+        # Deduplicate based on position
+        unique_points = {p.position: p for p in points}.values()
+        return list(unique_points)
         
-        return unique_points
+    def _analyze_reflection_point(
+        self,
+        input_value: str,
+        reflected_value: str,
+        position: int,
+        response_text: str
+    ) -> ReflectionPoint:
+        """Analyze a single reflection point."""
+        
+        # Analyze reflection type
+        reflection_type = self._determine_reflection_type(input_value, reflected_value)
+        
+        # Analyze context
+        context_type = self._determine_context(response_text, position)
+        
+        # Analyze quality
+        accuracy, completeness = self._analyze_quality(input_value, reflected_value)
+        
+        # Analyze encoding
+        encoding_applied = self._analyze_encoding(input_value, reflected_value)
+        
+        # Analyze special characters preserved
+        special_chars_preserved = self._analyze_special_chars(input_value, reflected_value)
+        
+        return ReflectionPoint(
+            position=position,
+            reflected_value=reflected_value,
+            original_value=input_value,
+            reflection_type=reflection_type,
+            context=context_type,
+            accuracy=accuracy,
+            completeness=completeness,
+            encoding_applied=encoding_applied,
+            special_chars_preserved=special_chars_preserved
+        )
+    
+    def _determine_reflection_type(self, input_value: str, reflected_value: str) -> ReflectionType:
+        """Determine the type of reflection based on input and reflected values."""
+        
+        if input_value == reflected_value:
+            return ReflectionType.EXACT
+        
+        # Check for specific encoding first, as it's a form of modification
+        if reflected_value == html.escape(input_value):
+            return ReflectionType.ENCODED
+        
+        # Check for partial match (e.g., input is a substring of the reflection)
+        if input_value in reflected_value:
+            return ReflectionType.PARTIAL
+        
+        # If it's not exact, encoded, or partial, it's generally modified
+        return ReflectionType.MODIFIED
+    
+    def _determine_context(self, response_text: str, position: int) -> ReflectionContext:
+        """Determine the context of a reflection based on surrounding content."""
+        
+        # Get surrounding content
+        context_content = self._get_surrounding_content(response_text, position, self.config.context_window)
+        
+        # Simple heuristic for context
+        if '<' in context_content or '>' in context_content:
+            return ReflectionContext.HTML_CONTENT
+        elif 'javascript:' in context_content or 'window.' in context_content:
+            return ReflectionContext.JAVASCRIPT
+        elif '"' in context_content or "'" in context_content:
+            return ReflectionContext.HTML_ATTRIBUTE
+        elif 'style=' in context_content:
+            return ReflectionContext.CSS_STYLE
+        elif '<!--' in context_content:
+            return ReflectionContext.HTML_COMMENT
+        elif '?' in context_content:
+            return ReflectionContext.URL_PARAMETER
+        else:
+            return ReflectionContext.UNKNOWN
+    
+    def _analyze_quality(self, input_value: str, reflected_value: str) -> tuple[float, float]:
+        """Analyze the quality of a reflection (accuracy and completeness)."""
+        
+        # Calculate accuracy (how well the reflected value matches the input)
+        accuracy = self.analyzer.calculate_accuracy(input_value, reflected_value)
+        
+        # Calculate completeness (how much of the input is preserved)
+        completeness = self.analyzer.calculate_completeness(input_value, reflected_value)
+        
+        return accuracy, completeness
+    
+    def _analyze_encoding(self, input_value: str, reflected_value: str) -> str:
+        """Analyze if the reflected value is encoded."""
+        
+        if reflected_value == html.escape(input_value):
+            return 'html_encoding'
+        
+        # More sophisticated encoding detection would involve a matcher
+        # For now, we'll assume any non-exact match is potentially encoded
+        return 'unknown'
+    
+    def _analyze_special_chars(self, input_value: str, reflected_value: str) -> List[str]:
+        """Analyze if special characters are preserved."""
+        
+        preserved_chars = []
+        for char in ['<', '>', '"', "'", '&']:
+            if char in reflected_value and char in input_value:
+                preserved_chars.append(char)
+        return preserved_chars
+    
+    def _get_surrounding_content(self, response_text: str, position: int, length: int) -> str:
+        """Get the surrounding content of a reflection point."""
+        
+        start = max(0, position - length)
+        end = min(len(response_text), position + length)
+        return response_text[start:end]
     
     def _assess_exploitability(self, reflection_points: List[ReflectionPoint]) -> bool:
         """Assess if reflections are exploitable"""
@@ -319,12 +341,12 @@ class ReflectionDetector:
     
     def _update_statistics(self, result: ReflectionResult):
         """Update detection statistics"""
-        self.reflection_stats['total_detected'] += result.total_reflections
+        self.reflection_stats['total_detected'] += result.total_reflections  # type: ignore[operator]
         
         for point in result.reflection_points:
             reflection_type = point.reflection_type.value
-            if reflection_type in self.reflection_stats['by_type']:
-                self.reflection_stats['by_type'][reflection_type] += 1
+            if reflection_type in self.reflection_stats['by_type']:  # type: ignore[operator]
+                self.reflection_stats['by_type'][reflection_type] += 1  # type: ignore[index]
         
         # Update average quality
         if result.reflection_points:
@@ -334,7 +356,7 @@ class ReflectionDetector:
             # Running average
             current_avg = self.reflection_stats['avg_quality']
             self.reflection_stats['avg_quality'] = (
-                (current_avg * (self.detection_count - 1) + avg_quality) / self.detection_count
+                (current_avg * (self.detection_count - 1) + avg_quality) / self.detection_count  # type: ignore[operator]
             )
     
     def quick_detect(self, input_value: str, response_content: str) -> bool:

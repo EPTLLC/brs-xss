@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import time
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 from .scan_result import DOMScanResult
@@ -28,7 +28,7 @@ class DOMXSSDetector:
     """
     Main DOM XSS detector for BRS-XSS.
     
-    Capabilities:
+    Functions:
     - Single file scanning
     - Batch directory scanning  
     - JS extraction from HTML
@@ -112,7 +112,7 @@ class DOMXSSDetector:
         self, 
         directory_path: str, 
         recursive: bool = True,
-        file_patterns: List[str] = None
+        file_patterns: Optional[List[str]] = None
     ) -> DOMScanResult:
         """
         Scan directory.
@@ -229,7 +229,7 @@ class DOMXSSDetector:
             }
         
         # Group by types
-        vuln_by_type = {}
+        vuln_by_type: Dict[str, List[Any]] = {}
         for vuln in result.vulnerabilities:
             vuln_type = vuln.vulnerability_type.value
             if vuln_type not in vuln_by_type:
@@ -237,7 +237,7 @@ class DOMXSSDetector:
             vuln_by_type[vuln_type].append(vuln)
         
         # Group by files
-        vuln_by_file = {}
+        vuln_by_file: Dict[str, List[Any]] = {}
         for vuln in result.vulnerabilities:
             file_path = vuln.file_path or 'unknown'
             if file_path not in vuln_by_file:
@@ -297,7 +297,7 @@ class DOMXSSDetector:
         result: DOMScanResult, 
         min_risk: RiskLevel = RiskLevel.LOW,
         min_confidence: float = 0.5,
-        vuln_types: List[VulnerabilityType] = None
+        vuln_types: Optional[List[VulnerabilityType]] = None
     ) -> DOMScanResult:
         """
         Filter vulnerabilities.

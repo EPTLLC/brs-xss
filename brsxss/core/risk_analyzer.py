@@ -11,7 +11,7 @@ Modified: Sat 02 Aug 2025 11:25:00 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from .scoring_types import SeverityLevel
 from ..utils.logger import Logger
 
@@ -173,7 +173,7 @@ class RiskAnalyzer:
     
     def _analyze_context_risks(self, context_info: Dict[str, Any]) -> List[str]:
         """Analyze context-based risks"""
-        risks = []
+        risks: List[str] = []
         
         context_type = context_info.get('context_type', 'unknown')
         
@@ -194,7 +194,7 @@ class RiskAnalyzer:
     
     def _analyze_payload_risks(self, payload: str) -> List[str]:
         """Analyze payload-based risks"""
-        risks = []
+        risks: List[str] = []
         payload_lower = payload.lower()
         
         # Data exfiltration patterns
@@ -223,7 +223,7 @@ class RiskAnalyzer:
     
     def _analyze_reflection_risks(self, reflection_result: Any) -> List[str]:
         """Analyze reflection-based risks"""
-        risks = []
+        risks: List[str] = []
         
         if not reflection_result:
             return risks
@@ -247,7 +247,7 @@ class RiskAnalyzer:
     
     def _analyze_environment_risks(self, context_info: Dict[str, Any]) -> List[str]:
         """Analyze environment-based risks"""
-        risks = []
+        risks: List[str] = []
         
         # Missing security controls
         if not context_info.get('filters_detected'):

@@ -71,7 +71,7 @@ class CrawlerEngine:
     """
     Asynchronous web crawler engine.
     
-    Capabilities:
+    Functions:
     - Asynchronous crawling with configurable concurrency
     - Smart scope management
     - Form and link extraction

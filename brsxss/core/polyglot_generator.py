@@ -11,7 +11,7 @@ Created: Tue 05 Aug 2025 18:03:16 MSK
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from ..utils.logger import Logger
 

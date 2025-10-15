@@ -262,6 +262,9 @@ class SignatureDatabase:
                     
                     signatures = []
                     for sig_data in signatures_data:
+                        # Ensure proper enum type inside signatures
+                        sig_data = dict(sig_data)
+                        sig_data['waf_type'] = waf_type
                         signature = WAFSignature(**sig_data)
                         signatures.append(signature)
                     
@@ -288,7 +291,13 @@ class SignatureDatabase:
             # Convert to JSON-compatible format
             data = {}
             for waf_type, signatures in self.signatures.items():
-                data[waf_type.value] = [asdict(sig) for sig in signatures]
+                serializable = []
+                for sig in signatures:
+                    sig_dict = asdict(sig)
+                    # Convert enum field to value for JSON
+                    sig_dict['waf_type'] = waf_type.value
+                    serializable.append(sig_dict)
+                data[waf_type.value] = serializable
             
             with open(self.signatures_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)

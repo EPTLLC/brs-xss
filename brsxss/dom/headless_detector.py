@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 import asyncio
 import time
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
 try:
@@ -35,8 +35,8 @@ class DOMXSSResult:
     trigger_method: str = ""  # fragment, postMessage, etc.
     execution_context: str = ""  # innerHTML, eval, etc.
     screenshot_path: Optional[str] = None
-    console_logs: List[str] = None
-    error_logs: List[str] = None
+    console_logs: List[str] = field(default_factory=list)
+    error_logs: List[str] = field(default_factory=list)
     score: float = 0.0
     
     def __post_init__(self):
@@ -50,7 +50,7 @@ class HeadlessDOMDetector:
     """
     Headless browser DOM XSS detector.
     
-    Capabilities:
+    Functions:
     - Fragment-based XSS detection (location.hash)
     - postMessage XSS detection
     - URL parameter DOM injection
@@ -129,7 +129,7 @@ class HeadlessDOMDetector:
         try:
             if self.context:
                 await self.context.close()
-            if self.browser:
+            if self.browser is not None:
                 await self.browser.close()
             if hasattr(self, 'playwright'):
                 await self.playwright.stop()
@@ -256,7 +256,7 @@ class HeadlessDOMDetector:
         
         page = None
         try:
-            page = await self.context.new_page()
+            page = await self.context.new_page()  # type: ignore[attr-defined]
             
             # Set up console monitoring
             console_logs = []
@@ -265,7 +265,7 @@ class HeadlessDOMDetector:
             page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
             page.on("pageerror", lambda exc: error_logs.append(str(exc)))
             # Capture dialogs (alert/confirm/prompt)
-            page.on("dialog", lambda dlg: (console_logs.append(f"dialog: {dlg.type} {dlg.message}"), asyncio.create_task(dlg.dismiss())))
+            page.on("dialog", lambda dlg: (console_logs.append(f"dialog: {dlg.type} {dlg.message}"), asyncio.create_task(dlg.dismiss()))); page  # type: ignore[func-returns-value]
             
             # Navigate to page with payload
             await page.goto(test_url, timeout=self.timeout * 1000, wait_until="networkidle")
@@ -310,14 +310,14 @@ class HeadlessDOMDetector:
         
         page = None
         try:
-            page = await self.context.new_page()
+            page = await self.context.new_page()  # type: ignore[attr-defined]
             
             console_logs = []
             error_logs = []
             
             page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
             page.on("pageerror", lambda exc: error_logs.append(str(exc)))
-            page.on("dialog", lambda dlg: (console_logs.append(f"dialog: {dlg.type} {dlg.message}"), asyncio.create_task(dlg.dismiss())))
+            page.on("dialog", lambda dlg: (console_logs.append(f"dialog: {dlg.type} {dlg.message}"), asyncio.create_task(dlg.dismiss()))); page  # type: ignore[func-returns-value]
             
             # Navigate to page
             await page.goto(url, timeout=self.timeout * 1000, wait_until="networkidle")

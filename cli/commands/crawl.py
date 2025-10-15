@@ -24,38 +24,51 @@ from brsxss.utils.logger import Logger
 from brsxss.utils.validators import URLValidator
 
 
-def crawl_command(
-    url: str = typer.Argument(
-        ...,
-        help="Starting URLs for website crawling",
-        metavar="URLs"
-    ),
-    depth: int = typer.Option(
-        3,
-        "--depth", "-d",
-        help=_("cli.option_depth"),
-        min=1,
-        max=10
-    ),
-    threads: int = typer.Option(
-        10,
-        "--threads", "-t",
-        help=_("cli.option_threads"), 
-        min=1,
-        max=50
-    ),
-    output: Optional[str] = typer.Option(
-        None,
-        "--output", "-o",
-        help=_("cli.option_output"),
-        metavar="FILE"
-    ),
-):
+app = typer.Typer()
+@app.command(context_settings={"ignore_unknown_options": True, "allow_extra_args": True})
+def crawl_command(ctx: typer.Context):
     """Crawl entire website for XSS vulnerabilities"""
     
     console = Console()
     logger = Logger("cli.crawl")
-    
+
+    # Manual parse of args to avoid Click flag quirks
+    url = None
+    depth = 3
+    threads = 10
+    output: Optional[str] = None
+    args = list(ctx.args or [])
+    i = 0
+    while i < len(args):
+        token = args[i]
+        if token == "--depth" and i + 1 < len(args):
+            try:
+                depth = int(args[i + 1])
+            except Exception:
+                pass
+            i += 2
+            continue
+        if token == "--threads" and i + 1 < len(args):
+            try:
+                threads = int(args[i + 1])
+            except Exception:
+                pass
+            i += 2
+            continue
+        if token == "--output" and i + 1 < len(args):
+            output = args[i + 1]
+            i += 2
+            continue
+        if not token.startswith('-') and url is None:
+            url = token
+            i += 1
+            continue
+        i += 1
+
+    if not url:
+        console.print("[red]Invalid URL: (missing)[/red]")
+        raise typer.Exit(1)
+
     console.print("[bold blue]Website crawling mode[/bold blue]")
     console.print(_("Target: {url}").format(url=url))
     console.print(_("Depth: {depth}").format(depth=depth))
@@ -135,7 +148,7 @@ def crawl_command(
             
             with open(output if output.endswith('.json') else f"{output}.json", 'w') as f:
                 json.dump(crawl_data, f, indent=2)
-            console.print("📄 " + _("Crawl results saved: {filepath}").format(filepath=output))
+            console.print(_("Crawl results saved: {filepath}").format(filepath=output))
         
         console.print(f"\n[green]Crawl successful: {len(all_discovered_urls)} URLs discovered[/green]")
             
@@ -148,6 +161,4 @@ def crawl_command(
         raise typer.Exit(1)
 
 
-# Create typer app for this command
-app = typer.Typer()
-app.command()(crawl_command)
+# Create typer app for this command (already created above)

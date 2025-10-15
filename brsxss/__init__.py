@@ -9,14 +9,14 @@ Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-__version__ = "1.1.0"
-__author__ = "Brabus (EasyProTech LLC)"
-__email__ = "mail.easypro.tech@gmail.com"
-__license__ = "GPL-3.0-or-later / Commercial"
-__description__ = "Context-aware async XSS scanner for CI"
+__version__ = "2.0.0"
+__author__ = "Brabus"
+__email__ = "support@easypro.tech"
+__license__ = "Dual: GPLv3+/Commercial"
+__description__ = "Context-aware async XSS scanner for CI/CD"
 
 # Core components
-from .core import ConfigManager, HTTPClient, XSSScanner
+from .core import ConfigManager, HTTPClient, XSSScanner, MLIntegration
 from .dom import DOMAnalyzer, DOMVulnerability
 from .ml import MLPredictor, PredictionResult
 from .report import ReportGenerator, ReportFormat
@@ -53,7 +53,7 @@ __all__ = [
     "__version__", "__author__", "__email__", "__license__", "__description__",
     
     # Core components
-    "ConfigManager", "HTTPClient", "XSSScanner",
+    "ConfigManager", "HTTPClient", "XSSScanner", "MLIntegration",
     
     # DOM analysis
     "DOMAnalyzer", "DOMVulnerability",

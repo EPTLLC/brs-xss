@@ -46,7 +46,7 @@ class SecurityHeadersInspector:
         logger.info("Security headers inspector initialized")
     
     def analyze_headers(self, headers: Dict[str, str]) -> Dict[str, HeaderAnalysis]:
-        """Comprehensive header security analysis"""
+        """header security analysis"""
         
         results = {}
         normalized_headers = {k.lower(): v for k, v in headers.items()}

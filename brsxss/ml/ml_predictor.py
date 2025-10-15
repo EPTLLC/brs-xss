@@ -3,7 +3,7 @@
 """
 BRS-XSS ML Predictor
 
-Main prediction system based on trained ML models.
+prediction handler based on trained ML models.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import time
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from .prediction_types import ConfidenceLevel, PredictionResult
 from .prediction_cache import PredictionCache
@@ -295,7 +295,7 @@ class MLPredictor:
             if prediction_result.prediction == "low":
                 recommendations.append("Low payload effectiveness - try alternative vectors")
             elif prediction_result.prediction == "very_high":
-                recommendations.append("Highly effective payload - excellent exploitation candidate")
+                recommendations.append("High effectiveness payload - strong exploitation candidate")
         
         elif prediction_result.model_used == "vulnerability_classifier":
             if prediction_result.prediction == "critical":

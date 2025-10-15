@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import time
-from typing import Dict, List
+from typing import Dict, List, Optional
 from dataclasses import dataclass, field
 
 
@@ -29,7 +29,10 @@ class VulnerabilityData:
     url: str
     parameter: str
     payload: str
-    method: str = "GET"
+    context: str = "unknown"
+    
+    # Optional detailed fields
+    cwe: Optional[str] = None
     
     # Context
     vulnerability_type: str = "reflected_xss"

@@ -7,12 +7,12 @@ Data types for reflection detection system.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Modified: Tue 05 Aug 2025 17:39:06 MSK - Improved detection sensitivity
+Modified: Wed 15 Oct 2025 01:50:12 MSK - Fixed MyPy type errors
 Telegram: https://t.me/EasyProTech
 """
 
-from typing import List
-from dataclasses import dataclass
+from typing import List, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 
@@ -58,15 +58,9 @@ class ReflectionPoint:
     attribute_name: str = ""         # Attribute name if applicable
     
     # Analysis
-    special_chars_preserved: List[str] = None
+    special_chars_preserved: List[str] = field(default_factory=list)
     encoding_applied: str = "none"
-    filters_detected: List[str] = None
-    
-    def __post_init__(self):
-        if self.special_chars_preserved is None:
-            self.special_chars_preserved = []
-        if self.filters_detected is None:
-            self.filters_detected = []
+    filters_detected: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -74,30 +68,22 @@ class ReflectionResult:
     """Complete reflection analysis result"""
     input_value: str                 # Original input
     total_reflections: int = 0       # Total reflection count
-    reflection_points: List[ReflectionPoint] = None
+    reflection_points: List[ReflectionPoint] = field(default_factory=list)
     
     # Overall quality
     overall_reflection_type: ReflectionType = ReflectionType.NOT_REFLECTED
     overall_quality_score: float = 0.0  # Overall quality (0-1)
     
     # Statistics
-    contexts_found: List[ReflectionContext] = None
-    reflection_types_found: List[ReflectionType] = None
+    contexts_found: List[ReflectionContext] = field(default_factory=list)
+    reflection_types_found: List[ReflectionType] = field(default_factory=list)
     
     # Analysis summary
     is_exploitable: bool = False
     exploitation_confidence: float = 0.0
-    recommended_payloads: List[str] = None
+    recommended_payloads: List[str] = field(default_factory=list)
     
     def __post_init__(self):
-        if self.reflection_points is None:
-            self.reflection_points = []
-        if self.contexts_found is None:
-            self.contexts_found = []
-        if self.reflection_types_found is None:
-            self.reflection_types_found = []
-        if self.recommended_payloads is None:
-            self.recommended_payloads = []
         
         # Update computed fields
         self.total_reflections = len(self.reflection_points)
@@ -191,6 +177,7 @@ class ReflectionConfig:
     similarity_threshold: float = 0.6 # Lowered from 0.8 for better partial detection
     min_reflection_length: int = 2    # Lowered from 3 to catch shorter reflections
     case_sensitive: bool = False      # Case sensitive comparison
+    context_window: int = 50          # Characters around reflection to analyze context
     
     # Analysis options
     analyze_encoding: bool = True     # Analyze encoding applied

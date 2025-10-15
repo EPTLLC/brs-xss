@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-BRS-XSS Advanced WAF Evasion
+BRS-XSS WAF Evasion
 
-Main coordinator for advanced WAF evasion techniques.
+Main coordinator for WAF evasion techniques.
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
@@ -13,7 +13,7 @@ Telegram: https://t.me/EasyProTech
 
 import random
 import re
-from typing import List
+from typing import List, Optional
 from .evasion_types import COMMENT_PATTERNS
 from .encoding_evasions import EncodingEvasions
 from .polyglot_generator import PolyglotGenerator
@@ -26,7 +26,7 @@ logger = Logger("core.advanced_waf_evasion")
 
 class AdvancedWAFEvasion:
     """
-    Main coordinator for advanced WAF evasion techniques.
+    Main coordinator for WAF evasion techniques.
     
     Orchestrates:
     - Encoding evasions
@@ -37,7 +37,7 @@ class AdvancedWAFEvasion:
     """
     
     def __init__(self):
-        """Initialize advanced WAF evasion coordinator"""
+        """Initialize WAF evasion coordinator"""
         
         self.encoding_evasions = EncodingEvasions()
         self.polyglot_generator = PolyglotGenerator()
@@ -51,7 +51,7 @@ class AdvancedWAFEvasion:
             lambda x: ''.join(c.lower() if i % 2 == 0 else c.upper() for i, c in enumerate(x)),
         ]
         
-        logger.info("Advanced WAF evasion coordinator initialized")
+        logger.info("WAF evasion coordinator initialized")
     
     def generate_evasion_variations(self, base_payload: str, num_variations: int = 10) -> List[str]:
         """Generate multiple evasion variations of a base payload"""
@@ -169,8 +169,8 @@ class AdvancedWAFEvasion:
         
         return result
     
-    def get_comprehensive_bypasses(self, base_payload: str, waf_type: str = None) -> List[str]:
-        """Get comprehensive set of bypass techniques"""
+    def get_comprehensive_bypasses(self, base_payload: str, waf_type: Optional[str] = None) -> List[str]:
+        """Get set of bypass techniques"""
         
         bypasses = []
         

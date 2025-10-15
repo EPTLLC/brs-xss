@@ -11,8 +11,8 @@ Telegram: https://t.me/EasyProTech
 
 import re
 from urllib.parse import urljoin
-from typing import Dict, List, Any
-from dataclasses import dataclass
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass, field
 from enum import Enum
 
 try:
@@ -42,7 +42,7 @@ class DiscoveredURL:
     url_type: URLType
     source_context: str = ""    # Source context
     method: str = "GET"
-    parameters: Dict[str, str] = None
+    parameters: Dict[str, str] = field(default_factory=dict)
     
     # Additional data
     depth: int = 0
@@ -58,7 +58,7 @@ class URLDiscovery:
     """
     URL discovery engine.
     
-    Capabilities:
+    Functions:
     - Link extraction from HTML
     - Form action discovery
     - AJAX endpoint detection
@@ -124,7 +124,7 @@ class URLDiscovery:
                 
                 # Extract <a> tags
                 for link_tag in soup.find_all('a', href=True):
-                    href = link_tag.get('href')
+                    href = str(link_tag.get("href", ""))
                     if href and not href.startswith(('#', 'javascript:', 'mailto:')):
                         absolute_url = urljoin(base_url, href)
                         
@@ -180,8 +180,8 @@ class URLDiscovery:
                 soup = BeautifulSoup(html_content, 'html.parser')
                 
                 for form_tag in soup.find_all('form'):
-                    action = form_tag.get('action')
-                    method = form_tag.get('method', 'GET').upper()
+                    action = str(form_tag.get("action", ""))
+                    method = str(form_tag.get("method", "GET")).upper()
                     
                     if action:
                         absolute_url = urljoin(base_url, action)
