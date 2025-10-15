@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "brs-xss"
-version = "2.0.0"
+version = "2.0.1"
 description = "Context-aware async XSS scanner for CI/CD"
 readme = "README.md"
 requires-python = ">=3.8"
