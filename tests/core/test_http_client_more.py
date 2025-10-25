@@ -41,7 +41,8 @@ async def test_http_client_timeout(monkeypatch):
                     return False
             return Ctx()
 
-    class MConnector: pass
+    class MConnector:
+        pass
 
     async def fake_get_session():
         return MSession()

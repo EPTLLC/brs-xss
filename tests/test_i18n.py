@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss import _, __version__
+from brsxss import _
 from brsxss.i18n.messages import Messages
 
 

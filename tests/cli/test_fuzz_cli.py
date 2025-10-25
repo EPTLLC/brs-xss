@@ -34,7 +34,8 @@ def test_fuzz_cli_happy_path(monkeypatch):
             return []
     class Fing:
         async def fingerprint_waf(self, url):
-            class F: confidence = 0.0
+            class F:
+                confidence = 0.0
             return F()
     import brsxss.waf.waf_detector as wd
     import brsxss.waf.waf_fingerprinter as wf

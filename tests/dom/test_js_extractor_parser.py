@@ -30,7 +30,7 @@ def test_extract_from_html_variants():
 def test_parser_stats_on_minimal_code():
     js = "document.body.innerHTML = location.hash;"
     p = JavaScriptParser()
-    nodes = p.parse_javascript(js)
+    p.parse_javascript(js)
     # Smoke: parser returns nodes or empty, but stats should be a dict
     assert isinstance(p.get_parsing_stats(), dict)
 

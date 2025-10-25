@@ -9,11 +9,9 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-import os
 from pathlib import Path
 
 from brsxss.utils.validators import (
-    URLValidator,
     ParameterValidator,
     PayloadValidator,
     ConfigValidator,

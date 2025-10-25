@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from brsxss.dom.dom_detector import DOMXSSDetector
-from brsxss.dom.vulnerability_types import VulnerabilityType, RiskLevel
+from brsxss.dom.vulnerability_types import RiskLevel
 
 
 def test_scan_javascript_code_smoke():

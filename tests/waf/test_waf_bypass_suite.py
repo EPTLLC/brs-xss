@@ -15,7 +15,6 @@ known WAF signatures and behaviors.
 """
 
 import pytest
-from typing import List, Dict, Any
 
 from brsxss.waf.evasion_engine import EvasionEngine
 from brsxss.waf.detector import WAFInfo, WAFType
@@ -210,23 +209,20 @@ class TestWAFBypassTechniques:
         payload = "alert(1)"
         
         evasions = evasion_engine._generate_advanced_evasions(payload)
-        
-        pollution = [e for e in evasions if "pollution" in e.technique.value.lower()]
+
         # Parameter pollution is context-specific
         assert isinstance(evasions, list)
     
     def test_context_breaking_bypass(self, evasion_engine, sample_payload):
         """Test context breaking technique"""
         evasions = evasion_engine._generate_advanced_evasions(sample_payload)
-        
-        context_break = [e for e in evasions if "context" in e.technique.value.lower()]
+
         assert len(evasions) > 0
     
     def test_mutation_fuzzing(self, evasion_engine, sample_payload):
         """Test mutation fuzzing technique"""
         evasions = evasion_engine._generate_advanced_evasions(sample_payload)
-        
-        mutations = [e for e in evasions if "mutation" in e.technique.value.lower()]
+
         # Mutations may or may not be generated depending on config
         assert isinstance(evasions, list)
     

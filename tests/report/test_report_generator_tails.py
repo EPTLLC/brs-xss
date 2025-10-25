@@ -9,7 +9,6 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-import json
 from pathlib import Path
 
 from brsxss.report.report_generator import ReportGenerator

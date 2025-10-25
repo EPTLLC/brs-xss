@@ -10,7 +10,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import json
-from pathlib import Path
 
 from brsxss.report.templates import JSONTemplate, JUnitTemplate
 

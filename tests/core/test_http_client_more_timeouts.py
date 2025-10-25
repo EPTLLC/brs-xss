@@ -10,7 +10,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import asyncio
-from types import SimpleNamespace
 
 import pytest
 

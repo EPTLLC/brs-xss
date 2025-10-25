@@ -18,7 +18,6 @@ import psutil
 import json
 import statistics
 from typing import List, Dict, Any
-from rich.table import Table
 
 # Use hardcoded version for benchmarks to avoid import issues
 VERSION = "2.0.0"

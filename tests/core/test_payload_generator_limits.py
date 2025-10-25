@@ -9,7 +9,6 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-import pytest
 
 from brsxss.core.payload_generator import PayloadGenerator
 from brsxss.core.payload_types import GenerationConfig

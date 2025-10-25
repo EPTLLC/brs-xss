@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import pytest
 import os
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 
 from brsxss.core.config_manager import ConfigManager
 

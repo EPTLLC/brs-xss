@@ -10,7 +10,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pytest
-import os
 import json
 from pathlib import Path
 

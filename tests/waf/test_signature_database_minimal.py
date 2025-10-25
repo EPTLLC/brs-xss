@@ -9,7 +9,6 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from pathlib import Path
 from brsxss.waf.signature_database import SignatureDatabase
 from brsxss.waf.waf_types import WAFType
 from brsxss.waf.waf_signature import WAFSignature

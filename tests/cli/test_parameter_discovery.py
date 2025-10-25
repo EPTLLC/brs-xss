@@ -13,7 +13,6 @@ import pytest
 from unittest.mock import MagicMock, AsyncMock
 
 from cli.commands.simple_scan import _discover_parameters, _build_scan_targets
-from brsxss.crawler.data_models import DiscoveredParameter
 
 # Mock HTML content with a POST form
 FAKE_HTML_POST_FORM = """
