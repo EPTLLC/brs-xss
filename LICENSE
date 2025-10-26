@@ -1,80 +1,21 @@
-BRS-XSS DUAL LICENSE
+MIT License
 
 Copyright (c) 2025 EasyProTech LLC
-Contact: https://t.me/EasyProTech
 
-================================================================================
-DUAL LICENSE STRUCTURE
-================================================================================
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-This software is available under two license options:
-
-1. GPLv3 LICENSE (Open Source)
-2. COMMERCIAL LICENSE
-
-Choose the license that best fits your use case.
-
-================================================================================
-1. GPLv3 LICENSE (Open Source)
-================================================================================
-
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-APPLICABLE TO:
-- Educational projects
-- Research purposes
-- Open source projects
-- Non-commercial use
-
-REQUIREMENTS:
-- Source code must remain open
-- Derivative works must use GPLv3
-- Copyleft compliance required
-
-================================================================================
-2. COMMERCIAL LICENSE
-================================================================================
-
-For commercial entities, proprietary projects, or any use that does not
-comply with GPLv3 requirements, a commercial license is required.
-
-FEATURES:
-- No copyleft restrictions
-- Private/proprietary use allowed
-- Commercial distribution permitted
-- No source code disclosure required
-
-CONTACT FOR COMMERCIAL LICENSE:
-- Telegram: https://t.me/EasyProTech
-- Subject: "BRS-XSS Commercial License"
-
-================================================================================
-SUPPORT POLICY
-================================================================================
-
-NO SUPPORT PROVIDED: This project is released as-is without support, 
-consultation, or assistance.
-
-Community contributions are welcome but not obligated.
-
-================================================================================
-DISCLAIMER
-================================================================================
-
-This tool is intended for authorized security testing only. Users are 
-responsible for compliance with applicable laws and regulations.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

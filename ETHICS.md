@@ -14,7 +14,7 @@
 
 ---
 
-## ✅ ETHICAL USE PRINCIPLES
+## ETHICAL USE PRINCIPLES
 
 ### 1. AUTHORIZATION FIRST
 - **Always obtain explicit written permission** before testing any system
@@ -46,29 +46,29 @@
 
 ### STRICTLY PROHIBITED:
 
-❌ **UNAUTHORIZED ACCESS**
+**UNAUTHORIZED ACCESS**
 - Scanning or testing systems without permission
 - Bypassing security controls without authorization
 - Accessing data or systems beyond agreed scope
 
-❌ **MALICIOUS EXPLOITATION**
+**MALICIOUS EXPLOITATION**
 - Using vulnerabilities for personal gain
 - Causing intentional damage or disruption
 - Installing backdoors or persistent access
 
-❌ **DATA MISUSE**
+**DATA MISUSE**
 - Extracting, copying, or modifying unauthorized data
 - Violating privacy expectations
 - Sharing confidential information inappropriately
 
-❌ **DISCLOSURE VIOLATIONS**
+**DISCLOSURE VIOLATIONS**
 - Public disclosure without coordination
 - Selling vulnerability information
 - Weaponizing security flaws
 
 ---
 
-## 🛡️ RESPONSIBLE SECURITY RESEARCH
+## RESPONSIBLE SECURITY RESEARCH
 
 ### RESEARCH GUIDELINES
 

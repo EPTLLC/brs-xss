@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2025-10-26
+
+### Breaking Changes
+- **MIT License Migration**: MAJOR CHANGE - Migrated from dual GPL/Commercial license to MIT License
+  - This is a complete license change affecting all usage terms
+  - Previous commercial license restrictions removed
+  - Full open source release under MIT terms
+  - Contact method changed to Telegram only (https://t.me/EasyProTech)
+
+### License & Legal Updates
+- **Contact Policy**: Removed email contacts, now using Telegram only
+- **Documentation**: Updated all license references from GPL/Commercial to MIT
+- **Legal Files**: Updated LICENSE with MIT license terms
+
+### Distribution & Publishing
+- **PyPI Publication**: Package published to PyPI with MIT license
+- **Build Process**: Updated for modern standards (SPDX license format)
+- **Version Management**: Updated to v2.1.0 across all project files
+
 ## [2.0.1] - 2025-10-15
 
 ### Fixed

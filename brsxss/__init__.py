@@ -4,15 +4,15 @@
 Project: BRS-XSS (XSS Detection Suite)
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Date: Fri 03 Oct 2025 01:20:00 MSK
+Date: Sun 26 Oct 2025 14:15:00 UTC
 Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
 __author__ = "Brabus"
-__email__ = "support@easypro.tech"
-__license__ = "Dual: GPLv3+/Commercial"
+__contact__ = "https://t.me/EasyProTech"
+__license__ = "MIT"
 __description__ = "Context-aware async XSS scanner for CI/CD"
 
 # Core components

@@ -4,17 +4,18 @@
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
 **Created:** Thu 07 Aug 2025 01:32:15 MSK  
+**Updated:** Sun 26 Oct 2025 14:15:00 UTC  
 **Telegram:** https://t.me/EasyProTech
 
 ---
 
-## 🚨 CRITICAL DISCLAIMER
+## CRITICAL DISCLAIMER
 
 **THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND.**
 
 ---
 
-## ⚠️ NO WARRANTIES
+## NO WARRANTIES
 
 ### EXPRESS WARRANTIES
 EasyProTech LLC makes **NO EXPRESS WARRANTIES** regarding:
@@ -176,7 +177,7 @@ Continued use after modifications constitutes acceptance of updated terms.
 
 ---
 
-**⚠️ FINAL WARNING: USE AT YOUR OWN RISK**
+**FINAL WARNING: USE AT YOUR OWN RISK**
 
 **THIS SOFTWARE CAN CAUSE LEGAL, TECHNICAL, AND FINANCIAL CONSEQUENCES. YOU BEAR COMPLETE RESPONSIBILITY FOR ALL OUTCOMES.**
 

@@ -1,5 +1,6 @@
 **Company: EasyProTech LLC (www.easypro.tech)**
 **Dev: Brabus**
+**Date: Sun 26 Oct 2025 14:15:00 UTC**
 **Contact: https://t.me/EasyProTech**
 
 # BRS-XSS
@@ -16,7 +17,7 @@
 ![SARIF](https://img.shields.io/badge/SARIF-2.1.0-green?logo=github)
 ![Security](https://img.shields.io/badge/security-hardened-brightgreen?logo=shield)
 ![Performance](https://img.shields.io/badge/benchmark-1k%20URLs%20%2F%2012min-brightgreen)
-![License](https://img.shields.io/badge/license-Dual%3A%20GPLv3%2B%20%2F%20Commercial-red)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
 > XSS vulnerability scanner with context detection, async performance, and multi-format reporting.
 
@@ -160,12 +161,14 @@ Machine-readable results with full JSON Schema validation:
 
 ## License
 
-Dual License: GPL-3.0-or-later OR Commercial License.
+MIT License - Free for all use, including commercial.
 
-- Open Source (GPLv3+): for education, research, open-source, and non-commercial usage.
-- Commercial License: for commercial use, proprietary integrations, or when GPL is not suitable.
+- **Use freely** - No restrictions on usage
+- **Modify** - Change and adapt as needed  
+- **Distribute** - Share original or modified versions
+- **Commercial use** - No separate licensing required
 
-See the LICENSE file for full terms and contact details.
+See the [LICENSE](LICENSE) file for full terms.
 
 ---
 
@@ -282,7 +285,7 @@ info = get_vulnerability_details('dom_xss')
 ```
 
 **Documentation**: https://github.com/EPTLLC/BRS-KB  
-**License**: MIT (separate from BRS-XSS dual license)
+**License**: MIT (same as BRS-XSS)
 
 ---
 
@@ -340,11 +343,12 @@ pip install -e .
 
 **Authorized Testing Only**: This tool is designed for legitimate security testing with proper authorization.
 
+- **[SECURITY.md](SECURITY.md)** - Security policy and vulnerability reporting
 - **[LEGAL.md](LEGAL.md)** - Complete legal terms and compliance
 - **[ETHICS.md](ETHICS.md)** - Responsible disclosure guidelines  
 - **[DISCLAIMER.md](DISCLAIMER.md)** - Liability and warranty disclaimers
 
-**Commercial License**: Enterprise support available at https://t.me/EasyProTech
+**Support**: Available at https://t.me/EasyProTech
 
 ---
 
@@ -367,6 +371,17 @@ pip install -e .
 
 ---
 
-**BRS-XSS v2.0.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+## License Migration Notice
 
-*Context-aware async XSS scanner for CI*
+**IMPORTANT:** As of v2.1.0 (October 26, 2025), BRS-XSS has migrated from dual GPL/Commercial licensing to **MIT License**.
+
+- **Full open source** - No usage restrictions
+- **Commercial use allowed** - No separate licensing required
+- **Free for all** - Use, modify, distribute freely
+- **Contact:** https://t.me/EasyProTech
+
+---
+
+**BRS-XSS v2.1.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+
+*Now fully open source under MIT License - use freely*

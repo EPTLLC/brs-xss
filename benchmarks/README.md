@@ -1,4 +1,4 @@
-# BRS-XSS Benchmarks
+# BRS-XSS v2.1.0 Benchmarks
 
 **Performance and accuracy benchmarks for BRS-XSS scanner**
 

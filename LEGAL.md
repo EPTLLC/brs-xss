@@ -8,7 +8,7 @@
 
 ---
 
-## 🚨 CRITICAL LEGAL WARNING
+## CRITICAL LEGAL WARNING
 
 **BY DOWNLOADING, INSTALLING, OR USING THIS SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE LEGALLY BOUND BY ALL TERMS AND CONDITIONS SET FORTH IN THIS DOCUMENT.**
 
@@ -20,34 +20,34 @@
 
 This software is intended EXCLUSIVELY for:
 
-✅ **AUTHORIZED PENETRATION TESTING**
+**AUTHORIZED PENETRATION TESTING**
 - Written authorization from system owners
 - Professional security consulting contracts
 - Documented scope of testing activities
 
-✅ **LEGITIMATE SECURITY RESEARCH**
+**LEGITIMATE SECURITY RESEARCH**
 - Academic research in controlled environments
 - Authorized bug bounty programs
 - Internal security assessments on owned systems
 
-✅ **EDUCATIONAL PURPOSES**
+**EDUCATIONAL PURPOSES**
 - Cybersecurity training courses
 - Controlled laboratory environments
 - Professional certification preparation
 
 ### STRICTLY PROHIBITED ACTIVITIES
 
-❌ **UNAUTHORIZED NETWORK SCANNING**
+**UNAUTHORIZED NETWORK SCANNING**
 - Scanning systems without explicit permission
 - Testing third-party infrastructure without consent
 - Reconnaissance of protected networks
 
-❌ **MALICIOUS EXPLOITATION**
+**MALICIOUS EXPLOITATION**
 - Weaponizing discovered vulnerabilities
 - Causing damage to target systems
 - Data exfiltration or system compromise
 
-❌ **ILLEGAL ACTIVITIES**
+**ILLEGAL ACTIVITIES**
 - Computer fraud and abuse violations
 - Privacy law violations
 - Cyber-terrorism or cyber-warfare activities
@@ -81,7 +81,7 @@ Users must comply with ALL applicable laws in their jurisdiction, including but 
 
 ---
 
-## ⚠️ LIABILITY & DISCLAIMERS
+## LIABILITY & DISCLAIMERS
 
 ### COMPLETE LIABILITY DISCLAIMER
 
@@ -172,7 +172,7 @@ Legal updates will be published at: https://github.com/EPTLLC/brs-xss
 
 ---
 
-## 📧 LEGAL CONTACT
+## LEGAL CONTACT
 
 **For legal inquiries only:**
 
@@ -186,4 +186,4 @@ Legal updates will be published at: https://github.com/EPTLLC/brs-xss
 
 **⚖️ REMEMBER: YOUR COMPLIANCE WITH THESE TERMS IS LEGALLY BINDING AND ENFORCEABLE.**
 
-**🚨 UNAUTHORIZED USE IS ILLEGAL AND WILL BE PROSECUTED TO THE FULL EXTENT OF THE LAW.**
+**UNAUTHORIZED USE IS ILLEGAL AND WILL BE PROSECUTED TO THE FULL EXTENT OF THE LAW.**
