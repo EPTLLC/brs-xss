@@ -1,10 +1,8 @@
 {
   "target_url": "http://example.com",
-  "discovered_urls": [
-    "https://iana.org/domains/example"
-  ],
+  "discovered_urls": [],
   "forms": [],
   "parameters": [],
-  "crawl_duration": 0.5860798358917236,
-  "timestamp": "2025-10-15 14:09:50"
+  "crawl_duration": 3.0187156200408936,
+  "timestamp": "2025-10-26 00:17:41"
 }
