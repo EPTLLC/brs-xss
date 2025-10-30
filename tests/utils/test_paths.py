@@ -9,7 +9,6 @@ Status: Modified
 Telegram: https://t.me/EasyProTech
 """
 
-import os
 from brsxss.utils.paths import sanitize_filename, atomic_write
 
 

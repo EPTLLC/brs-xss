@@ -31,6 +31,7 @@ async def test_scanner_uses_post_for_post_method():
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.text = "<html></html>"
+    mock_response.headers = {}  # Add empty headers dict to avoid mock coroutine issues
     mock_http_client.post.return_value = mock_response
 
     # Instantiate the scanner, injecting our mocked HTTP client

@@ -104,3 +104,6 @@ results/sarif/*.sarif
 # Runtime
 .runtime/
 session_*
+
+# Scan results
+out.json

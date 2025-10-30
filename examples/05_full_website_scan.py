@@ -29,7 +29,7 @@ async def main():
     print("BRS-XSS: Full Website Security Scan")
     print("="*80)
     print(f"\nTarget: {target_domain}")
-    print(f"Mode: (Crawl + Scan + Report)")
+    print("Mode: (Crawl + Scan + Report)")
     print()
     
     # Step 1: Crawl website

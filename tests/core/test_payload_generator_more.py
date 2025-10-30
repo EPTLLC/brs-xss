@@ -72,7 +72,7 @@ def test_weights_resolution_and_update_config_validation():
 
 
 def test_generation_flows_with_mocks(monkeypatch):
-    from brsxss.core.payload_types import GenerationConfig, Weights, GeneratedPayload
+    from brsxss.core.payload_types import GenerationConfig, Weights
     # Configure to avoid heavy pools
     cfg = GenerationConfig(
         max_payloads=10,

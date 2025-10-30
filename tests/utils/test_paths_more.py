@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from pathlib import Path
-from brsxss.utils.paths import sanitize_filename, build_result_path, ensure_dir
+from brsxss.utils.paths import build_result_path, ensure_dir
 
 
 def test_build_result_path_and_ensure(tmp_path):

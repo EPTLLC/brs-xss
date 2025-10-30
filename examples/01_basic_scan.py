@@ -49,7 +49,7 @@ async def main():
     
     # Display results
     print(f"\n{'='*60}")
-    print(f"Scan Results")
+    print("Scan Results")
     print(f"{'='*60}\n")
     
     if results:

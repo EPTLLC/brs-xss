@@ -9,7 +9,6 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from pathlib import Path
 import builtins
 
 from brsxss.dom.javascript_extractor import JavaScriptExtractor

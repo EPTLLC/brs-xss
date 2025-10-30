@@ -10,9 +10,6 @@ Telegram: https://t.me/EasyProTech
 """
 
 import json
-import types
-import asyncio
-from pathlib import Path
 
 import pytest
 

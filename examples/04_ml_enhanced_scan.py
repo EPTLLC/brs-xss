@@ -16,7 +16,6 @@ for improved context detection and payload effectiveness prediction.
 
 import asyncio
 from brsxss.core import XSSScanner, MLIntegration
-from brsxss.ml import MLPredictor
 
 
 async def main():
@@ -69,7 +68,7 @@ async def main():
             
             # ML-specific information
             if 'ml_enhanced' in vuln:
-                print(f"ML Enhanced: Yes")
+                print("ML Enhanced: Yes")
                 print(f"ML Confidence: {vuln.get('ml_confidence', 0):.2%}")
             
             print(f"Payload: {vuln.get('payload')[:80]}...")

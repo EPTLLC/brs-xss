@@ -30,12 +30,15 @@ async def test_scanner_finds_xss_in_post_request():
     mock_response = MagicMock()
     mock_response.status_code = 200
     mock_response.text = f"<html><body>Search results: {TEST_PAYLOAD}</body></html>"
+    mock_response.headers = {}  # Add empty headers dict to avoid mock coroutine issues
     
     # Mock the HTTPClient
     mock_http_client = MagicMock(spec=HTTPClient)
     # The scanner will make multiple POST calls: one for context, then for each payload.
     # We configure the mock to return our vulnerable response for all of them.
     mock_http_client.post = AsyncMock(return_value=mock_response)
+    # Also mock GET for WAF detection to avoid coroutine warnings
+    mock_http_client.get = AsyncMock(return_value=mock_response)
     
     # Instantiate the real scanner, injecting our mock client
     scanner = XSSScanner(http_client=mock_http_client)

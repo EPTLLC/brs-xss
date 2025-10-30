@@ -9,7 +9,6 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-import os
 from pathlib import Path
 
 from brsxss.core.config_manager import ConfigManager
