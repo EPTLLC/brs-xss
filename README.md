@@ -1,6 +1,6 @@
 **Company: EasyProTech LLC (www.easypro.tech)**
 **Dev: Brabus**
-**Date: Sun 26 Oct 2025 14:15:00 UTC**
+**Date: Fri 14 Nov 2025 00:52:00 UTC**
 **Contact: https://t.me/EasyProTech**
 
 # BRS-XSS
@@ -14,7 +14,7 @@
 ![Docker](https://img.shields.io/badge/docker-multi--arch-blue?logo=docker)
 ![PyPI](https://img.shields.io/pypi/v/brs-xss?label=pypi&logo=pypi)
 ![GHCR](https://img.shields.io/badge/GHCR-ghcr.io%2Feptllc%2Fbrs--xss-blue?logo=docker)
-![SARIF](https://img.shields.io/badge/SARIF-2.1.0-green?logo=github)
+![SARIF](https://img.shields.io/badge/SARIF-2.1.1-green?logo=github)
 ![Security](https://img.shields.io/badge/security-hardened-brightgreen?logo=shield)
 ![Performance](https://img.shields.io/badge/benchmark-1k%20URLs%20%2F%2012min-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
@@ -46,12 +46,10 @@
 
 ## Quickstart (60 seconds)
 
-> **Note:** Version `2.0.1` includes a critical fix for a bug that prevented the scanner from correctly detecting vulnerabilities in HTML forms (POST requests). Please upgrade if you are using an older version.
-
 ### Install & Scan
 ```bash
 pip install -U brs-xss
-brs-xss scan https://target.tld -o out.sarif --fast
+brs-xss scan https://target.tld -o out.sarif
 ```
 
 ### Docker
@@ -91,10 +89,11 @@ gh api repos/:owner/:repo/code-scanning/sarifs -f sarif=@security.sarif
 ```
 
 ### Interactive HTML Reports
-Rich HTML reports with vulnerability details, payload explanations, and one-click replay:
+Rich HTML reports with vulnerability details, payload explanations, and centralized Knowledge Base section. HTML reports are automatically generated alongside JSON reports with optimized structure (75% smaller file size in v2.1.1+):
 
 ```bash
-brs-xss scan https://target.tld --output-html report.html
+brs-xss scan https://target.tld -o report.json
+# HTML report automatically saved to results/html/
 ```
 
 ### JSON Schema Validation
@@ -103,8 +102,8 @@ Machine-readable results with full JSON Schema validation:
 ```json
 {
   "scan_info": {
-  "timestamp": "2025-09-08T09:03:08Z",
-  "scanner": "BRS-XSS v2.0.1",
+  "timestamp": "2025-11-14T00:52:00Z",
+  "scanner": "BRS-XSS v2.1.1",
     "targets_scanned": 47,
     "vulnerabilities_found": 8,
     "false_positive_rate": "3.2%"
@@ -149,7 +148,8 @@ Machine-readable results with full JSON Schema validation:
 - **WAF Metrics** - Hit rates tested on 10+ demo targets
 
 ### Knowledge Base System
-- **17 Context Modules** - 5,535 lines of expert vulnerability documentation
+- **17 Context Modules** - Modular structure with 5,535+ lines of expert vulnerability documentation
+- **Optimized Reports** - Centralized KB section reduces HTML report size by 75% (v2.1.1+)
 - **SIEM Integration** - CVSS scoring, severity levels, CWE/OWASP mapping
 - **Reverse Mapping** - Payload → Context → Defense correlation
 - **CLI Access** - `brs-xss kb` commands for vulnerability information

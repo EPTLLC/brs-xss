@@ -55,7 +55,7 @@ BRS-XSS generates SARIF 2.1.0 compliant reports with:
 - **Schema Compliance**: Validates against the official SARIF 2.1.0 schema.
 - **Rich Diagnostics**: Includes vulnerability details, severity, CWE, and context.
 - **Fingerprinting**: Uses stable identifiers for vulnerability tracking.
-- **Version**: 2.0.1
+- **Version**: 2.1.1
 - **Help URIs**: Provides links to detailed vulnerability explanations.
 
 ### Vulnerability Rules

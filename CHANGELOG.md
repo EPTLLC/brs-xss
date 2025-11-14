@@ -4,6 +4,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.1] - 2025-11-14
+
+### Improved
+- **Knowledge Base Refactoring**: Refactored 8 large knowledge_base modules (>300 lines) into modular structure
+  - Split `css_context.py` (675 lines) → `css_context/` module with separate files
+  - Split `javascript_context.py` (636 lines) → `javascript_context/` module
+  - Split `js_string.py` (619 lines) → `js_string/` module
+  - Split `js_object.py` (619 lines) → `js_object/` module
+  - Split `url_context.py` (545 lines) → `url_context/` module
+  - Split `html_attribute.py` (529 lines) → `html_attribute/` module
+  - Split `html_content.py` (407 lines) → `html_content/` module
+  - Split `dom_xss.py` (350 lines) → `dom_xss/` module
+  - Each module now contains: `description.py`, `attack_vectors.py`, `remediation.py`, `__init__.py`
+  - Improved code maintainability and adherence to 300-line file limit standard
+  - All functionality preserved - backward compatible
+
+- **HTML Report Optimization**: Significantly reduced report file sizes
+  - Removed duplicate Knowledge Base information from each vulnerability entry
+  - Added centralized Knowledge Base section at the beginning of reports
+  - Each vulnerability now references KB section instead of duplicating content
+  - **Result**: 75.5% reduction in HTML report size (1.11 MB → 0.27 MB)
+  - **Result**: 9x reduction in line count (42,921 → 4,826 lines)
+  - Improved report readability and performance
+
+### Changed
+- Knowledge Base modules now use modular directory structure instead of single files
+- HTML reports use reference-based KB information instead of inline duplication
+- Version updated to 2.1.1 across all project files
+
+### Technical Details
+- All refactored modules maintain full backward compatibility
+- All tests passing (16/16 knowledge_base tests)
+- Verified functionality on real targets (testphp.vulnweb.com, easypro.tech)
+- No breaking changes - existing code continues to work
+
 ## [2.1.0] - 2025-10-26
 
 ### Breaking Changes
@@ -306,7 +341,10 @@ This is a major version release introducing a comprehensive expert system for XS
 
 ---
 
-[Unreleased]: https://github.com/EPTLLC/brs-xss/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/EPTLLC/brs-xss/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/EPTLLC/brs-xss/compare/v2.1.0...v2.1.1
+[2.1.0]: https://github.com/EPTLLC/brs-xss/compare/v2.0.1...v2.1.0
+[2.0.1]: https://github.com/EPTLLC/brs-xss/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/EPTLLC/brs-xss/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/EPTLLC/brs-xss/compare/v1.0.5.1...v1.1.1
 [1.0.5.1]: https://github.com/EPTLLC/brs-xss/compare/v1.0.5...v1.0.5.1

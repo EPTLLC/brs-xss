@@ -83,5 +83,5 @@ This tool is provided for legitimate security testing purposes only. Users are r
 
 ---
 
-**Last Updated:** Sun 26 Oct 2025 14:20:00 UTC  
-**Version:** 2.1.0
+**Last Updated:** Thu 14 Nov 2025 03:30:00 UTC  
+**Version:** 2.1.1

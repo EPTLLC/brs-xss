@@ -1,4 +1,4 @@
-# Project: BRS-XSS v2.1.0 (XSS Detection Suite)
+# Project: BRS-XSS v2.1.1 (XSS Detection Suite)
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
 # Date: Fri 10 Oct 2025 14:05:00 MSK

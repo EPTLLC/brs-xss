@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-pip install -U brs-xss==2.1.0
+pip install -U brs-xss==2.1.1
 ```
 
 ## Basic Scan

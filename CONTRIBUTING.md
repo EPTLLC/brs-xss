@@ -157,5 +157,5 @@ Contributors will be:
 
 **Thank you for contributing to BRS-XSS!**
 
-**Last Updated:** Sun 26 Oct 2025 14:20:00 UTC  
-**Version:** 2.1.0
+**Last Updated:** Thu 14 Nov 2025 03:30:00 UTC  
+**Version:** 2.1.1

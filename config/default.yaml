@@ -1,4 +1,4 @@
-# BRS-XSS v2.1.0 Configuration  
+# BRS-XSS v2.1.1 Configuration  
 # ==================================
 # Default settings for the scanner.
 # For user-specific overrides, create a `config.toml` in `~/.config/brs-xss/`.
