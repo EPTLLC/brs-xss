@@ -9,7 +9,7 @@
 # For development dependencies, see requirements/dev.txt
 
 aiohttp>=3.8,<4.0
-typer>=0.9,<0.11
+typer>=0.16,<0.17
 rich>=13.0,<14.0
 pyyaml>=6.0,<7.0
 jinja2>=3.1,<4.0

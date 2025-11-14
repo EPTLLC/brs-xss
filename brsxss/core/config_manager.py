@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import os
-import yaml  # type: ignore[import-untyped]
+import yaml
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 

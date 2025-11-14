@@ -256,7 +256,7 @@ class HeadlessDOMDetector:
         
         page = None
         try:
-            page = await self.context.new_page()  # type: ignore[attr-defined]
+            page = await self.context.new_page()
             
             # Set up console monitoring
             console_logs = []
@@ -265,10 +265,10 @@ class HeadlessDOMDetector:
             page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
             page.on("pageerror", lambda exc: error_logs.append(str(exc)))
             # Capture dialogs (alert/confirm/prompt)
-            page.on("dialog", lambda dlg: (
-                console_logs.append(f"dialog: {dlg.type} {dlg.message}"),
+            def handle_dialog(dlg):
+                console_logs.append(f"dialog: {dlg.type} {dlg.message}")
                 asyncio.create_task(dlg.dismiss())
-            ))  # type: ignore[func-returns-value]
+            page.on("dialog", handle_dialog)
             
             # Navigate to page with payload
             await page.goto(test_url, timeout=self.timeout * 1000, wait_until="networkidle")
@@ -313,17 +313,17 @@ class HeadlessDOMDetector:
         
         page = None
         try:
-            page = await self.context.new_page()  # type: ignore[attr-defined]
+            page = await self.context.new_page()
             
             console_logs = []
             error_logs = []
             
             page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
             page.on("pageerror", lambda exc: error_logs.append(str(exc)))
-            page.on("dialog", lambda dlg: (
-                console_logs.append(f"dialog: {dlg.type} {dlg.message}"),
+            def handle_dialog(dlg):
+                console_logs.append(f"dialog: {dlg.type} {dlg.message}")
                 asyncio.create_task(dlg.dismiss())
-            ))  # type: ignore[func-returns-value]
+            page.on("dialog", handle_dialog)
             
             # Navigate to page
             await page.goto(url, timeout=self.timeout * 1000, wait_until="networkidle")
