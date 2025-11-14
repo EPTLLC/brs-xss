@@ -1,9 +1,13 @@
 # Development dependencies for BRS-XSS
 # Company: EasyProTech LLC (www.easypro.tech)
 # Dev: Brabus
-# Date: Wed 04 Sep 2025 10:25:00 MSK
-# Status: Created
+# Date: Fri 14 Nov 2025 04:35:00 UTC
+# Status: For developers - all development dependencies
 # Telegram: https://t.me/EasyProTech
+#
+# NOTE: This file includes base.txt and adds development tools.
+# Used by: CONTRIBUTING.md, developers for local setup
+# Includes: testing, linting, code quality, security scanning tools
 
 # Base requirements
 -r base.txt
