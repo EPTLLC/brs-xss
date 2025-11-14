@@ -11,8 +11,6 @@ SINGLE SOURCE OF TRUTH for version information.
 All other modules should import from here.
 """
 
-import os
-import json
 import toml
 from datetime import datetime
 from pathlib import Path
