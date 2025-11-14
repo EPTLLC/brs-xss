@@ -97,6 +97,37 @@ class HTMLTemplate(BaseTemplate):
         </div>
 """
         
+        # Collect unique contexts for Knowledge Base section
+        unique_contexts = {}
+        for vuln in vulnerabilities:
+            v = vuln.__dict__ if hasattr(vuln, '__dict__') else dict(vuln)
+            ctx = v.get('context', 'unknown')
+            if ctx not in unique_contexts and ctx != 'unknown':
+                # Get KB details for this context
+                from .knowledge_base import get_vulnerability_details
+                kb_details = get_vulnerability_details(ctx)
+                if kb_details:
+                    unique_contexts[ctx] = kb_details
+        
+        # Add Knowledge Base section if we have contexts
+        if unique_contexts:
+            html_content += "<h2>Knowledge Base</h2>\n"
+            html_content += "<p><em>Detailed vulnerability information and remediation guidance</em></p>\n"
+            for ctx, kb_info in unique_contexts.items():
+                ctx_id = ctx.replace('_', '-').replace(' ', '-')
+                html_content += (
+                    f'        <div id="kb-{ctx_id}" class="knowledge-base-section" style="margin-bottom: 40px; padding: 20px; background: #f9f9f9; border-radius: 5px;">\n'
+                    f'            <h3>{kb_info.get("title", ctx)}</h3>\n'
+                    f'            <p><strong>Context:</strong> <code>{ctx}</code></p>\n'
+                    f'            <h4>Description</h4>\n'
+                    f'            <p>{kb_info.get("description", "")}</p>\n'
+                    f'            <h4>Attack Vectors</h4>\n'
+                    f'            <pre style="background: #fff; padding: 15px; border-radius: 3px; overflow-x: auto;"><code>{kb_info.get("attack_vector", "")}</code></pre>\n'
+                    f'            <h4>Remediation</h4>\n'
+                    f'            <pre style="background: #fff; padding: 15px; border-radius: 3px; white-space: pre-wrap;"><code>{kb_info.get("remediation", "")}</code></pre>\n'
+                    f'        </div>\n'
+                )
+        
         if vulnerabilities:
             html_content += "<h2>Vulnerabilities Found</h2>\n"
             for i, vuln in enumerate(vulnerabilities, 1):
@@ -107,9 +138,12 @@ class HTMLTemplate(BaseTemplate):
                 param = v.get('parameter', 'unknown')
                 ctx = v.get('context', 'unknown')
                 desc = v.get('description', '')
-                attack_vector = v.get('attack_vector', '')
-                remediation = v.get('remediation', '')
                 payload = v.get('payload', '')
+                
+                # Create link to KB section if context exists
+                ctx_id = ctx.replace('_', '-').replace(' ', '-')
+                kb_link = f'<a href="#kb-{ctx_id}">View detailed information in Knowledge Base</a>' if ctx in unique_contexts else ''
+                
                 html_content += (
                     f"\n        <div class=\"vulnerability severity-{sev}\">\n"
                     f"            <div class=\"vuln-header\"><strong>{i}. {title}</strong></div>\n"
@@ -120,10 +154,8 @@ class HTMLTemplate(BaseTemplate):
                     f"                <p><strong>Context:</strong> <code>{ctx}</code></p>\n"
                     f"                <h3>Description</h3>\n"
                     f"                <p>{desc}</p>\n"
-                    f"                <h3>Attack Vector</h3>\n"
-                    f"                <pre><code>{attack_vector}</code></pre>\n"
-                    f"                <h3>Remediation</h3>\n"
-                    f"                <p>{remediation}</p>\n"
+                    f"                <h3>Attack Vector & Remediation</h3>\n"
+                    f"                <p>{kb_link if kb_link else 'See Knowledge Base section above for detailed attack vectors and remediation guidance.'}</p>\n"
                     f"                <h3>Payload</h3>\n"
                     f"                <pre class=\"payload\"><code>{payload}</code></pre>\n"
                     f"            </div>\n"
@@ -214,7 +246,7 @@ class SARIFTemplate(BaseTemplate):
                     "tool": {
                         "driver": {
                             "name": "BRS-XSS",
-                            "version": "1.0.0",
+                            "version": "2.1.1",
                             "organization": "EasyProTech LLC",
                             "rules": [
                                 {

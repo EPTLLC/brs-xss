@@ -32,18 +32,26 @@ def _initialize_knowledge_base():
 
     current_dir = os.path.dirname(__file__)
     
-    for filename in os.listdir(current_dir):
-        if filename.endswith('.py') and not filename.startswith('__'):
-            module_name = filename[:-3]
-            
-            try:
-                module = importlib.import_module(f".{module_name}", package=__name__)
-                if hasattr(module, 'DETAILS'):
-                    # The key for the dictionary is the filename itself
-                    _KNOWLEDGE_BASE[module_name] = module.DETAILS
-            except ImportError:
-                # Handle potential import errors gracefully
-                continue
+    for item in os.listdir(current_dir):
+        item_path = os.path.join(current_dir, item)
+        
+        # Handle both .py files and directories
+        if item.endswith('.py') and not item.startswith('__'):
+            module_name = item[:-3]
+        elif os.path.isdir(item_path) and not item.startswith('__'):
+            # Directory-based module (e.g., css_context/)
+            module_name = item
+        else:
+            continue
+        
+        try:
+            module = importlib.import_module(f".{module_name}", package=__name__)
+            if hasattr(module, 'DETAILS'):
+                # The key for the dictionary is the module name
+                _KNOWLEDGE_BASE[module_name] = module.DETAILS
+        except ImportError:
+            # Handle potential import errors gracefully
+            continue
     
     _initialized = True
 

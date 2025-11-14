@@ -382,6 +382,6 @@ pip install -e .
 
 ---
 
-**BRS-XSS v2.1.0** | **EasyProTech LLC** | **https://t.me/EasyProTech**
+**BRS-XSS v2.1.1** | **EasyProTech LLC** | **https://t.me/EasyProTech**
 
 *Now fully open source under MIT License - use freely*
