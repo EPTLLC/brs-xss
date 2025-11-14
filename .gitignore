@@ -104,3 +104,30 @@ results/sarif/*.sarif
 # Runtime
 .runtime/
 session_*
+
+# Temporary scan results
+out.json
+*.out
+scan_*.txt
+
+# Backup files
+*.bak
+*.backup
+
+# Test environments
+test_env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python version management
+.python-version
+
+# Reports directory (if not needed in repo)
+reports/
+*.report
+
+# IDE specific
+*.code-workspace
+.vscode/settings.json
+.idea/workspace.xml
