@@ -1,8 +1,3 @@
-**Company: EasyProTech LLC (www.easypro.tech)**
-**Dev: Brabus**
-**Date: Fri 14 Nov 2025 00:52:00 UTC**
-**Contact: https://t.me/EasyProTech**
-
 # BRS-XSS
 
 
