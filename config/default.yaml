@@ -1,0 +1,157 @@
+# BRS-XSS v4.0.0-beta.1 Configuration
+# ==================================
+# Default settings for the scanner.
+# For user-specific overrides, create a config file in ~/.config/brs-xss/
+# Environment variables with BRSXSS_ prefix override config values.
+
+# General scanner settings
+scanner:
+  # Number of concurrent requests
+  concurrency: 32
+
+  # Global rate limit in requests per second (RPS)
+  rate_limit: 8.0
+
+  # Request timeout in seconds
+  timeout: 15
+
+  # Max crawl depth for parameter discovery
+  max_depth: 3
+  
+  # User agent string - uses version from brsxss.version module
+  # Override via BRSXSS_SCANNER_USER_AGENT env var if needed
+  user_agent: null  # null = auto-generate from version
+
+  # Enable safe mode for production environments (disables risky payloads)
+  safe_mode: true
+
+  # Respect robots.txt
+  respect_robots: true
+  # Enable URL denylist
+  enable_denylist: true
+  # HTTP retry attempts
+  max_retries: 3
+  # Exponential backoff multiplier
+  backoff_factor: 2.0
+
+# BRS-KB Knowledge Base Configuration
+# ====================================
+# BRS-KB is the source of XSS payloads and vulnerability contexts.
+# By default, uses remote API. Can be configured for local mode.
+kb:
+  # Mode: "remote" (API), "local" (library), "auto" (try remote, fallback to local)
+  mode: "remote"
+  
+  # Remote API settings
+  api:
+    # Base URL for BRS-KB API (v1)
+    url: "https://brs-kb.easypro.tech/api/v1"
+    
+    # API Key - SHOULD BE SET VIA ENVIRONMENT VARIABLE: BRSXSS_KB_API_KEY
+    # Default free key provided for convenience, but set your own for production
+    # key: ""  # Set via BRSXSS_KB_API_KEY environment variable
+    
+    # Request timeout in seconds
+    timeout: 30
+    
+    # Maximum retries on failure
+    max_retries: 3
+    
+    # Retry delay in seconds (exponential backoff)
+    retry_delay: 1.0
+  
+  # Local library settings (for offline/airgapped environments)
+  local:
+    # Path to local BRS-KB installation
+    path: "/var/BRS/BRS-KB"
+    
+    # Enable local fallback when remote fails
+    fallback_enabled: true
+  
+  # Caching settings
+  cache:
+    # Enable response caching
+    enabled: true
+    
+    # Cache TTL in seconds (1 hour default)
+    ttl: 3600
+    
+    # Maximum cache entries
+    max_entries: 10000
+    
+    # Cache directory (null = in-memory only)
+    directory: null
+  
+  # ETag support for efficient updates
+  etag_enabled: true
+
+# Performance and caching
+performance:
+  enable_caching: true            # Enable reflection caching
+  cache_size: 10000               # Max cached URL+parameter combinations
+  enable_deduplication: true      # Enable payload deduplication via Bloom filter
+  bloom_filter_size: 100000       # Bloom filter capacity
+  bloom_error_rate: 0.01          # Bloom filter false positive rate
+  browser_pool_size: 4            # Playwright browser instances per worker
+  
+# Payload settings
+payloads:
+  max_generation: 1000
+  min_efficiency: 85
+  contexts: ["html", "attribute", "script", "css", "uri", "svg"]
+  aggr_mode: false                # Enable aggressive polyglot + multi-encoding
+  waf_bypass: true                # Include WAF bypass payloads
+  
+# Scoring configuration
+scoring:
+  enable_smart_scoring: true
+  confidence_threshold: 0.8
+  context_features: 76            # HTML/JS features (32 sources + 44 sinks)
+  payload_features: 24            # Payload characteristics
+
+# Reporting with SARIF 2.1.0 compliance
+reporting:
+  formats: ["sarif", "json", "html"]
+  output_dir: "./results/"
+  include_screenshots: true       # For DOM XSS analysis
+  include_replay_urls: true       # One-click vulnerability replay
+  auto_cleanup_days: 30
+  preserve_critical: true
+  sarif_version: "2.1.0"
+  json_schema_validation: true
+  
+# Internationalization  
+i18n:
+  locales_path: "./brsxss/i18n/locales/"
+  supported_locales: ["en", "ru"]
+  auto_detect_locale: false       # Disable auto-detection for consistency
+  domain: "brsxss"
+
+# HTTP settings with security focus
+http:
+  verify_ssl: true
+  follow_redirects: true
+  max_redirects: 5
+  default_headers:
+    Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+    Accept-Language: "en-US,en;q=0.9"
+    Accept-Encoding: "gzip, deflate"
+    Connection: "keep-alive"
+    Cache-Control: "no-cache"
+
+# Security and safety
+security:
+  denylist_domains: []            # Domains to never scan
+  denylist_patterns: []           # URL patterns to avoid
+  max_payload_length: 2048        # Maximum payload size
+  sanitize_logs: true             # Sanitize sensitive data in logs
+  enable_safe_logging: true       # Use PayloadValidator for log sanitization
+
+# Logging with structured output
+logging:
+  level: "INFO"
+  console_output: true
+  file_output: "./logs/brs-xss.log"
+  format: "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+  max_log_size: "100MB"
+  backup_count: 5

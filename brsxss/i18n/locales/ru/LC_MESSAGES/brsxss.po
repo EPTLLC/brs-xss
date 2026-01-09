@@ -1,0 +1,125 @@
+# BRS-XSS Russian Translation
+# Company: EasyProTech LLC (www.easypro.tech)
+# Language: Russian (ru)
+# Dev: Brabus
+# Created: Sat 02 Aug 2025 11:30:00 MSK
+# Telegram: https://t.me/EasyProTech
+
+msgid ""
+msgstr ""
+"Project-Id-Version: BRS-XSS 2.0.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+
+# Application messages
+msgid "welcome"
+msgstr "Добро пожаловать в BRS-XSS v{version}"
+
+msgid "description"
+msgstr "XSS сканер с продвинутыми возможностями обнаружения"
+
+msgid "author"
+msgstr "Разработано EasyProTech LLC"
+
+msgid "exit"
+msgstr "Выполнение BRS-XSS завершено"
+
+# Scan messages
+msgid "scan_started"
+msgstr "Начато сканирование цели: {target}"
+
+msgid "scan_completed"
+msgstr "Сканирование завершено за {duration} секунд"
+
+msgid "target_invalid"
+msgstr "Некорректная цель сканирования: {target}"
+
+msgid "no_parameters"
+msgstr "Параметры для тестирования не найдены"
+
+msgid "parameters_found"
+msgstr "Найдено параметров для тестирования: {count}"
+
+msgid "testing_parameter"
+msgstr "Тестирование параметра: {param}"
+
+msgid "reflections_found"
+msgstr "Найдено отражений: {count}"
+
+msgid "no_reflections"
+msgstr "Отражения не найдены"
+
+msgid "generating_payloads"
+msgstr "Генерация полезных нагрузок..."
+
+msgid "payloads_generated"
+msgstr "Создано полезных нагрузок: {count}"
+
+msgid "testing_payload"
+msgstr "Тестирование полезной нагрузки: {payload}"
+
+msgid "vulnerability_found"
+msgstr "НАЙДЕНА УЯЗВИМОСТЬ"
+
+msgid "payload_success"
+msgstr "Успешная полезная нагрузка: {payload}"
+
+msgid "efficiency"
+msgstr "Эффективность: {efficiency}%"
+
+msgid "confidence"
+msgstr "Уверенность: {confidence}"
+
+# WAF messages
+msgid "waf_detecting"
+msgstr "Определение типа WAF..."
+
+msgid "waf_detected"
+msgstr "Обнаружен WAF: {waf_name}"
+
+msgid "waf_not_detected"
+msgstr "WAF не обнаружен"
+
+msgid "waf_bypassing"
+msgstr "Попытка обхода WAF..."
+
+# Error messages
+msgid "error_connection"
+msgstr "Ошибка соединения: {error}"
+
+msgid "error_timeout"
+msgstr "Таймаут запроса"
+
+msgid "error_invalid_url"
+msgstr "Некорректный формат URL"
+
+msgid "error_no_response"
+msgstr "Ответ не получен"
+
+# CLI messages
+msgid "cli_help"
+msgstr "Показать справочное сообщение"
+
+msgid "cli_version"
+msgstr "Показать информацию о версии"
+
+msgid "cli_verbose"
+msgstr "Включить подробный вывод"
+
+msgid "cli_output"
+msgstr "Путь к выходному файлу"
+
+# Report messages
+msgid "report_generating"
+msgstr "Генерация отчета..."
+
+msgid "report_saved"
+msgstr "Отчет сохранен в: {path}"
+
+msgid "report_format"
+msgstr "Формат отчета: {format}"

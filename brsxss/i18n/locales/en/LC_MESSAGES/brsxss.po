@@ -1,0 +1,124 @@
+# BRS-XSS English Translation
+# Company: EasyProTech LLC (www.easypro.tech)
+# Language: English (en)
+# Dev: Brabus
+# Created: Sat 02 Aug 2025 11:30:00 MSK
+# Telegram: https://t.me/EasyProTech
+
+msgid ""
+msgstr ""
+"Project-Id-Version: BRS-XSS 2.0.0\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+
+# Application messages
+msgid "welcome"
+msgstr "Welcome to BRS-XSS v{version}"
+
+msgid "description"
+msgstr "XSS scanner with advanced detection capabilities"
+
+msgid "author"
+msgstr "Developed by EasyProTech LLC"
+
+msgid "exit"
+msgstr "BRS-XSS execution completed"
+
+# Scan messages
+msgid "scan_started"
+msgstr "Started scanning target: {target}"
+
+msgid "scan_completed"
+msgstr "Scanning completed in {duration} seconds"
+
+msgid "target_invalid"
+msgstr "Invalid scan target: {target}"
+
+msgid "no_parameters"
+msgstr "No parameters found for testing"
+
+msgid "parameters_found"
+msgstr "Found parameters for testing: {count}"
+
+msgid "testing_parameter"
+msgstr "Testing parameter: {param}"
+
+msgid "reflections_found"
+msgstr "Found reflections: {count}"
+
+msgid "no_reflections"
+msgstr "No reflections found"
+
+msgid "generating_payloads"
+msgstr "Generating payloads..."
+
+msgid "payloads_generated"
+msgstr "Created payloads: {count}"
+
+msgid "testing_payload"
+msgstr "Testing payload: {payload}"
+
+msgid "vulnerability_found"
+msgstr "VULNERABILITY FOUND"
+
+msgid "payload_success"
+msgstr "Successful payload: {payload}"
+
+msgid "efficiency"
+msgstr "Efficiency: {efficiency}%"
+
+msgid "confidence"
+msgstr "Confidence: {confidence}"
+
+# WAF messages
+msgid "waf_detecting"
+msgstr "Detecting WAF type..."
+
+msgid "waf_detected"
+msgstr "WAF detected: {waf_name}"
+
+msgid "waf_not_detected"
+msgstr "No WAF detected"
+
+msgid "waf_bypassing"
+msgstr "Attempting WAF bypass..."
+
+# Error messages
+msgid "error_connection"
+msgstr "Connection error: {error}"
+
+msgid "error_timeout"
+msgstr "Request timeout"
+
+msgid "error_invalid_url"
+msgstr "Invalid URL format"
+
+msgid "error_no_response"
+msgstr "No response received"
+
+# CLI messages
+msgid "cli_help"
+msgstr "Show help message"
+
+msgid "cli_version"
+msgstr "Show version information"
+
+msgid "cli_verbose"
+msgstr "Enable verbose output"
+
+msgid "cli_output"
+msgstr "Output file path"
+
+# Report messages
+msgid "report_generating"
+msgstr "Generating report..."
+
+msgid "report_saved"
+msgstr "Report saved to: {path}"
+
+msgid "report_format"
+msgstr "Report format: {format}"

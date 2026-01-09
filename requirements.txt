@@ -1,0 +1,21 @@
+# BRS-XSS Runtime Dependencies
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Fri 14 Nov 2025 04:30:00 UTC
+# Status: Synchronized with pyproject.toml
+# Telegram: https://t.me/EasyProTech
+#
+# NOTE: This file is synchronized with pyproject.toml [project.dependencies]
+# For development dependencies, see requirements/dev.txt
+
+aiohttp>=3.8,<4.0
+aiohttp-socks>=0.8,<1.0
+typer>=0.16,<0.17
+rich>=13.0,<14.0
+pyyaml>=6.0,<7.0
+jinja2>=3.1,<4.0
+babel>=2.12,<3.0
+polib>=1.2,<2.0
+playwright>=1.40.0,<1.60.0
+beautifulsoup4>=4.12.3,<4.13
+weasyprint>=60.0,<62.0
