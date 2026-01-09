@@ -1,0 +1,49 @@
+# BRS-XSS User Configuration Example
+# Copy to ~/.config/brs-xss/config.toml
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Wed 04 Sep 2025 09:03:08 MSK
+# Status: Created
+# Telegram: https://t.me/EasyProTech
+
+[scanner]
+concurrency = 32
+rate_limit = 8.0  # requests per second
+timeout = 15
+max_depth = 3
+safe_mode = true
+
+[payloads]
+contexts = ["html", "attribute", "script", "css", "uri", "svg"]
+aggr_mode = false  # Enable polyglot + multi-encoding
+waf_bypass = true
+
+[performance]
+enable_caching = true
+cache_size = 10000
+enable_deduplication = true
+bloom_filter_size = 100000
+
+[output]
+formats = ["sarif", "json", "html"]
+include_screenshots = true
+replay_urls = true
+
+[security]
+# Add domains you never want to scan
+denylist_domains = [
+    "localhost",
+    "127.0.0.1",
+    "internal.company.com"
+]
+
+# URL patterns to avoid
+denylist_patterns = [
+    "*/admin/*",
+    "*/logout*",
+    "*/delete*"
+]
+
+[logging]
+level = "INFO"
+console_output = true

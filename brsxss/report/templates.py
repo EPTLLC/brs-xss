@@ -1,0 +1,446 @@
+#!/usr/bin/env python3
+
+"""
+Project: BRS-XSS (XSS Detection Suite)
+Company: EasyProTech LLC (www.easypro.tech)
+Dev: Brabus
+Date: Fri 10 Oct 2025 14:28:00 UTC
+Status: Modified
+Telegram: https://t.me/EasyProTech
+"""
+
+import json
+from typing import Any
+from datetime import datetime
+from ..utils.logger import Logger
+
+logger = Logger("report.templates")
+
+
+class BaseTemplate:
+    """Base template class"""
+
+    def generate(self, data: dict[str, Any]) -> str:
+        """Generate full report content"""
+        raise NotImplementedError
+
+    def generate_summary(self, data: dict[str, Any]) -> str:
+        """Generate summary report content"""
+        raise NotImplementedError
+
+
+class HTMLTemplate(BaseTemplate):
+    """HTML report template"""
+
+    def generate(self, data: dict[str, Any]) -> str:
+        """Generate HTML report"""
+        logger.debug("Generating HTML report")
+
+        # Accept dataclasses or dicts
+        confirmed_vulns = data.get(
+            "confirmed_vulnerabilities", data.get("vulnerabilities", [])
+        )
+        potential_vulns = data.get("potential_vulnerabilities", [])
+        vulnerabilities = confirmed_vulns + potential_vulns
+        statistics = data.get("statistics", {})
+        if hasattr(statistics, "__dict__"):
+            statistics = statistics.__dict__
+        target_info = data.get("target_info", {})
+
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRS-XSS Security Report</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }}
+        .container {{ max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }}
+        .header {{ border-bottom: 2px solid #e74c3c; padding-bottom: 20px; margin-bottom: 30px; }}
+        .header h1 {{ color: #e74c3c; margin: 0; }}
+        .stats {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }}
+        .stat-card {{ background: #f8f9fa; padding: 20px; border-radius: 5px; text-align: center; }}
+        .stat-value {{ font-size: 2em; font-weight: bold; color: #333; }}
+        .stat-label {{ color: #666; margin-top: 5px; }}
+        .vulnerability {{ border: 1px solid #ddd; margin-bottom: 20px; border-radius: 5px; }}
+        .vuln-header {{ background: #f8f9fa; padding: 15px; font-weight: bold; }}
+        .vuln-content {{ padding: 15px; }}
+        .severity-critical {{ border-left: 5px solid #dc3545; }}
+        .severity-high {{ border-left: 5px solid #fd7e14; }}
+        .severity-medium {{ border-left: 5px solid #ffc107; }}
+        .severity-low {{ border-left: 5px solid #28a745; }}
+        .payload {{ background: #f1f1f1; padding: 10px; border-radius: 3px; font-family: monospace; word-break: break-all; }}
+        .footer {{ margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #666; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BRS-XSS Security Report</h1>
+            <p>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Target: {target_info.get('url', 'Unknown')}</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">{len(confirmed_vulns)}</div>
+                <div class="stat-label">Total Vulnerabilities</div>
+                <div class="stat-meta" style="font-size: 0.85em; color: #9ca3af;">
+                    Confirmed | {len(potential_vulns)} potential
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{statistics.get('scan_duration', 0):.1f}s</div>
+                <div class="stat-label">Scan Duration</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{statistics.get('total_requests', 0)}</div>
+                <div class="stat-label">Total Requests</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{statistics.get('parameters_tested', 0)}</div>
+                <div class="stat-label">Parameters Tested</div>
+            </div>
+        </div>
+"""
+
+        # Collect unique contexts for Knowledge Base section
+        unique_contexts = {}
+        for vuln in vulnerabilities:
+            v = vuln.__dict__ if hasattr(vuln, "__dict__") else dict(vuln)
+            ctx = v.get("context", "unknown")
+            if ctx not in unique_contexts and ctx != "unknown":
+                # Get KB details for this context
+                # BRS-KB is the single source of truth
+                import brs_kb
+
+                get_vulnerability_details = brs_kb.get_vulnerability_details
+                kb_details = get_vulnerability_details(ctx)
+                if kb_details:
+                    unique_contexts[ctx] = kb_details
+
+        # Add Knowledge Base section if we have contexts
+        if unique_contexts:
+            html_content += "<h2>Knowledge Base</h2>\n"
+            html_content += "<p><em>Detailed vulnerability information and remediation guidance</em></p>\n"
+            for ctx, kb_info in unique_contexts.items():
+                ctx_id = ctx.replace("_", "-").replace(" ", "-")
+                html_content += (
+                    f'        <div id="kb-{ctx_id}" class="knowledge-base-section" style="margin-bottom: 40px; padding: 20px; background: #f9f9f9; border-radius: 5px;">\n'
+                    f'            <h3>{kb_info.get("title", ctx)}</h3>\n'
+                    f"            <p><strong>Context:</strong> <code>{ctx}</code></p>\n"
+                    f"            <h4>Description</h4>\n"
+                    f'            <p>{kb_info.get("description", "")}</p>\n'
+                    f"            <h4>Attack Vectors</h4>\n"
+                    f'            <pre style="background: #fff; padding: 15px; border-radius: 3px; overflow-x: auto;"><code>{kb_info.get("attack_vector", "")}</code></pre>\n'
+                    f"            <h4>Remediation</h4>\n"
+                    f'            <pre style="background: #fff; padding: 15px; border-radius: 3px; white-space: pre-wrap;"><code>{kb_info.get("remediation", "")}</code></pre>\n'
+                    f"        </div>\n"
+                )
+
+        if confirmed_vulns:
+            html_content += "<h2>Confirmed Findings</h2>\n"
+            for i, vuln in enumerate(confirmed_vulns, 1):
+                v = vuln.__dict__ if hasattr(vuln, "__dict__") else dict(vuln)
+                sev = str(v.get("severity", "low")).lower()
+                title = v.get("title", f"Vulnerability {i}")
+                url = v.get("url", "unknown")
+                param = v.get("parameter", "unknown")
+                ctx = v.get("context", "unknown")
+                desc = v.get("description", "")
+                payload = v.get("payload", "")
+
+                # Create link to KB section if context exists
+                ctx_id = ctx.replace("_", "-").replace(" ", "-")
+                kb_link = (
+                    f'<a href="#kb-{ctx_id}">View detailed information in Knowledge Base</a>'
+                    if ctx in unique_contexts
+                    else ""
+                )
+
+                html_content += (
+                    f'\n        <div class="vulnerability severity-{sev}">\n'
+                    f'            <div class="vuln-header"><strong>{i}. {title}</strong></div>\n'
+                    f'            <div class="vuln-content">\n'
+                    f'                <p><strong>Severity:</strong> <span class="severity-{sev}">{sev.upper()}</span></p>\n'
+                    f"                <p><strong>URL:</strong> <code>{url}</code></p>\n"
+                    f"                <p><strong>Parameter:</strong> <code>{param}</code></p>\n"
+                    f"                <p><strong>Context:</strong> <code>{ctx}</code></p>\n"
+                    f"                <h3>Description</h3>\n"
+                    f"                <p>{desc}</p>\n"
+                    f"                <h3>Attack Vector & Remediation</h3>\n"
+                    f"                <p>{kb_link if kb_link else 'See Knowledge Base section above for detailed attack vectors and remediation guidance.'}</p>\n"
+                    f"                <h3>Payload</h3>\n"
+                    f'                <pre class="payload"><code>{payload}</code></pre>\n'
+                    f"            </div>\n"
+                    f"        </div>\n"
+                )
+        else:
+            html_content += """
+            <div class="section">
+                <h2>Confirmed Findings</h2>
+                <p style="color: #16a34a; text-align: center; padding: 20px;">
+                    No confirmed XSS vulnerabilities found
+                </p>
+            </div>
+            """
+
+        if potential_vulns:
+            html_content += "<h2>Potential Issues (Heuristic)</h2>\n"
+            for i, vuln in enumerate(potential_vulns, 1):
+                v = vuln.__dict__ if hasattr(vuln, "__dict__") else dict(vuln)
+                title = v.get("title", f"Potential Issue {i}")
+                url = v.get("url", "unknown")
+                param = v.get("parameter", "unknown")
+                ctx = v.get("context", "unknown")
+                desc = v.get(
+                    "description", "Heuristic finding, requires manual confirmation."
+                )
+                payload = v.get("payload", "")
+                ctx_id = ctx.replace("_", "-").replace(" ", "-")
+                kb_link = (
+                    f'<a href="#kb-{ctx_id}">View detailed information in Knowledge Base</a>'
+                    if ctx in unique_contexts
+                    else ""
+                )
+                html_content += (
+                    f'\n        <div class="vulnerability severity-low">\n'
+                    f'            <div class="vuln-header"><strong>{i}. {title}</strong> <span style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">POTENTIAL</span></div>\n'
+                    f'            <div class="vuln-content">\n'
+                    f'                <p><strong>Severity:</strong> <span class="severity-low">POTENTIAL</span></p>\n'
+                    f"                <p><strong>URL:</strong> <code>{url}</code></p>\n"
+                    f"                <p><strong>Parameter:</strong> <code>{param}</code></p>\n"
+                    f"                <p><strong>Context:</strong> <code>{ctx}</code></p>\n"
+                    f"                <h3>Description</h3>\n"
+                    f"                <p>{desc}</p>\n"
+                    f"                <h3>Attack Vector & Remediation</h3>\n"
+                    f"                <p>{kb_link if kb_link else 'Manual confirmation required. See Knowledge Base section above for guidance.'}</p>\n"
+                    f"                <h3>Payload</h3>\n"
+                    f'                <pre class="payload"><code>{payload}</code></pre>\n'
+                    f"            </div>\n"
+                    f"        </div>\n"
+                )
+
+        html_content += """
+    </div>
+</body>
+</html>"""
+
+        return html_content
+
+    def generate_summary(self, data: dict[str, Any]) -> str:
+        """Generate HTML summary"""
+        stats = data.get("statistics", {})
+        return f"""<div class="summary">
+    <h3>Scan Summary</h3>
+    <p>Duration: {stats.get('scan_duration', 0):.1f}s</p>
+    <p>Vulnerabilities: {stats.get('vulnerabilities_found', 0)}</p>
+    <p>Requests: {stats.get('total_requests', 0)}</p>
+</div>"""
+
+
+class JSONTemplate(BaseTemplate):
+    """JSON report template"""
+
+    def generate(self, data: dict[str, Any]) -> str:
+        """Generate JSON report"""
+        logger.debug("Generating JSON report")
+
+        # Accept dataclasses in JSON template too
+        if hasattr(data.get("statistics", {}), "__dict__"):
+            stats_json = data["statistics"].__dict__
+        else:
+            stats_json = data.get("statistics", {})
+        confirmed_source = data.get("confirmed_vulnerabilities")
+        if confirmed_source is None:
+            confirmed_source = data.get("vulnerabilities", [])
+        potential_source = data.get("potential_vulnerabilities") or []
+        confirmed = []
+        potential = []
+        for v in confirmed_source:
+            confirmed.append(v.__dict__ if hasattr(v, "__dict__") else v)
+        for v in potential_source:
+            potential.append(v.__dict__ if hasattr(v, "__dict__") else v)
+        vulns_json = confirmed
+
+        report = {
+            "scan_info": {
+                "timestamp": datetime.now().isoformat(),
+                "scanner": f"BRS-XSS v{__import__('brsxss').__version__}",
+                "target": data.get("target_info", {}).get("url", "unknown"),
+            },
+            "statistics": stats_json,
+            "vulnerabilities": vulns_json,
+            "confirmed_vulnerabilities": confirmed,
+            "potential_vulnerabilities": potential,
+            "summary": {
+                "total_vulnerabilities": len(confirmed),
+                "confirmed_total": len(confirmed),
+                "potential_total": len(potential),
+                "risk_levels": self._count_by_severity(confirmed),
+            },
+        }
+
+        return json.dumps(report, indent=2, ensure_ascii=False)
+
+    def generate_summary(self, data: dict[str, Any]) -> str:
+        """Generate JSON summary"""
+        confirmed = data.get("confirmed_vulnerabilities")
+        if confirmed is None:
+            confirmed = data.get("vulnerabilities", [])
+        potential = data.get("potential_vulnerabilities", [])
+        summary = {
+            "scan_summary": data.get("statistics", {}),
+            "total_vulnerabilities": len(confirmed),
+            "confirmed_total": len(confirmed),
+            "potential_total": len(potential),
+            "timestamp": datetime.now().isoformat(),
+        }
+        return json.dumps(summary, indent=2)
+
+    def _count_by_severity(self, vulnerabilities: list[dict]) -> dict[str, int]:
+        """Count vulnerabilities by severity"""
+        counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+        for vuln in vulnerabilities:
+            severity = vuln.get("severity", "low").lower()
+            if severity in counts:
+                counts[severity] += 1
+        return counts
+
+
+class SARIFTemplate(BaseTemplate):
+    """SARIF report template"""
+
+    def generate(self, data: dict[str, Any]) -> str:
+        """Generate SARIF report"""
+        logger.debug("Generating SARIF report")
+
+        confirmed = data.get(
+            "confirmed_vulnerabilities", data.get("vulnerabilities", [])
+        )
+        potential = data.get("potential_vulnerabilities", [])
+        vulnerabilities = confirmed + potential
+
+        sarif_report = {
+            "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+            "version": "2.1.0",
+            "runs": [
+                {
+                    "tool": {
+                        "driver": {
+                            "name": "BRS-XSS",
+                            "version": "2.1.1",
+                            "organization": "EasyProTech LLC",
+                            "rules": [
+                                {
+                                    "id": "XSS-001",
+                                    "name": "CrossSiteScripting",
+                                    "shortDescription": {
+                                        "text": "Cross-Site Scripting vulnerability"
+                                    },
+                                    "fullDescription": {
+                                        "text": "Potential XSS vulnerability allowing script injection"
+                                    },
+                                    "defaultConfiguration": {"level": "error"},
+                                }
+                            ],
+                        }
+                    },
+                    "results": [],
+                }
+            ],
+        }
+
+        for vuln in vulnerabilities:
+            if hasattr(vuln, "__dict__"):
+                vuln = vuln.__dict__
+            result = {
+                "ruleId": "XSS-001",
+                "message": {
+                    "text": f"XSS vulnerability in parameter '{vuln.get('parameter', 'unknown')}'"
+                },
+                "level": self._severity_to_level(vuln.get("severity", "low")),
+                "locations": [
+                    {
+                        "physicalLocation": {
+                            "artifactLocation": {"uri": vuln.get("url", "unknown")}
+                        }
+                    }
+                ],
+                "properties": {
+                    "parameter": vuln.get("parameter", ""),
+                    "payload": vuln.get("payload", ""),
+                    "context": vuln.get("context", ""),
+                    "confidence": vuln.get("confidence", 0),
+                    "status": vuln.get("status", "confirmed"),
+                },
+            }
+            sarif_report["runs"][0]["results"].append(result)  # type: ignore[index]
+
+        return json.dumps(sarif_report, indent=2)
+
+    def generate_summary(self, data: dict[str, Any]) -> str:
+        """Generate SARIF summary"""
+        return self.generate(data)
+
+    def _severity_to_level(self, severity: str) -> str:
+        """Convert severity to SARIF level"""
+        mapping = {
+            "critical": "error",
+            "high": "error",
+            "medium": "warning",
+            "low": "note",
+        }
+        return mapping.get(severity.lower(), "note")
+
+
+class JUnitTemplate(BaseTemplate):
+    """JUnit XML report template"""
+
+    def generate(self, data: dict[str, Any]) -> str:
+        """Generate JUnit XML report"""
+        logger.debug("Generating JUnit XML report")
+
+        confirmed = data.get(
+            "confirmed_vulnerabilities", data.get("vulnerabilities", [])
+        )
+        potential = data.get("potential_vulnerabilities", [])
+        vulnerabilities = confirmed + potential
+        statistics = data.get("statistics", {})
+
+        xml_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="BRS-XSS Security Tests" tests="{len(vulnerabilities) or 1}" failures="{len(confirmed)}" time="{statistics.get('scan_duration', 0)}">
+    <testsuite name="XSS Vulnerability Tests" tests="{len(vulnerabilities) or 1}" failures="{len(confirmed)}" time="{statistics.get('scan_duration', 0)}">
+"""
+
+        if vulnerabilities:
+            for i, vuln in enumerate(vulnerabilities, 1):
+                status = vuln.get("status", "confirmed")
+                xml_content += f"""        <testcase name="Parameter {vuln.get('parameter', f'test_{i}')}" classname="XSS.{vuln.get('context', 'unknown')}" time="0">
+"""
+                if status == "confirmed":
+                    xml_content += f"""            <failure message="XSS vulnerability found" type="SecurityVulnerability">
+URL: {vuln.get('url', 'unknown')}
+Parameter: {vuln.get('parameter', 'unknown')}
+Payload: {vuln.get('payload', 'unknown')}
+Severity: {vuln.get('severity', 'unknown')}
+Confidence: {vuln.get('confidence', 0):.1%}
+            </failure>
+"""
+                else:
+                    xml_content += """            <skipped message="Heuristic detection (manual confirmation required)" />
+"""
+                xml_content += "        </testcase>\n"
+        else:
+            xml_content += """        <testcase name="XSS Security Test" classname="XSS.Security" time="0">
+        </testcase>
+"""
+
+        xml_content += """    </testsuite>
+</testsuites>"""
+
+        return xml_content
+
+    def generate_summary(self, data: dict[str, Any]) -> str:
+        """Generate JUnit summary"""
+        return self.generate(data)

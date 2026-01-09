@@ -1,0 +1,35 @@
+# Project: BRS-XSS Blind XSS Callback Server
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Wed 25 Dec 2025 12:30:00 UTC
+
+version: '3.8'
+
+services:
+  blind-xss-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brs-blind-xss
+    ports:
+      - "8888:8888"
+    volumes:
+      - blind_xss_data:/app/data
+      - blind_xss_screenshots:/app/screenshots
+    environment:
+      # Webhook notifications (optional)
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL:-}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8888/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  blind_xss_data:
+  blind_xss_screenshots:
+

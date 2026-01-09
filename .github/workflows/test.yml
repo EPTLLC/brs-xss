@@ -1,0 +1,65 @@
+# Project: BRS-XSS (XSS Detection Suite)
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Sun 26 Oct 2025 14:15:00 UTC
+# Status: Created
+# Telegram: https://t.me/EasyProTech
+
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install dependencies
+      run: |
+        pip install -U pip wheel
+        pip install -r requirements.txt
+        pip install -r requirements/dev.txt
+        pip install -e .
+    
+    - name: Lint with ruff
+      run: |
+        ruff check brsxss cli
+    
+    - name: Type check with mypy
+      run: |
+        python3 -m mypy brsxss cli --ignore-missing-imports --no-implicit-optional
+      continue-on-error: false
+    
+    - name: Run tests
+      run: |
+        pytest tests/ -v --tb=short --maxfail=5
+    
+    - name: Run tests with coverage
+      if: matrix.python-version == '3.11'
+      run: |
+        pytest tests/ --cov=brsxss --cov=cli --cov-report=xml --cov-report=term
+    
+    - name: Upload coverage
+      if: matrix.python-version == '3.11'
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+

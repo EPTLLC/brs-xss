@@ -1,0 +1,36 @@
+# BRS-XSS Base Dependencies
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Modified: Fri 14 Nov 2025 04:35:00 UTC
+# Status: For developers - base runtime dependencies
+# Telegram: https://t.me/EasyProTech
+#
+# NOTE: This file contains base dependencies for development.
+# For production runtime dependencies, see pyproject.toml or requirements.txt
+# This file is included by requirements/dev.txt
+
+# Core dependencies
+pydantic>=2.0.0          # Data validation and settings management
+# httpx not used directly in runtime (kept for potential future use)
+aiohttp>=3.8.0           # Async HTTP client library
+typer>=0.9.0             # CLI framework
+rich>=13.0.0             # Beautiful terminal output
+pyyaml>=6.0              # YAML configuration files
+jinja2>=3.1.0            # Template engine for reports
+
+# Web UI backend
+fastapi>=0.100.0         # Web framework for API
+uvicorn>=0.23.0          # ASGI server
+websockets>=11.0         # WebSocket support
+aiofiles>=23.0.0         # Async file operations
+
+# Internationalization
+babel>=2.12.0            # Internationalization utilities
+polib>=1.2.0             # PO files manipulation
+
+# Utilities
+python-dateutil>=2.8.0   # Date/time utilities
+urllib3>=1.26.0          # HTTP library utilities
+
+# DOM XSS Detection
+playwright>=1.40.0       # Headless browser for DOM XSS detection (1.50+ not available for Python 3.8)

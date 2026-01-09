@@ -1,0 +1,44 @@
+# Development dependencies for BRS-XSS
+# Company: EasyProTech LLC (www.easypro.tech)
+# Dev: Brabus
+# Date: Fri 14 Nov 2025 04:35:00 UTC
+# Status: For developers - all development dependencies
+# Telegram: https://t.me/EasyProTech
+#
+# NOTE: This file includes base.txt and adds development tools.
+# Used by: CONTRIBUTING.md, developers for local setup
+# Includes: testing, linting, code quality, security scanning tools
+
+# Base requirements
+-r base.txt
+
+# Testing
+pytest>=8.0.0
+pytest-cov>=4.0.0
+pytest-asyncio>=0.21.0
+pytest-benchmark>=4.0.0
+coverage>=7.0.0
+aresponses>=3.0.0
+pyfakefs>=5.0.0
+
+# Code quality
+ruff>=0.1.0
+mypy>=1.5.0
+types-PyYAML>=6.0.0
+types-requests>=2.31.0
+types-toml>=0.10.0
+
+# Development tools
+black>=23.0.0
+isort>=5.12.0
+
+# Security scanning
+bandit>=1.7.0
+safety>=2.3.0
+
+# SARIF validation
+sarif-om>=1.0.0
+
+# Container security (syft installed via curl in CI, cosign via GitHub Actions)
+# syft>=0.9.5  # Not needed as Python package - installed via curl
+# cosign not available as Python package - installed via GitHub Actions
