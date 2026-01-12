@@ -5,12 +5,12 @@
 Deterministic, auditable XSS detection for modern web applications
 
 ![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Version](https://img.shields.io/badge/version-4.0.0--beta.2-00FF88?style=for-the-badge)
+![Version](https://img.shields.io/badge/version-4.0.0-00FF88?style=for-the-badge)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 
 [BRS-KB API](https://brs-kb.easypro.tech) • [GitHub](https://github.com/EPTLLC/brs-xss) • [Discussions](https://github.com/EPTLLC/brs-xss/discussions)
 
-> **Beta Release**: This is an active development version. We are continuously testing, refining detection algorithms, and improving the user experience. Expect regular updates with new features, performance optimizations, and bug fixes. Your feedback is valuable — report issues on [GitHub](https://github.com/EPTLLC/brs-xss/issues).
+> **v4.0.0 Release**: Major update with Web UI, PTT Strategy Management, A/B Testing, and BRS-KB integration. Report issues on [GitHub](https://github.com/EPTLLC/brs-xss/issues).
 
 ---
 

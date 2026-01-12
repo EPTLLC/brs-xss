@@ -4,11 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [4.0.0-beta.2] - 2026-01-12
+## [4.0.0] - 2026-01-12
 
 ### Major Release - Architecture Refactoring, Strategy Management, A/B Testing
 
-**BRS-XSS v4.0.0-beta.2** — Complete codebase restructuring, PTT strategy management, A/B testing, modular storage.
+**BRS-XSS v4.0.0** — Complete codebase restructuring, PTT strategy management, A/B testing, modular storage.
 
 #### Added - Architecture Refactoring
 
@@ -274,9 +274,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 **License**: MIT  
 **Author**: EasyProTech LLC (https://www.easypro.tech)
 
+[4.0.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0
 [4.0.0-beta.2]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0-beta.2
 [4.0.0-beta.1]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0-beta.1
-[4.0.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0
 [2.1.1]: https://github.com/EPTLLC/brs-xss/releases/tag/v2.1.1
 [2.1.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v2.1.0
 [1.0.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v1.0.0
