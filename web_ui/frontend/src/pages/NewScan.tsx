@@ -7,7 +7,7 @@
  * Telegram: https://t.me/EasyProTech
  */
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { 
@@ -28,10 +28,14 @@ import {
   Leaf,
   Flame,
   Rocket,
-  ExternalLink,
-  AlertTriangle
+  AlertTriangle,
+  Settings
 } from 'lucide-react';
 import { api } from '../api/client';
+import { SavedPayloads } from '../components/SavedPayloads';
+import { DomainHistory } from '../components/DomainHistory';
+import { WorkflowModal } from '../components/WorkflowModal';
+import { PageHeader } from '../components/PageHeader';
 
 type ScanMode = 'quick' | 'standard' | 'deep' | 'stealth';
 type PerfMode = 'light' | 'standard' | 'turbo' | 'maximum';
@@ -47,6 +51,7 @@ interface ScanConfig {
   blind_xss: boolean;
   crawl_depth: number;
   max_payloads: number | null; // null = use mode default, number = limit
+  custom_payloads: string[]; // Custom XSS payloads
 }
 
 interface KBStats {
@@ -157,13 +162,114 @@ export function NewScan() {
     blind_xss: false,
     crawl_depth: 2,
     max_payloads: null, // null = use mode default
+    custom_payloads: [],
   });
+  
+  const [customPayloadsText, setCustomPayloadsText] = useState('');
+  const [selectedSavedPayloads, setSelectedSavedPayloads] = useState<string[]>([]);
+  const [saveNewPayloads, setSaveNewPayloads] = useState(true); // Auto-save new payloads
+  
+  // Workflow modal
+  const [showWorkflowModal, setShowWorkflowModal] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
+  
+  // Domain history lookup
+  const [domainLookupUrl, setDomainLookupUrl] = useState('');
+  const [domainHistory, setDomainHistory] = useState<{
+    found: boolean;
+    domain: string;
+    profile?: any;
+    recent_scans?: any[];
+  } | null>(null);
+  const [domainLoading, setDomainLoading] = useState(false);
 
   // Update performance_mode when systemInfo loads (only once)
   if (systemInfo?.saved_mode && !initializedFromSystem) {
     setInitializedFromSystem(true);
     setConfig(prev => ({ ...prev, performance_mode: systemInfo.saved_mode as PerfMode }));
   }
+
+  // Debounced domain lookup when URL changes
+  const lookupDomain = useCallback(async (url: string) => {
+    if (!url || url.length < 3) {
+      setDomainHistory(null);
+      return;
+    }
+    
+    setDomainLoading(true);
+    try {
+      const response = await api.get('/api/domains/lookup', { params: { url } });
+      setDomainHistory(response.data);
+    } catch {
+      setDomainHistory(null);
+    } finally {
+      setDomainLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (config.target_url !== domainLookupUrl) {
+        setDomainLookupUrl(config.target_url);
+        lookupDomain(config.target_url);
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [config.target_url, domainLookupUrl, lookupDomain]);
+
+  // Handler to apply workflow settings
+  const handleApplyWorkflow = (workflow: any) => {
+    setSelectedWorkflow(workflow);
+    
+    // Apply workflow settings to scan config
+    const settings = workflow.settings || {};
+    const newConfig = { ...config };
+    
+    // Map workflow mode to scan mode
+    const firstScanStep = workflow.steps.find((s: any) => s.type === 'scan');
+    if (firstScanStep?.mode) {
+      newConfig.mode = firstScanStep.mode as ScanMode;
+    }
+    
+    // Apply settings
+    if (settings.waf_bypass !== undefined) {
+      newConfig.waf_bypass = settings.waf_bypass;
+    }
+    if (settings.dom_analysis !== undefined) {
+      newConfig.dom_analysis = settings.dom_analysis;
+    }
+    
+    // Check for blind XSS in steps
+    const hasBlind = workflow.steps.some((s: any) => s.blind);
+    if (hasBlind) {
+      newConfig.blind_xss = true;
+    }
+    
+    // Get crawl depth from workflow
+    const crawlStep = workflow.steps.find((s: any) => s.type === 'crawl');
+    if (crawlStep?.depth) {
+      newConfig.crawl_depth = crawlStep.depth;
+    }
+    
+    setConfig(newConfig);
+  };
+
+  // Handler to use successful payloads from domain history
+  const handleUseHistoricalPayloads = (payloads: string[]) => {
+    const existing = new Set(selectedSavedPayloads);
+    const newPayloads = payloads.filter(p => !existing.has(p));
+    setSelectedSavedPayloads([...selectedSavedPayloads, ...newPayloads]);
+    // Also add to custom payloads text if not already there
+    const currentText = customPayloadsText.split('\n').map(p => p.trim()).filter(Boolean);
+    const toAdd = newPayloads.filter(p => !currentText.includes(p));
+    if (toAdd.length > 0) {
+      setCustomPayloadsText(prev => {
+        const lines = prev.split('\n').filter(l => l.trim());
+        return [...lines, ...toAdd].join('\n');
+      });
+    }
+  };
 
   // Get KB stats
   const { data: kbStats } = useQuery<KBStats>({
@@ -183,7 +289,22 @@ export function NewScan() {
 
   const startScan = useMutation({
     mutationFn: (data: ScanConfig) => api.post('/scans', data),
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
+      // Auto-save new custom payloads if enabled
+      if (saveNewPayloads && customPayloadsText.trim()) {
+        const newPayloads = customPayloadsText
+          .split('\n')
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
+        
+        for (const payload of newPayloads) {
+          try {
+            await api.post('/payloads', { payload });
+          } catch {
+            // Ignore if already exists
+          }
+        }
+      }
       navigate(`/scan/${response.data.scan_id}`);
     },
   });
@@ -195,30 +316,24 @@ export function NewScan() {
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
         url = 'https://' + url;
       }
-      startScan.mutate({ ...config, target_url: url });
+      // Parse custom payloads from textarea
+      const textPayloads = customPayloadsText
+        .split('\n')
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+      // Combine with selected saved payloads (deduplicate)
+      const allPayloads = [...new Set([...selectedSavedPayloads, ...textPayloads])];
+      startScan.mutate({ ...config, target_url: url, custom_payloads: allPayloads });
     }
   };
 
   return (
     <>
       {/* Header */}
-      <header className="brs-header">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="brs-header-title">New Scan</h1>
-            <a 
-              href="https://github.com/EPTLLC/brs-xss"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline font-mono"
-            >
-              BRS-XSS
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-          <p className="brs-header-subtitle">Enter target URL and configure scan</p>
-        </div>
-      </header>
+      <PageHeader 
+        title="New Scan" 
+        subtitle="Enter target URL and configure scan"
+      />
 
       {/* Content */}
       <div className="brs-content">
@@ -239,7 +354,7 @@ export function NewScan() {
                     href={kbStats?.repo_url || 'https://github.com/EPTLLC/BRS-KB'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-mono text-[var(--color-primary)] ml-2 hover:underline"
+                    className="font-mono text-[var(--color-primary)] ml-2 hover:opacity-80 transition-opacity"
                   >
                     BRS-KB {kbStats?.version ? `v${kbStats.version}` : ''}
                   </a>
@@ -292,6 +407,69 @@ export function NewScan() {
               </div>
             </div>
 
+          {/* Workflow Selection */}
+          <div className="brs-card mb-4 p-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Settings className="w-5 h-5 text-[var(--color-text-muted)]" />
+                {selectedWorkflow ? (
+                  <div>
+                    <span className="text-sm text-[var(--color-text-muted)]">Workflow:</span>
+                    <span className="ml-2 text-sm font-medium text-[var(--color-primary)]">
+                      {selectedWorkflow.name}
+                    </span>
+                    {selectedWorkflow.is_preset && (
+                      <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-[var(--color-primary)]/20 text-[var(--color-primary)] rounded">
+                        PRESET
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-sm text-[var(--color-text-muted)]">
+                    No workflow selected (manual configuration)
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {selectedWorkflow && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedWorkflow(null)}
+                    className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-danger)] transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setShowWorkflowModal(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-[var(--color-surface-hover)] hover:bg-[var(--color-surface-active)] border border-[var(--color-border)] rounded-lg transition-colors"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  {selectedWorkflow ? 'Change' : 'Select Workflow'}
+                </button>
+              </div>
+            </div>
+            {selectedWorkflow && (
+              <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+                <div className="flex flex-wrap gap-2">
+                  {selectedWorkflow.steps.slice(0, 4).map((step: any, i: number) => (
+                    <span key={i} className="text-[10px] px-2 py-1 bg-[var(--color-surface-active)] rounded text-[var(--color-text-muted)]">
+                      {step.type === 'crawl' && `Crawl ${step.target || 'all'}`}
+                      {step.type === 'scan' && `Scan ${step.context || 'all'} [${step.mode || 'std'}]`}
+                      {step.type === 'report' && `Report ${step.format || 'PDF'}`}
+                    </span>
+                  ))}
+                  {selectedWorkflow.steps.length > 4 && (
+                    <span className="text-[10px] text-[var(--color-text-muted)]">
+                      +{selectedWorkflow.steps.length - 4} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Target URL - Main Input */}
           <div className="brs-card mb-4">
             <label className="text-xs uppercase tracking-wider text-[var(--color-text-muted)] mb-3 block">
@@ -313,6 +491,19 @@ export function NewScan() {
               Enter domain, IP address, or full URL. HTTPS will be added automatically.
             </p>
           </div>
+
+          {/* Domain History - Shows when URL has previous scans */}
+          {(domainLoading || (domainHistory?.found && domainHistory.profile)) && (
+            <div className="mb-4">
+              <DomainHistory
+                profile={domainHistory?.profile || null}
+                recentScans={domainHistory?.recent_scans || []}
+                onUsePayloads={handleUseHistoricalPayloads}
+                onViewScan={(scanId) => navigate(`/scan/${scanId}`)}
+                loading={domainLoading}
+              />
+            </div>
+          )}
 
           {/* Scan Mode + Performance Mode - Side by Side */}
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -526,6 +717,47 @@ export function NewScan() {
                     </>
                   )}
                 </div>
+
+                {/* Saved Payloads */}
+                <SavedPayloads
+                  selectedPayloads={selectedSavedPayloads}
+                  onSelect={setSelectedSavedPayloads}
+                />
+
+                {/* Custom Payloads */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm text-[var(--color-text-muted)]">
+                      Custom Payloads
+                      {customPayloadsText.split('\n').filter(p => p.trim()).length > 0 && (
+                        <span className="ml-2 text-[var(--color-primary)] font-mono">
+                          ({customPayloadsText.split('\n').filter(p => p.trim()).length})
+                        </span>
+                      )}
+                    </label>
+                    <span className="text-xs text-[var(--color-text-muted)]">One per line</span>
+                  </div>
+                  <textarea
+                    value={customPayloadsText}
+                    onChange={(e) => setCustomPayloadsText(e.target.value)}
+                    placeholder={"<script>alert(1)</script>\n<img src=x onerror=alert(1)>\n<svg onload=alert(1)>"}
+                    className="w-full h-24 bg-[var(--color-surface-hover)] border border-[var(--color-border)] rounded-lg p-3 font-mono text-sm focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all placeholder:text-[var(--color-text-muted)]/50 resize-none"
+                  />
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-[var(--color-text-muted)]">
+                      Add your own XSS payloads to include in the scan.
+                    </p>
+                    <label className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={saveNewPayloads}
+                        onChange={(e) => setSaveNewPayloads(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)]"
+                      />
+                      Save for later
+                    </label>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -559,6 +791,13 @@ export function NewScan() {
           </div>
         </form>
       </div>
+
+      {/* Workflow Modal */}
+      <WorkflowModal
+        isOpen={showWorkflowModal}
+        onClose={() => setShowWorkflowModal(false)}
+        onSelect={handleApplyWorkflow}
+      />
     </>
   );
 }

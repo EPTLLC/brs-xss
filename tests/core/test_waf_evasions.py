@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.waf_evasions import WAFEvasions
-from brsxss.waf.models import WAF, WAFBrand
+from brsxss.detect.xss.reflected.waf_evasions import WAFEvasions
+from brsxss.detect.waf.models import WAF, WAFBrand
 
 
 def test_generate_waf_specific_payloads_basic():

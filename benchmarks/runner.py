@@ -58,7 +58,7 @@ class BenchmarkRunner:
             else:
                 # Default: import from brsxss
                 try:
-                    from brsxss.core import XSSScanner
+                    from brsxss.detect.xss.reflected import XSSScanner
 
                     self._scanner = XSSScanner()
                 except ImportError:

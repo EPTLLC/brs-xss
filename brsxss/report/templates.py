@@ -80,7 +80,7 @@ class HTMLTemplate(BaseTemplate):
             <p>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
             <p>Target: {target_info.get('url', 'Unknown')}</p>
         </div>
-        
+
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-value">{len(confirmed_vulns)}</div>

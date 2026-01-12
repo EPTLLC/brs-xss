@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 from pathlib import Path
 
-from brsxss.core.config_manager import ConfigManager
+from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
 
 def test_env_overrides_and_get_set_update(monkeypatch, tmp_path: Path):

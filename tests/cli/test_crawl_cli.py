@@ -45,7 +45,7 @@ def test_crawl_cli_happy_path(monkeypatch):
         async def crawl(self, url):
             return [R()]
 
-    import brsxss.crawler.engine as eng
+    import brsxss.detect.crawler.engine as eng
 
     monkeypatch.setattr(eng, "CrawlerEngine", CE)
     result = runner.invoke(app, ["http://example.com", "--output", "out.json"])

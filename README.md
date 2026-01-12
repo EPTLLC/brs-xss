@@ -1,38 +1,237 @@
-# BRS-XSS
+<p align="center">
+  <img src="https://raw.githubusercontent.com/EPTLLC/brs-xss/main/docs/logo.svg" alt="BRS-XSS" width="120" />
+</p>
 
-**Advanced XSS Vulnerability Scanner**
+<h1 align="center">BRS-XSS</h1>
 
-Deterministic, auditable XSS detection for modern web applications.
+<p align="center">
+  <strong>Advanced XSS Vulnerability Scanner</strong>
+</p>
 
-![Python](https://img.shields.io/badge/python-3.10+-blue)
-![Version](https://img.shields.io/badge/version-4.0.0--beta.1-orange)
-![License](https://img.shields.io/badge/license-MIT-blue)
+<p align="center">
+  Deterministic, auditable XSS detection for modern web applications
+</p>
 
-> Context-aware XSS scanner powered by [BRS-KB](https://brs-kb.easypro.tech)
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/version-4.0.0--beta.2-00FF88?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License" />
+</p>
 
-> ⚠️ **Beta Release**: v4.0.0-beta.1 includes new parallel scanning and Web UI. Some features are still being stabilized.
+<p align="center">
+  <a href="https://brs-kb.easypro.tech">BRS-KB API</a> •
+  <a href="https://github.com/EPTLLC/brs-xss">GitHub</a> •
+  <a href="https://t.me/EasyProTech">Telegram</a>
+</p>
+
+> **Beta Release**: This is an active development version. We are continuously testing, refining detection algorithms, and improving the user experience. Expect regular updates with new features, performance optimizations, and bug fixes. Your feedback is valuable — report issues on [GitHub](https://github.com/EPTLLC/brs-xss/issues) or reach out via [Telegram](https://t.me/EasyProTech).
 
 ---
 
-## Features
+## Overview
 
-- **Context-Aware Payloads**: HTML, JavaScript, CSS, URI, SVG, XML contexts
-- **WAF Evasion**: Cloudflare, Akamai, AWS WAF, Imperva, ModSecurity, Sucuri
-- **DOM Analysis**: Full browser-based DOM XSS detection via Playwright
-- **Smart Scoring**: Context-aware payload effectiveness scoring
-- **Multi-Format Reports**: PDF / HTML / JSON / SARIF / CI-friendly JUnit with identical content and confirmed vs potential sections
-- **Classification Engine**: Intelligent XSS type classification and confidence scoring
+BRS-XSS is a professional-grade XSS vulnerability scanner powered by [BRS-KB](https://brs-kb.easypro.tech) — a comprehensive knowledge base with thousands of context-aware payloads, 169 injection contexts, and 1,999 WAF bypass techniques.
+
+### Key Features
+
+| Feature | Description |
+|---------|-------------|
+| **Context-Aware Scanning** | HTML, JavaScript, CSS, URI, SVG, XML context detection |
+| **WAF Evasion** | Cloudflare, Akamai, AWS WAF, Imperva, ModSecurity, Sucuri |
+| **DOM Analysis** | Browser-based DOM XSS detection via Playwright |
+| **Smart Classification** | XSS type detection with confidence scoring |
+| **PTT Strategy Engine** | Pentesting Task Tree for adaptive scanning |
+| **A/B Testing** | Compare strategy effectiveness |
+| **Multi-Format Reports** | PDF, HTML, JSON, SARIF, JUnit |
+| **Telegram Integration** | Real-time notifications with PDF reports |
 
 ---
 
-## Classification Engine (v4.0.0)
+## Web UI
+
+BRS-XSS includes a modern, dark-themed web interface for easy scanning and result analysis.
+
+### Login
+
+<p align="center">
+  <img src="docs/images/login.jpg" alt="Login" width="800" />
+</p>
+
+Secure authentication with session management.
+
+### Dashboard
+
+<p align="center">
+  <img src="docs/images/dashboard.jpg" alt="Dashboard" width="800" />
+</p>
+
+Real-time overview featuring:
+- **Statistics Cards**: Total scans, vulnerabilities found, average duration, top context
+- **System Profile**: Hardware detection with performance mode recommendation
+- **BRS-KB Status**: Live payload/context/WAF bypass counts
+- **Recent Scans**: Quick access with inline actions (view, PDF, JSON, Telegram, rescan, delete)
+
+### New Scan
+
+<p align="center">
+  <img src="docs/images/new-scan-1.jpg" alt="New Scan - Configuration" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/images/new-scan-2.jpg" alt="New Scan - Advanced Options" width="800" />
+</p>
+
+Flexible scan configuration:
+- **Target URL**: Smart parsing (auto-HTTPS, domain/IP/full URL support)
+- **Scan Mode**: Quick (~100), Standard (~500), Deep (all), Stealth (WAF evasion)
+- **Performance**: Light / Standard / Turbo / Maximum (hardware-based)
+- **Advanced Options**: Crawl depth, custom payloads, Blind XSS, DOM analysis
+
+### Scan History
+
+<p align="center">
+  <img src="docs/images/scan-history.jpg" alt="Scan History" width="800" />
+</p>
+
+Complete scan archive with:
+- Search by URL or scan ID
+- Status filtering (All/Completed/Running/Failed)
+- Detailed table: Target, Mode, Performance, Proxy, Status, Vulns, Duration
+- Bulk export to JSON
+
+### Scan Details
+
+<p align="center">
+  <img src="docs/images/scan-details-1.jpg" alt="Scan Details - Overview" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/images/scan-details-2.jpg" alt="Scan Details - Vulnerabilities" width="800" />
+</p>
+
+Comprehensive results including:
+- **Scanner Output**: Real-time log with color-coded markers
+- **Target Intelligence**: Network info, SSL grade, tech stack, security headers, WAF detection
+- **Risk Assessment**: 0-10 score with bypass chances
+- **Detected Vulnerabilities**: Severity, XSS type, DOM source, payload class, full payload
+
+### Rescan
+
+<p align="center">
+  <img src="docs/images/rescan.jpg" alt="Rescan" width="800" />
+</p>
+
+Quick rescan with pre-filled configuration from previous scan.
+
+### Strategy (PTT)
+
+<p align="center">
+  <img src="docs/images/strategy.jpg" alt="Strategy - Decision Tree" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/images/strategy-my.jpg" alt="Strategy - My Strategies" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/images/strategy-ab-test.jpg" alt="Strategy - A/B Testing" width="800" />
+</p>
+
+Pentesting Task Tree management:
+- **Decision Tree**: Visual strategy flow with context/WAF/payload nodes
+- **My Strategies**: Create, clone, edit, delete custom strategies
+- **A/B Testing**: Compare two strategies with metrics tracking
+- **Simulation**: Test strategy execution without scanning
+
+### Settings
+
+<p align="center">
+  <img src="docs/images/settings-1.jpg" alt="Settings - Performance & Proxy" width="800" />
+</p>
+
+<p align="center">
+  <img src="docs/images/settings-2.jpg" alt="Settings - Telegram & Defaults" width="800" />
+</p>
+
+Full configuration:
+- **Performance Mode**: Auto-detect hardware, select optimal mode
+- **Proxy Settings**: Multi-proxy support (SOCKS5/4/HTTP/HTTPS), test & activate
+- **Scan Defaults**: Default mode, crawl depth, timeout, concurrent scans
+- **Blind XSS**: Callback server configuration
+- **Telegram**: Bot token, channel ID, notification level
+
+### User Management
+
+<p align="center">
+  <img src="docs/images/users.jpg" alt="User Management" width="800" />
+</p>
+
+Multi-user support with role-based access.
+
+---
+
+## Quick Start
+
+### Installation
+
+```bash
+# PyPI
+pip install brs-xss
+playwright install chromium
+
+# GitHub
+git clone https://github.com/EPTLLC/brs-xss.git
+cd brs-xss
+pip install -e .
+playwright install chromium
+```
+
+### System Dependencies
+
+**macOS**:
+```bash
+brew install pango libffi
+```
+
+**Ubuntu/Debian**:
+```bash
+sudo apt-get install libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+```
+
+### Start Web UI
+
+```bash
+python3 scripts/run_web_ui.py
+```
+
+Access at `http://localhost:5173`
+
+### CLI Usage
+
+```bash
+# Quick scan
+brs-xss scan https://target.com
+
+# Deep scan with report
+brs-xss scan https://target.com --deep --output report.json
+
+# Verbose with custom threads
+brs-xss scan https://target.com --verbose --threads 20
+
+# Check KB status
+brs-xss kb info
+```
+
+---
+
+## Classification Engine
 
 Accurate vulnerability classification with dynamic analysis:
 
 | Feature | Description |
 |---------|-------------|
-| **XSS Type Classifier** | Reflected, DOM-based, Stored, Mutation detection |
-| **Context Parser** | Hierarchical context: `html > img > onerror` |
+| **XSS Type Classifier** | Reflected, DOM-based, Stored, Mutation |
+| **Context Parser** | Hierarchical: `html > img > onerror` |
 | **Payload Classifier** | Consistent PAYLOAD CLASS for every finding |
 | **Confidence Calculator** | Factor-based scoring with DOM/trigger boosts |
 
@@ -42,211 +241,25 @@ Accurate vulnerability classification with dynamic analysis:
   "vulnerability_type": "DOM XSS (Event Handler)",
   "payload_class": "HTML Attribute Injection | Trigger: img.onerror",
   "confidence": 0.92,
-  "severity": "high",
-  "is_deterministic": true
+  "severity": "high"
 }
 ```
-
-See [docs/classification-engine.md](docs/classification-engine.md) for details.
-
----
-
-## Powered by BRS-KB
-
-BRS-XSS uses [BRS-KB](https://brs-kb.easypro.tech) - XSS Knowledge Base API:
-
-- Thousands of context-aware payloads
-- 150+ injection contexts
-- Extensive WAF bypass techniques
-
-Real-time statistics available at [brs-kb.easypro.tech/api/v1/stats](https://brs-kb.easypro.tech/api/v1/stats)
-
-API is free, no rate limits, instant access.
-
----
-
-## Installation
-
-### PyPI
-```bash
-pip install brs-xss
-playwright install chromium
-```
-
-### GitHub
-```bash
-git clone https://github.com/EPTLLC/BRS-XSS.git
-cd BRS-XSS
-pip install -e .
-playwright install chromium
-```
-
----
-
-## Web UI
-
-BRS-XSS includes a modern web interface for easy scanning and result analysis.
-
-### Dashboard
-
-![Dashboard](docs/images/dashboard.png)
-
-*Real-time statistics, recent scans, and quick access to all features.*
-
-### New Scan
-
-![New Scan](docs/images/new-scan.png)
-
-*Configure scan target, mode, and parameters with live BRS-KB statistics.*
-
-### Scan Details
-
-![Scan Details](docs/images/scan-details.png)
-
-*Detailed vulnerability findings with PAYLOAD CLASS, confidence scores, and exploitation info.*
-
-### Start Web UI
-
-Use the unified launcher to spin up FastAPI + Vite with one command:
-
-```bash
-python3 scripts/run_web_ui.py
-```
-
-What the launcher does:
-- verifies Python deps (`uvicorn`, `fastapi`);
-- installs frontend deps strictly via `bun install` if `node_modules/` is missing;
-- frees both ports (backend 8000, frontend 5173) before starting;
-- runs uvicorn and `bunx --bun vite` in parallel, prefixing logs with `[backend]` / `[frontend]`;
-- shuts down both processes cleanly on Ctrl+C.
-
-Useful flags:
-
-```bash
-# Custom hosts/ports
-python3 scripts/run_web_ui.py --backend-host 127.0.0.1 --backend-port 8210 --frontend-port 5185
-
-# Skip automatic frontend install (pre-provisioned node_modules)
-python3 scripts/run_web_ui.py --skip-install
-
-# Disable uvicorn autoreload (production-like behavior)
-python3 scripts/run_web_ui.py --no-backend-reload
-```
-
-Access:
-- Backend API/WebSocket: `http://<backend-host>:<backend-port>` (default `0.0.0.0:8000`).
-- React frontend: the URL printed by the launcher (default `http://localhost:5173`).
-
-> The frontend toolchain is Bun-only (Bun ≥1.3 for `bun install` / `bunx --bun vite`). npm/pnpm/yarn are intentionally not supported.
-
----
-
-## CLI Usage
-
-### Quick Scan
-```bash
-brs-xss scan https://target.com
-```
-
-### Deep Scan with Report
-```bash
-brs-xss scan https://target.com --deep --output report.json
-```
-
-### Verbose Scan
-```bash
-brs-xss scan https://target.com --verbose --threads 20
-```
-
-### Safe Mode (default)
-```bash
-brs-xss scan https://target.com --safe-mode --max-payloads 200
-```
-
-### Check KB Status
-```bash
-brs-xss kb info
-brs-xss kb list
-```
-
-### Available CLI Options
-```bash
-brs-xss scan --help
-```
-
-| Option | Description |
-|--------|-------------|
-| `--threads` | Max concurrent requests (default: 10) |
-| `--timeout` | Request timeout in seconds (default: 15) |
-| `--output` | Path to save JSON report |
-| `--deep` | Enable deep discovery (crawl forms) |
-| `--verbose` | Verbose output |
-| `--safe-mode` | Restrict dangerous payloads (default: true) |
-| `--pool-cap` | Max payload pool size (default: 10000) |
-| `--max-payloads` | Max payloads per entry point (default: 500) |
 
 ---
 
 ## Configuration
 
-### BRS-KB API
-
-Remote BRS-KB (`https://brs-kb.easypro.tech/api/v1`) is used by default. Provide an API key for production use:
-
-```bash
-export BRSXSS_KB_API_KEY="your-api-key"
-```
-
-### Configuration layers
-
-1. **Repository defaults** — `config/default.yaml` is always loaded.
-2. **Optional user config** — you can point the loader to any TOML file via `BRS_XSS_USER_CONFIG_PATH`. Example:
-   ```bash
-   mkdir -p ~/.config/brs-xss
-   cp config/user-config-example.toml ~/.config/brs-xss/custom.toml
-   export BRS_XSS_USER_CONFIG_PATH="$HOME/.config/brs-xss/custom.toml"
-   ```
-3. **Environment overrides** — `BRSXSS_*` (KB) and `BRS_XSS_*` (scanner/payloads) take precedence over both files.
-
-Example YAML snippet (from `config/default.yaml`):
-
-```yaml
-kb:
-  mode: "remote"
-  api:
-    url: "https://brs-kb.easypro.tech/api/v1"
-    timeout: 30
-    max_retries: 3
-scanner:
-  timeout: 15
-  safe_mode: true
-```
-
-Example TOML snippet (drop-in user config):
-
-```toml
-[scanner]
-max_concurrent = 32
-rate_limit = 45.0
-
-[payloads]
-include_blind_xss = false
-```
-
-### Environment variables
+### Environment Variables
 
 | Variable | Description |
 |----------|-------------|
 | `BRSXSS_KB_API_KEY` | BRS-KB API key |
 | `BRSXSS_KB_API_URL` | Override KB endpoint |
 | `BRSXSS_KB_MODE` | `remote`, `local`, or `auto` |
-| `BRSXSS_KB_LOCAL_PATH` | Path to local BRS-KB checkout |
-| `BRS_XSS_SAFE_MODE` | Toggle safe mode (`true`/`false`) |
-| `BRS_XSS_MAX_PAYLOADS` | Maximum payloads per parameter |
-| `BRS_XSS_CONFIG_PATH` | Override default YAML config |
-| `BRS_XSS_USER_CONFIG_PATH` | Path to the user TOML file |
+| `BRS_XSS_SAFE_MODE` | Toggle safe mode |
+| `BRS_XSS_MAX_PAYLOADS` | Max payloads per parameter |
 
-### Local Mode (offline)
+### Local Mode (Offline)
 
 ```bash
 pip install git+https://github.com/EPTLLC/BRS-KB.git
@@ -256,10 +269,25 @@ export BRSXSS_KB_LOCAL_PATH="/opt/brs-kb"
 
 ---
 
+## Telegram Integration
+
+Real-time notifications with PDF reports:
+
+1. Create bot via [@BotFather](https://t.me/BotFather)
+2. Get channel ID via [@userinfobot](https://t.me/userinfobot)
+3. Configure in **Settings → Telegram**
+
+Or via environment:
+```bash
+export BRSXSS_TELEGRAM_BOT_TOKEN="your-bot-token"
+export BRSXSS_TELEGRAM_CHANNEL_ID="-100123456789"
+```
+
+---
+
 ## Links
 
-- **Website**: https://brs-xss.easypro.tech
-- **GitHub**: https://github.com/EPTLLC/BRS-XSS
+- **GitHub**: https://github.com/EPTLLC/brs-xss
 - **BRS-KB API**: https://brs-kb.easypro.tech
 - **Documentation**: https://brs-kb.easypro.tech/docs.html
 - **Telegram**: https://t.me/EasyProTech
@@ -279,8 +307,6 @@ By using BRS-XSS you agree:
 
 ## License
 
-MIT License
-
-Copyright (c) 2023-2026 EasyProTech LLC
+MIT License • Copyright (c) 2023-2026 EasyProTech LLC
 
 https://www.easypro.tech

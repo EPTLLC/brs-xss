@@ -89,7 +89,7 @@ class CallbackStorage:
 
         cursor.execute(
             """
-            INSERT OR REPLACE INTO payloads 
+            INSERT OR REPLACE INTO payloads
             (payload_id, payload, target_url, parameter, context_type, created_at, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
@@ -159,8 +159,8 @@ class CallbackStorage:
 
         cursor.execute(
             """
-            INSERT INTO callbacks 
-            (payload_id, source_ip, user_agent, referer, url, cookies, 
+            INSERT INTO callbacks
+            (payload_id, source_ip, user_agent, referer, url, cookies,
              local_storage, session_storage, dom_snapshot, screenshot_path, custom_data)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -271,7 +271,7 @@ class CallbackStorage:
         today = datetime.utcnow().date().isoformat()
         cursor.execute(
             """
-            SELECT COUNT(*) FROM callbacks 
+            SELECT COUNT(*) FROM callbacks
             WHERE DATE(received_at) = ?
         """,
             (today,),

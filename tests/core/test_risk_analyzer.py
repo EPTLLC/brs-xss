@@ -10,8 +10,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 from types import SimpleNamespace
-from brsxss.core.risk_analyzer import RiskAnalyzer
-from brsxss.core.scoring_types import SeverityLevel
+from brsxss.detect.xss.reflected.risk_analyzer import RiskAnalyzer
+from brsxss.detect.xss.reflected.scoring_types import SeverityLevel
 
 
 def test_identify_risk_and_mitigating_factors_boundaries():

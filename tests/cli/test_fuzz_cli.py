@@ -43,8 +43,8 @@ def test_fuzz_cli_happy_path(monkeypatch):
 
             return F()
 
-    import brsxss.waf.waf_detector as wd
-    import brsxss.waf.waf_fingerprinter as wf
+    import brsxss.detect.waf.waf_detector as wd
+    import brsxss.detect.waf.waf_fingerprinter as wf
 
     monkeypatch.setattr(wd, "WAFDetector", lambda: Det())
     monkeypatch.setattr(wf, "WAFFingerprinter", lambda: Fing())

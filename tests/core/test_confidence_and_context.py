@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.confidence_calculator import ConfidenceCalculator
-from brsxss.core.context_calculator import ContextCalculator
+from brsxss.detect.xss.reflected.confidence_calculator import ConfidenceCalculator
+from brsxss.detect.xss.reflected.context_calculator import ContextCalculator
 
 
 class DummyRR:

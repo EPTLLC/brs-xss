@@ -4,6 +4,209 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0-beta.2] - 2026-01-12
+
+### Major Release - Architecture Refactoring, Strategy Management, A/B Testing
+
+**BRS-XSS v4.0.0-beta.2** — Complete codebase restructuring, PTT strategy management, A/B testing, modular storage.
+
+#### Added - Architecture Refactoring
+
+- **detect/ Module**: All detection logic in one place
+  - `detect/xss/reflected/` - 66 files for HTTP-based XSS detection
+  - `detect/xss/dom/` - 18 files for browser-based DOM XSS
+  - `detect/waf/` - 21 files for WAF detection and bypass
+  - `detect/crawler/` - 9 files for URL/form discovery
+  - `detect/recon/` - 9 files for target reconnaissance
+  - `detect/payloads/` - 4 files for payload management
+
+- **count/ Module**: Single source of truth for vulnerability counting
+  - `count_findings()` - THE function for counting vulnerabilities
+  - `SeverityCounts` - standardized counts structure
+  - `prepare_report_data()` - unified report data preparation
+  - Ensures UI, Telegram, PDF, API all show IDENTICAL numbers
+
+- **report/ Module**: All report generation
+  - Moved `pdf_report.py` from `integrations/` to `report/`
+  - HTML, JSON, SARIF, JUnit, PDF all in one place
+
+- **storage/ Module**: Modular database layer
+  - `storage/base.py` - Base class and DB initialization
+  - `storage/scans.py` - Scan CRUD operations
+  - `storage/vulnerabilities.py` - Vulnerability management
+  - `storage/users.py` - User and auth management
+  - `storage/strategies.py` - Strategy trees and A/B tests
+  - `storage/domains.py` - Domain profiles
+
+#### Added - PTT Strategy Management (Web UI)
+
+- **Strategy Tree Visualization**: Interactive tree view of PTT (Pentesting Task Tree)
+- **Strategy Editor**: Full CRUD for custom strategy trees
+- **Strategy Simulation**: Test strategy execution without running scans
+- **Strategy Path Recording**: Track actual execution path during scans
+- **Export/Import**: JSON format for strategy sharing
+- **Strategy Cloning**: Clone and modify existing strategies
+
+#### Added - A/B Testing
+
+- **A/B Test Management**: Compare effectiveness of different strategies
+- **Test Configuration**: Select two strategies, set target scan count
+- **Results Comparison**: Vulnerabilities found, success rate, duration
+- **Winner Detection**: Automatic winner determination based on results
+
+#### Added - Custom Payloads Support
+
+- CLI: `--custom-payloads /path/to/file.txt` option
+- Web UI: Custom payloads textarea in Advanced Options
+- Auto-load from `~/.config/brs-xss/custom_payloads.txt`
+- `brsxss/detect/xss/reflected/custom_payloads.py` module
+
+#### Added - Other
+
+- **Version Bump Script**: `scripts/bump_version.py` for automated version updates
+- **WAF Evasion Enhancements**: Akamai bypass, Sucuri bypass techniques
+
+#### Changed - Codebase Restructure
+
+- `brsxss/core/` -> `brsxss/detect/xss/reflected/`
+- `brsxss/dom/` -> `brsxss/detect/xss/dom/`
+- `brsxss/waf/` -> `brsxss/detect/waf/`
+- `brsxss/crawler/` -> `brsxss/detect/crawler/`
+- `brsxss/reconnaissance/` -> `brsxss/detect/recon/`
+- `brsxss/payloads/` -> `brsxss/detect/payloads/`
+- `brsxss/integrations/pdf_report.py` -> `brsxss/report/pdf_report.py`
+- `web_ui/backend/storage.py` -> `web_ui/backend/storage/` (modular)
+- Updated all imports across entire codebase (127+ files)
+
+#### Changed - Python & Dependencies
+
+- **Python Version**: Minimum Python 3.10 (dropped 3.8, 3.9 support)
+- Modern type hints (`list[str]` instead of `List[str]`)
+- CI tests on Python 3.10, 3.11, 3.12 only
+- Added `aiohttp-socks` for proxy support
+- Added `python-multipart` for file uploads
+- FastAPI lifespan handlers (removed deprecated `on_event`)
+- Pydantic v2 `model_config` (removed deprecated `class Config`)
+
+#### Changed - Scanning
+
+- **Parallel Scanning**: Full parallelization at all levels
+  - Target-level: Multiple URLs scanned in parallel
+  - Payload-level: Payloads tested in parallel within each parameter
+  - DOM-level: Browser-based tests run in parallel
+- **Rate Limiting**: HTTPClient respects `request_delay_ms` from performance modes
+- **Type System**: Full mypy compliance (0 errors in 171 files)
+
+#### Fixed
+
+- All mypy type errors (33 errors fixed)
+- All ruff linting errors
+- WAF bypass test assertions
+- Scanner progress not updating in UI
+- "Zombie" active scans after backend restart
+- Dependencies not installed with `pip install -e .`
+- Missing `weasyprint` in `pyproject.toml`
+- `run_web_ui.py` backend not starting (working directory fix)
+- Orphaned vulnerabilities after scan deletion
+- Telegram settings not loading
+- CRITICAL: `_new_page` recursion bug in HeadlessDOMDetector
+- Performance Modes not affecting scan speed
+- PDF Report Generation Error (weasyprint/pydyf version)
+- Fragment XSS Detection URL encoding issue
+- DOM Worker Overload (semaphore fix)
+- Choppy Progress Bar
+- JS String Breakout Payloads (tail neutralization)
+- Event Handler Context Detection
+- CRITICAL: Report Counts Mismatch (UI vs Telegram/PDF)
+- DOM XSS Payloads tail neutralization
+- Fragment External Script Detection
+
+#### Removed
+
+- Old directories: `core/`, `dom/`, `waf/`, `crawler/`, `reconnaissance/`, `payloads/`
+- Old `reporting/` module (replaced by `count/`)
+- Monolithic `storage.py` (replaced by `storage/` package)
+
+#### UI/UX Improvements
+
+- **Live Duration**: Scan duration updates in real-time
+- **Rescan Modal**: Performance Mode selection
+- **Strategy Page**: New page for PTT visualization and management
+- **Action Icons Hover Effect**: Icons appear on row hover
+- **Telegram Button**: Always visible for completed scans
+
+#### Report Engine Improvements
+
+- **Finding Deduplication**: Group identical findings by pattern
+- **Heuristic Finding Classification**: Separate severity for potential findings
+- **Injection Type Classification**: TAG, ATTRIBUTE, CONTENT, JAVASCRIPT, CSS, URL
+
+#### Benchmark Results
+
+- **Google XSS Game: 6/6 levels passed (100%)**
+- **IBM Altoro Mutual: 1/1 PASS**
+- **alf.nu/alert1: 1/1 PASS**
+- **Google Firing Range: 7/7 PASS**
+- **Total: 15/15 completed targets (100% detection rate)**
+
+---
+
+## [4.0.0-beta.1] - 2026-01-08
+
+### Beta Release - Full Web UI, Parallel Architecture
+
+**BRS-XSS v4.0.0-beta.1** — Complete rewrite with Web UI, parallel scanning, and enterprise features.
+
+#### Added - Web UI (NEW)
+- **Full React Frontend** (`web_ui/frontend/`):
+  - Dashboard with real-time scan monitoring
+  - New Scan page with performance mode selection
+  - Scan History with filtering and search
+  - Scan Details with vulnerability breakdown
+  - Settings page (Proxy, Telegram, Performance)
+  - Target Intelligence panel (WAF, technologies, headers)
+  - WebSocket real-time updates
+
+- **FastAPI Backend** (`web_ui/backend/`):
+  - RESTful API for all scanner operations
+  - SQLite storage for scan history
+  - WebSocket manager for live updates
+  - System info detection (CPU, RAM, network)
+  - Performance mode auto-detection
+
+- **Performance Modes**:
+  - Light: 4 threads, 100 RPS (weak hardware)
+  - Standard: 16 threads, 400 RPS (recommended)
+  - Turbo: 28 threads, 700 RPS (powerful hardware)
+  - Maximum: 45 threads, 1140 RPS (server-grade)
+
+#### Added - Integrations
+- **Telegram Notifications**:
+  - Scan start/complete notifications
+  - PDF report auto-generation and sending
+  - Channel and discussion group support
+  - Configurable notification levels
+
+- **PDF Reports** (`brsxss/report/pdf_report.py`):
+  - Professional vulnerability reports
+  - Executive summary with statistics
+  - Detailed findings with evidence
+  - Remediation recommendations
+
+#### Added - Reconnaissance
+- **Target Profiler** (`brsxss/detect/recon/`):
+  - Technology detection (frameworks, CMS, libraries)
+  - WAF fingerprinting with bypass recommendations
+  - Security headers analysis
+  - DNS and SSL information
+
+#### Changed
+- **Scanner Architecture**: Async-first design with aiohttp
+- **Crawler Integration**: Full site crawling with form discovery
+- **Documentation**: Updated for Web UI and new features
+
+---
+
 ## [4.0.0] - 2025-12-28
 
 ### Major Release - Remote API Architecture + Classification Engine
@@ -19,106 +222,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fallback Mode**: Automatic fallback to local library if API unavailable
 
 #### Added - Classification Engine (NEW)
-- **XSS Type Classifier** (`brsxss/core/xss_type_classifier.py`):
-  - Dynamic XSS type detection: Reflected, DOM-based, Stored, Mutation, Blind
-  - Subtypes: DOM_EVENT_HANDLER, DOM_INNERHTML, DOM_DOCUMENT_WRITE, DOM_EVAL
-  - `InjectionSource` enum: URL_PARAMETER, URL_FRAGMENT, DOM_API, STORAGE, POSTMESSAGE
-  - `TriggerType` enum: EVENT_HANDLER, SCRIPT_TAG, SCRIPT_SRC, JAVASCRIPT_URI
-  - Confidence modifiers and minimum severity recommendations
-
-- **Context Parser** (`brsxss/core/context_parser.py`):
-  - Hierarchical context detection: `html > img > onerror` instead of just `html`
-  - `ContextPath` with base type, hierarchy, subcontext, attribute type
-  - HTML parser for accurate payload location detection
-  - Risk level assessment and JavaScript execution capability detection
-
-- **Payload Classifier** (`brsxss/core/payload_classifier.py`):
-  - Consistent PAYLOAD CLASS generation for all findings
-  - `InjectionType` enum: SCRIPT_INLINE, SCRIPT_EXTERNAL, HTML_ATTRIBUTE, EVENT_HANDLER
-  - `TriggerMechanism` enum: AUTO_IMMEDIATE, ERROR_TRIGGERED, LOAD_TRIGGERED, USER_CLICK
-  - Deterministic vs user-interaction flags
-  - Human-readable trigger descriptions
-
-- **Payload Analyzer** (`brsxss/core/payload_analyzer.py`) [Phase 7]:
-  - Runtime metadata computation (KB stores WHAT works, Scanner computes HOW)
-  - `ExecutionType` enum: ERROR_TRIGGERED, LOAD_TRIGGERED, AUTO_IMMEDIATE, USER_CLICK
-  - `InjectionClass` enum: SCRIPT_INLINE, SCRIPT_EXTERNAL, HTML_ATTRIBUTE, SVG_INJECTION
-  - `XSSTypeHint` enum: DOM_EVENT_HANDLER, DOM_INNERHTML, LIKELY_REFLECTED
-  - `AnalyzedPayload` dataclass with computed fields:
-    - `trigger_element`, `trigger_attribute`, `trigger_vector`
-    - `execution`, `is_deterministic`, `requires_interaction`
-    - `confidence_boost`, `severity_minimum`
-    - `contains_external_resource`, `external_url`
-  - Obfuscation level detection (unicode/hex escapes, encoding functions)
+- **XSS Type Classifier**: Dynamic XSS type detection (Reflected, DOM-based, Stored, Mutation, Blind)
+- **Context Parser**: Hierarchical context detection (`html > img > onerror`)
+- **Payload Classifier**: Consistent PAYLOAD CLASS generation for all findings
+- **Payload Analyzer**: Runtime metadata computation
+- **Confidence Calculator**: Factor-based calculation with DOM/trigger boosts
 
 #### Changed - Scoring System
-- **Confidence Calculator**: Complete refactoring with factor-based calculation
-  - Factors: reflection, context, payload, detection, dom_confirmation, trigger_determinism
-  - `ConfidenceLevel` enum: DEFINITE (95%+), VERY_HIGH (85%+), HIGH (70%+), MEDIUM, LOW
-  - Minimum confidence enforcements: DOM confirmed = 90%+, external script = 95%+
-  - Auto-execute handlers (onerror, onload) = 90%+ confidence
-
-- **Scoring Engine**: Severity synchronized with confidence
-  - 95%+ confidence + DOM confirmed = minimum HIGH severity
-  - 85%+ confidence = minimum MEDIUM severity
-  - External script load = minimum HIGH severity
-  - Auto-execute event handlers = minimum HIGH severity
-  - No more MEDIUM severity with 99% confidence
-
-- **Scanner Integration**: All new classifiers integrated
-  - Dynamic `vulnerability_type` instead of hardcoded "Reflected XSS"
-  - `payload_class`, `trigger`, `trigger_mechanism` in every finding
-  - `is_deterministic`, `requires_interaction` flags
-  - `classification` block with full details including `payload_analysis`
-  - Hierarchical context: `html > img > onerror` instead of just `html`
-  - **CRITICAL FIX**: `parameter=unknown` now correctly classified as DOM-based (not Reflected)
-  - `dom_confirmed=True` takes priority for DOM-based classification
-
-- **Classification Rules Matrix** (`brsxss/core/classification_rules.py`) [Phase 8]:
-  - Truth table for (mode × source × type × confidence) combinations
-  - Quick mode uses "Potential DOM XSS" / "heuristic" terminology
-  - Standard mode uses confirmed terminology
-  - Deterministic pattern overrides: `<script>` = 95%+, `onerror=` = 90%+
-  - Prevents Reflected XSS label when parameter unknown
-  - Auto-infers source from parameter (param known → url_parameter)
-
-- **Unified Finding Normalizer** (`brsxss/core/finding_normalizer.py`) [Phase 9]:
-  - SINGLE normalization point for ALL findings before report
-  - Fixes DOM fragment findings bypassing classification pipeline
-  - `normalize_finding()`: Applies all classification rules
-  - `prepare_findings_for_report()`: Entry point for PDF/JSON/SARIF
-  - Dev assertions: Catches Reflected XSS + unknown param violations
-  - Context hierarchy: Auto-builds `html > img > onerror` from payload
-
-#### Changed - Reports
-- **Scan ID vs Authorization Reference**: Now separate in PDF reports
-  - `authorization_ref` parameter in `generate_scan_report()`
-  - Default format: `AUTH-{scan_id[:8].upper()}`
+- Confidence levels: DEFINITE (95%+), VERY_HIGH (85%+), HIGH (70%+), MEDIUM, LOW
+- Severity synchronized with confidence
+- Auto-execute handlers = 90%+ confidence
 
 #### Changed - Configuration
-- **Default Mode**: Remote API (previously local library)
-- **Configuration**: New `kb:` section in `config/default.yaml`
-- **Version Management**: Single source of truth in `brsxss/version.py`
-- **Web UI**: Dynamic KB stats display (payloads, contexts, WAF bypasses)
-
-#### Technical Details
-- `RemoteKBClient`: HTTP client using `http.client` for proper header handling
-- `LocalKBClient`: Wrapper for local `brs_kb` library
-- Auto-detection of KB availability with graceful degradation
-- No hardcoded values - all stats fetched dynamically
-
-#### Configuration
-```yaml
-kb:
-  mode: "remote"  # remote | local | auto
-  api:
-    url: "https://brs-kb.easypro.tech/api/v1"
-    timeout: 30
-```
-
-Environment variables:
-- `BRSXSS_KB_API_KEY` - API key for production
-- `BRSXSS_KB_MODE` - Override mode (remote/local/auto)
+- Default Mode: Remote API (previously local library)
+- Configuration: New `kb:` section in `config/default.yaml`
+- Version Management: Single source of truth in `brsxss/version.py`
 
 ---
 
@@ -156,6 +274,8 @@ Environment variables:
 **License**: MIT  
 **Author**: EasyProTech LLC (https://www.easypro.tech)
 
+[4.0.0-beta.2]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0-beta.2
+[4.0.0-beta.1]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0-beta.1
 [4.0.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v4.0.0
 [2.1.1]: https://github.com/EPTLLC/brs-xss/releases/tag/v2.1.1
 [2.1.0]: https://github.com/EPTLLC/brs-xss/releases/tag/v2.1.0

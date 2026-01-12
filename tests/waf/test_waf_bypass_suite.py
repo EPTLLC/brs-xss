@@ -16,10 +16,10 @@ known WAF signatures and behaviors.
 
 import pytest
 
-from brsxss.waf.evasion_engine import EvasionEngine
-from brsxss.waf.detector import WAFInfo, WAFType
-from brsxss.waf.encoding_engine import EncodingEngine
-from brsxss.waf.obfuscation_engine import ObfuscationEngine
+from brsxss.detect.waf.evasion_engine import EvasionEngine
+from brsxss.detect.waf.detector import WAFInfo, WAFType
+from brsxss.detect.waf.encoding_engine import EncodingEngine
+from brsxss.detect.waf.obfuscation_engine import ObfuscationEngine
 
 
 class TestWAFBypassTechniques:
@@ -167,8 +167,12 @@ class TestWAFBypassTechniques:
 
         assert len(evasions) > 0
         # Most evasions should be different from original
-        different_count = sum(1 for e in evasions if e.mutated_payload != sample_payload)
-        assert different_count >= len(evasions) * 0.7  # At least 70% should be different
+        different_count = sum(
+            1 for e in evasions if e.mutated_payload != sample_payload
+        )
+        assert (
+            different_count >= len(evasions) * 0.7
+        )  # At least 70% should be different
 
     def test_polyglot_payload_generation(self, evasion_engine):
         """Test polyglot payload generation"""
@@ -179,7 +183,11 @@ class TestWAFBypassTechniques:
         # Advanced evasions include JS obfuscation techniques
         assert len(evasions) > 0
         # Check that we have some JS-related techniques
-        js_techniques = [e for e in evasions if "js" in e.technique.value or "string" in e.technique.value]
+        js_techniques = [
+            e
+            for e in evasions
+            if "js" in e.technique.value or "string" in e.technique.value
+        ]
         assert len(js_techniques) > 0
 
     def test_null_byte_injection(self, obfuscation_engine):

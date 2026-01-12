@@ -12,6 +12,7 @@ System information and health routes.
 """
 
 from datetime import datetime
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from ..system_info import (
     get_system_info,
@@ -19,6 +20,30 @@ from ..system_info import (
     get_system_detector,
     get_live_stats,
 )
+
+
+def _get_project_version() -> str:
+    """Get version from pyproject.toml"""
+    try:
+        # Find pyproject.toml (go up from web_ui/backend/routes/system.py)
+        current_file = Path(__file__).resolve()
+        project_root = current_file.parent.parent.parent.parent
+        pyproject_path = project_root / "pyproject.toml"
+        
+        if pyproject_path.exists():
+            with open(pyproject_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    if line.strip().startswith("version"):
+                        # Parse: version = "4.0.0-beta.2"
+                        parts = line.split("=", 1)
+                        if len(parts) == 2:
+                            return parts[1].strip().strip('"').strip("'")
+    except Exception:
+        pass
+    return "unknown"
+
+
+PROJECT_VERSION = _get_project_version()
 
 
 def register(app: FastAPI, scanner_service):
@@ -31,6 +56,15 @@ def register(app: FastAPI, scanner_service):
             "status": "healthy",
             "timestamp": datetime.utcnow().isoformat(),
             "active_scans": len(scanner_service.get_active_scans()),
+        }
+
+    @app.get("/api/version")
+    async def get_version():
+        """Get BRS-XSS version from pyproject.toml"""
+        return {
+            "version": PROJECT_VERSION,
+            "name": "BRS-XSS",
+            "github": "https://github.com/EPTLLC/brs-xss",
         }
 
     @app.get("/api/system/info")

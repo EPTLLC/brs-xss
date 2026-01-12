@@ -3,19 +3,20 @@
 **Project:** BRS-XSS (XSS Detection Suite)  
 **Company:** EasyProTech LLC (www.easypro.tech)  
 **Developer:** Brabus  
-**Version:** 3.0.0  
-**Date:** Thu 26 Dec 2025 UTC  
+**Version:** 4.0.0-beta.2  
+**Date:** Sun 12 Jan 2026 UTC  
 **Telegram:** https://t.me/EasyProTech
 
 ## Table of Contents
 
 - [Web UI REST API](#web-ui-rest-api)
+- [Strategy API (NEW)](#strategy-api-new)
+- [A/B Testing API (NEW)](#ab-testing-api-new)
 - [Core Module](#core-module)
 - [WAF Module](#waf-module)
 - [DOM Module](#dom-module)
 - [Crawler Module](#crawler-module)
 - [Report Module](#report-module)
-- [Utils Module](#utils-module)
 
 ---
 
@@ -39,23 +40,13 @@ Get hardware profile and performance modes.
     "ram_total_gb": 251.4,
     "ram_available_gb": 244.1,
     "os_name": "Linux",
-    "os_version": "6.8.0-87-generic",
-    "detected_at": "2025-12-26T00:49:08.565826"
+    "os_version": "6.8.0-87-generic"
   },
   "modes": {
-    "light": {
-      "name": "light",
-      "label": "Light",
-      "description": "Minimal resource usage, background scanning",
-      "threads": 4,
-      "max_concurrent": 4,
-      "requests_per_second": 72,
-      "request_delay_ms": 50,
-      "recommended": false
-    },
-    "standard": {...},
-    "turbo": {...},
-    "maximum": {..., "recommended": true}
+    "light": {"name": "light", "threads": 4, "requests_per_second": 72},
+    "standard": {"threads": 12},
+    "turbo": {"threads": 24},
+    "maximum": {"threads": 43, "recommended": true}
   },
   "recommended": "maximum",
   "saved_mode": "maximum"
@@ -66,23 +57,9 @@ Get hardware profile and performance modes.
 
 Force hardware re-detection.
 
-**Response:**
-Same as GET /api/system/info with fresh detection.
-
 #### POST /api/system/mode?mode={mode_name}
 
-Set preferred performance mode.
-
-**Parameters:**
-- `mode`: One of `light`, `standard`, `turbo`, `maximum`
-
-**Response:**
-```json
-{
-  "status": "saved",
-  "mode": "turbo"
-}
-```
+Set preferred performance mode (light, standard, turbo, maximum).
 
 ### Scan Endpoints
 
@@ -110,82 +87,19 @@ Start a new scan.
 
 #### GET /api/scans
 
-List scans.
-
-**Query Parameters:**
-- `limit`: Max results (default: 20, max: 100)
-- `status`: Filter by status (running, completed, failed, cancelled)
-
-**Response:**
-```json
-[
-  {
-    "id": "abc123def456",
-    "url": "https://example.com/search?q=test",
-    "mode": "standard",
-    "status": "completed",
-    "started_at": "2025-12-26T00:50:00Z",
-    "completed_at": "2025-12-26T00:52:00Z",
-    "vulnerability_count": 3,
-    "critical_count": 1,
-    "high_count": 2
-  }
-]
-```
+List scans with optional `limit` and `status` filters.
 
 #### GET /api/scans/{scan_id}
 
-Get scan details.
-
-**Response:**
-```json
-{
-  "id": "abc123def456",
-  "url": "https://example.com/search?q=test",
-  "mode": "standard",
-  "status": "completed",
-  "started_at": "2025-12-26T00:50:00Z",
-  "completed_at": "2025-12-26T00:52:00Z",
-  "urls_scanned": 15,
-  "parameters_tested": 8,
-  "payloads_sent": 1200,
-  "duration_seconds": 120,
-  "waf_detected": {
-    "name": "Cloudflare",
-    "type": "cloud",
-    "confidence": 0.95,
-    "bypass_available": true
-  },
-  "vulnerabilities": [
-    {
-      "severity": "critical",
-      "context": "html_attribute",
-      "parameter": "q",
-      "payload": "\" onmouseover=alert(1) \"",
-      "proof_url": "https://...",
-      "confidence": 0.98
-    }
-  ]
-}
-```
+Get scan details with vulnerabilities.
 
 #### DELETE /api/scans/{scan_id}
 
 Delete a scan.
 
-**Response:**
-```json
-{"status": "deleted"}
-```
-
 #### POST /api/scans/{scan_id}/cancel
 
 Cancel a running scan.
-
-**Response:**
-```json
-{"status": "cancelling"}
-```
 
 ### Knowledge Base Endpoints
 
@@ -193,37 +107,9 @@ Cancel a running scan.
 
 Get BRS-KB statistics with full attribution.
 
-**Response:**
-```json
-{
-  "name": "BRS-KB",
-  "full_name": "BRS XSS Knowledge Base",
-  "version": "4.0.0",
-  "build": "stable",
-  "revision": "20251226",
-  "author": "Brabus",
-  "company": "EasyProTech LLC",
-  "website": "https://www.easypro.tech",
-  "license": "MIT",
-  "repo_url": "https://github.com/EPTLLC/BRS-KB",
-  "telegram": "https://t.me/EasyProTech",
-  "total_payloads": "<dynamic from API>",
-  "contexts": "<dynamic from API>",
-  "waf_bypass_count": "<dynamic from API>",
-  "available_contexts": ["html_content", "html_attribute", "..."],
-  "mode": "remote",
-  "api_url": "https://brs-kb.easypro.tech/api/v1"
-}
-```
-
 #### GET /api/kb/payloads
 
-Query payloads with filtering.
-
-**Query Parameters:**
-- `category`: Filter by category (waf_bypass, websocket, graphql, etc.)
-- `limit`: Max results (default: 50, max: 500)
-- `offset`: Pagination offset
+Query payloads with filtering by category, limit, offset.
 
 ### WebSocket
 
@@ -233,50 +119,307 @@ Real-time scan progress.
 
 **Connect:** `ws://host:port/ws`
 
-**Messages Sent:**
-```json
-{"type": "ping"}
-```
-
 **Messages Received:**
 ```json
-{"type": "pong"}
-
 {"type": "progress", "data": {
   "scan_id": "abc123",
   "status": "running",
   "progress_percent": 45,
-  "current_phase": "scanning",
-  "current_url": "https://example.com/page",
-  "elapsed_seconds": 30
+  "current_phase": "scanning"
 }}
 
 {"type": "vulnerability", "scan_id": "abc123", "data": {
   "severity": "high",
   "context": "html_attribute",
   "parameter": "q",
-  "payload": "...",
-  "proof_url": "..."
+  "payload": "..."
 }}
 ```
 
-### Other Endpoints
+---
 
-#### GET /api/dashboard
+## Strategy API (NEW)
 
-Get dashboard statistics.
+Strategy management endpoints for PTT (Pentesting Task Tree).
 
-#### GET /api/settings
+### GET /api/strategy/tree
 
-Get application settings.
+Get the default strategy tree.
 
-#### PUT /api/settings
+**Response:**
+```json
+{
+  "id": "default",
+  "name": "Default PTT Strategy",
+  "version": "1.0",
+  "root": {...},
+  "is_default": true
+}
+```
 
-Update application settings.
+### GET /api/strategy/trees
 
-#### GET /api/health
+List all strategy trees (custom + default).
 
-Health check endpoint.
+**Query Parameters:**
+- `user_id`: Filter by user (optional)
+
+### POST /api/strategy/trees
+
+Create a new custom strategy tree.
+
+**Request:**
+```json
+{
+  "name": "My WAF Bypass Strategy",
+  "description": "Optimized for Cloudflare bypass",
+  "version": "1.0",
+  "tags": ["waf", "cloudflare"],
+  "tree_data": {
+    "root": {...}
+  }
+}
+```
+
+### GET /api/strategy/trees/{tree_id}
+
+Get a specific strategy tree.
+
+### PUT /api/strategy/trees/{tree_id}
+
+Update a custom strategy tree.
+
+**Request:**
+```json
+{
+  "name": "Updated Name",
+  "description": "New description",
+  "tree_data": {...}
+}
+```
+
+### DELETE /api/strategy/trees/{tree_id}
+
+Delete a custom strategy tree (default strategies cannot be deleted).
+
+### POST /api/strategy/trees/{tree_id}/clone
+
+Clone an existing strategy tree.
+
+**Query Parameters:**
+- `new_name`: Name for the cloned strategy
+
+### POST /api/strategy/trees/{tree_id}/activate
+
+Set a strategy tree as active for new scans.
+
+### GET /api/strategy/trees/active/current
+
+Get currently active strategy tree.
+
+### GET /api/strategy/trees/{tree_id}/export
+
+Export strategy as JSON file.
+
+**Response:** JSON file download
+
+### POST /api/strategy/trees/import
+
+Import strategy from JSON file.
+
+**Request:** Multipart form with file upload
+
+### POST /api/strategy/trees/import/json
+
+Import strategy from JSON body.
+
+**Request:**
+```json
+{
+  "format": "brs-xss-strategy",
+  "version": "1.0",
+  "strategy": {
+    "name": "Imported Strategy",
+    "tree_data": {...}
+  }
+}
+```
+
+### POST /api/strategy/simulate
+
+Simulate strategy execution.
+
+**Query Parameters:**
+- `context_type`: html, javascript, attribute, url, css
+- `waf_detected`: true/false
+- `waf_name`: WAF name if detected
+- `max_actions`: Maximum actions to simulate (default: 10)
+
+**Response:**
+```json
+{
+  "actions": [
+    {
+      "step": 1,
+      "action_type": "test_payload",
+      "payload": "<script>alert(1)</script>",
+      "encoding": "none",
+      "context": "html",
+      "node_id": "node_123"
+    }
+  ],
+  "statistics": {
+    "total_actions": 10,
+    "success_count": 0,
+    "failed_count": 10
+  }
+}
+```
+
+### GET /api/strategy/scan/{scan_id}
+
+Get strategy execution path for a completed scan.
+
+**Response:**
+```json
+{
+  "id": "path_123",
+  "scan_id": "scan_456",
+  "strategy_tree_id": "default",
+  "initial_context": "html",
+  "waf_detected": true,
+  "waf_name": "Cloudflare",
+  "actions": [...],
+  "visited_nodes": ["node1", "node2"],
+  "node_statuses": {"node1": "success", "node2": "failed"},
+  "pivots": [{"reason": "waf_detected", "from": "node1", "to": "node3"}],
+  "statistics": {...}
+}
+```
+
+### GET /api/strategy/scan/{scan_id}/exists
+
+Check if strategy path exists for a scan.
+
+### GET /api/strategy/scan/{scan_id}/summary
+
+Get summary of strategy execution for a scan.
+
+### GET /api/strategy/node-types
+
+Get available node types.
+
+### GET /api/strategy/rule-types
+
+Get available rule types.
+
+### GET /api/strategy/contexts
+
+Get available injection contexts.
+
+### GET /api/strategy/encodings
+
+Get available encoding strategies.
+
+---
+
+## A/B Testing API (NEW)
+
+Endpoints for comparing strategy effectiveness.
+
+### GET /api/strategy/ab-tests
+
+List all A/B tests.
+
+**Query Parameters:**
+- `user_id`: Filter by user (optional)
+- `status`: Filter by status (pending, running, completed, cancelled)
+
+### POST /api/strategy/ab-tests
+
+Create a new A/B test.
+
+**Request:**
+```json
+{
+  "name": "WAF Bypass Comparison",
+  "description": "Compare default vs custom WAF strategy",
+  "strategy_a_id": "default",
+  "strategy_b_id": "custom_123",
+  "target_scans": 10
+}
+```
+
+**Response:**
+```json
+{
+  "id": "test_456",
+  "name": "WAF Bypass Comparison",
+  "status": "pending",
+  "strategy_a_id": "default",
+  "strategy_b_id": "custom_123",
+  "target_scans": 10,
+  "completed_scans_a": 0,
+  "completed_scans_b": 0
+}
+```
+
+### GET /api/strategy/ab-tests/{test_id}
+
+Get A/B test details.
+
+### POST /api/strategy/ab-tests/{test_id}/start
+
+Start an A/B test.
+
+### POST /api/strategy/ab-tests/{test_id}/cancel
+
+Cancel a running A/B test.
+
+### DELETE /api/strategy/ab-tests/{test_id}
+
+Delete an A/B test.
+
+### GET /api/strategy/ab-tests/running/current
+
+Get currently running A/B test.
+
+### GET /api/strategy/ab-tests/{test_id}/comparison
+
+Get detailed comparison of A/B test results.
+
+**Response:**
+```json
+{
+  "test_id": "test_456",
+  "status": "completed",
+  "strategy_a": {
+    "id": "default",
+    "name": "Default PTT Strategy",
+    "scans_completed": 10,
+    "total_vulns": 15,
+    "avg_vulns_per_scan": 1.5,
+    "success_rate": 80.0,
+    "avg_duration": 45.2
+  },
+  "strategy_b": {
+    "id": "custom_123",
+    "name": "WAF Bypass Strategy",
+    "scans_completed": 10,
+    "total_vulns": 22,
+    "avg_vulns_per_scan": 2.2,
+    "success_rate": 90.0,
+    "avg_duration": 52.1
+  },
+  "winner": "strategy_b",
+  "progress": {
+    "target": 10,
+    "completed_a": 10,
+    "completed_b": 10,
+    "percent_complete": 100.0
+  }
+}
+```
 
 ---
 
@@ -287,18 +430,15 @@ Health check endpoint.
 Main XSS vulnerability scanner.
 
 ```python
-from brsxss.core import XSSScanner
+from brsxss.detect.xss.reflected.scanner import XSSScanner
 
 scanner = XSSScanner(
-    config=None,                    # ConfigManager instance
-    timeout=10,                     # Request timeout (seconds)
-    max_concurrent=10,              # Max concurrent requests
-    verify_ssl=True,                # SSL verification
-    enable_dom_xss=True,            # Enable DOM XSS detection
-    blind_xss_webhook=None,         # Blind XSS webhook URL
-    progress_callback=None,         # Progress callback function
-    max_payloads=None,              # Max payloads per parameter
-    http_client=None                # Optional HTTPClient instance
+    config=None,
+    timeout=10,
+    max_concurrent=10,
+    verify_ssl=True,
+    enable_dom_xss=True,
+    max_payloads=None
 )
 ```
 
@@ -310,201 +450,15 @@ Scan a specific entry point for XSS vulnerabilities.
 
 ```python
 async def scan_url(
-    url: str,                       # Target URL
-    method: str = "GET",            # HTTP method (GET/POST)
-    parameters: Optional[Dict[str, str]] = None  # Parameters to test
-) -> List[Dict[str, Any]]
-```
-
-**Example:**
-```python
-import asyncio
-from brsxss.core import XSSScanner
-
-async def main():
-    scanner = XSSScanner(timeout=15, max_concurrent=20)
-    
-    results = await scanner.scan_url(
-        url="https://target.com/search",
-        method="GET",
-        parameters={"q": "test"}
-    )
-    
-    for vuln in results:
-        print(f"Found XSS: {vuln['url']}")
-        print(f"Payload: {vuln['payload']}")
-        print(f"Severity: {vuln['severity']}")
-    
-    await scanner.close()
-
-asyncio.run(main())
+    url: str,
+    method: str = "GET",
+    parameters: dict[str, str] | None = None
+) -> list[dict[str, Any]]
 ```
 
 #### close()
 
 Close scanner and cleanup resources.
-
-```python
-async def close() -> None
-```
-
----
-
-### ConfigManager
-
-Configuration management system.
-
-```python
-from brsxss.core import ConfigManager
-
-config = ConfigManager(config_file="config.yaml")
-```
-
-**Methods:**
-
-#### get()
-
-Get configuration value.
-
-```python
-def get(key: str, default: Any = None) -> Any
-```
-
-**Example:**
-```python
-config = ConfigManager()
-timeout = config.get("scanner.timeout", 15)
-rate_limit = config.get("scanner.rate_limit", 8.0)
-```
-
-#### set()
-
-Set configuration value.
-
-```python
-def set(key: str, value: Any) -> None
-```
-
-#### save()
-
-Save configuration to file.
-
-```python
-def save(file_path: Optional[str] = None) -> None
-```
-
----
-
-### HTTPClient
-
-Async HTTP client with retry logic.
-
-```python
-from brsxss.core import HTTPClient
-
-client = HTTPClient(
-    timeout=10,
-    verify_ssl=True,
-    max_retries=3,
-    backoff_factor=2.0
-)
-```
-
-**Methods:**
-
-#### get()
-
-Send GET request.
-
-```python
-async def get(
-    url: str,
-    params: Optional[Dict[str, str]] = None,
-    headers: Optional[Dict[str, str]] = None
-) -> HTTPResponse
-```
-
-#### post()
-
-Send POST request.
-
-```python
-async def post(
-    url: str,
-    data: Optional[Dict[str, str]] = None,
-    json: Optional[Dict[str, Any]] = None,
-    headers: Optional[Dict[str, str]] = None
-) -> HTTPResponse
-```
-
-**Example:**
-```python
-async def test_request():
-    client = HTTPClient(timeout=15)
-    
-    response = await client.get(
-        "https://example.com/api",
-        params={"key": "value"},
-        headers={"User-Agent": "BRS-XSS/4.0.0-beta.1"}
-    )
-    
-    print(f"Status: {response.status_code}")
-    print(f"Body: {response.text}")
-    
-    await client.close()
-```
-
----
-
-### PayloadGenerator
-
-Context-aware payload generation.
-
-```python
-from brsxss.core import PayloadGenerator
-
-generator = PayloadGenerator(
-    config=None,                    # GenerationConfig instance
-    blind_xss_webhook=None          # Blind XSS webhook
-)
-```
-
-**Methods:**
-
-#### generate_payloads()
-
-Generate context-specific payloads.
-
-```python
-def generate_payloads(
-    context_info: Dict[str, Any],
-    detected_wafs: Optional[List[DetectedWAF]] = None,
-    max_payloads: Optional[int] = None
-) -> List[GeneratedPayload]
-```
-
-**Example:**
-```python
-from brsxss.core import PayloadGenerator
-
-generator = PayloadGenerator()
-
-context_info = {
-    "context_type": "html_content",
-    "tag_name": "div",
-    "filters_detected": []
-}
-
-payloads = generator.generate_payloads(
-    context_info=context_info,
-    max_payloads=100
-)
-
-for payload in payloads:
-    print(f"Payload: {payload.payload}")
-    print(f"Effectiveness: {payload.effectiveness_score}")
-    print(f"Context: {payload.context}")
-```
 
 ---
 
@@ -512,90 +466,20 @@ for payload in payloads:
 
 ### WAFDetector
 
-WAF detection system.
-
 ```python
-from brsxss.waf import WAFDetector
+from brsxss.detect.waf.detector import WAFDetector
 
 detector = WAFDetector(http_client=None)
+wafs = await detector.detect_waf("https://example.com")
 ```
-
-**Methods:**
-
-#### detect_waf()
-
-Detect WAF on target URL.
-
-```python
-async def detect_waf(url: str) -> List[WAFInfo]
-```
-
-**Example:**
-```python
-from brsxss.waf import WAFDetector
-
-async def detect():
-    detector = WAFDetector()
-    
-    wafs = await detector.detect_waf("https://example.com")
-    
-    for waf in wafs:
-        print(f"WAF: {waf.name}")
-        print(f"Type: {waf.waf_type}")
-        print(f"Confidence: {waf.confidence}")
-    
-    await detector.close()
-```
-
----
 
 ### EvasionEngine
 
-WAF evasion engine.
-
 ```python
-from brsxss.waf import EvasionEngine
+from brsxss.detect.waf.evasion_engine import EvasionEngine
 
 engine = EvasionEngine()
-```
-
-**Methods:**
-
-#### generate_evasions()
-
-Generate WAF evasion payloads.
-
-```python
-def generate_evasions(
-    payload: str,
-    detected_wafs: List[WAFInfo],
-    max_variations: int = 50
-) -> List[EvasionResult]
-```
-
-**Example:**
-```python
-from brsxss.waf import EvasionEngine, WAFInfo, WAFType
-
-engine = EvasionEngine()
-
-waf = WAFInfo(
-    waf_type=WAFType.CLOUDFLARE,
-    name="Cloudflare",
-    confidence=0.95,
-    detection_method="header"
-)
-
-evasions = engine.generate_evasions(
-    "<script>alert(1)</script>",
-    [waf],
-    max_variations=20
-)
-
-for evasion in evasions:
-    print(f"Technique: {evasion.technique}")
-    print(f"Payload: {evasion.mutated_payload}")
-    print(f"Success Probability: {evasion.success_probability}")
+evasions = engine.generate_evasions(payload, detected_wafs, max_variations=50)
 ```
 
 ---
@@ -604,43 +488,13 @@ for evasion in evasions:
 
 ### DOMAnalyzer
 
-DOM-based XSS analyzer.
-
 ```python
-from brsxss.dom import DOMAnalyzer
+from brsxss.detect.xss.dom.headless_detector import HeadlessDOMDetector
 
-analyzer = DOMAnalyzer(
-    headless=True,
-    timeout=30
-)
-```
-
-**Methods:**
-
-#### analyze_page()
-
-Analyze page for DOM XSS vulnerabilities.
-
-```python
-async def analyze_page(url: str) -> List[DOMVulnerability]
-```
-
-**Example:**
-```python
-from brsxss.dom import DOMAnalyzer
-
-async def analyze():
-    analyzer = DOMAnalyzer()
-    await analyzer.start()
-    
-    vulns = await analyzer.analyze_page("https://example.com")
-    
-    for vuln in vulns:
-        print(f"Source: {vuln.source}")
-        print(f"Sink: {vuln.sink}")
-        print(f"Severity: {vuln.severity}")
-    
-    await analyzer.close()
+detector = HeadlessDOMDetector(headless=True, timeout=30)
+await detector.start()
+vulns = await detector.analyze_page("https://example.com")
+await detector.close()
 ```
 
 ---
@@ -649,41 +503,11 @@ async def analyze():
 
 ### CrawlerEngine
 
-Web crawler for discovering entry points.
-
 ```python
-from brsxss.crawler import CrawlerEngine
+from brsxss.detect.crawler.engine import CrawlerEngine
 
-crawler = CrawlerEngine(
-    max_depth=3,
-    max_pages=100,
-    respect_robots=True
-)
-```
-
-**Methods:**
-
-#### crawl()
-
-Crawl website and discover entry points.
-
-```python
-async def crawl(start_url: str) -> List[EntryPoint]
-```
-
-**Example:**
-```python
-from brsxss.crawler import CrawlerEngine
-
-async def crawl():
-    crawler = CrawlerEngine(max_depth=2)
-    
-    entry_points = await crawler.crawl("https://example.com")
-    
-    for ep in entry_points:
-        print(f"URL: {ep.url}")
-        print(f"Method: {ep.method}")
-        print(f"Parameters: {ep.parameters}")
+crawler = CrawlerEngine(max_depth=3, max_pages=100)
+entry_points = await crawler.crawl("https://example.com")
 ```
 
 ---
@@ -692,43 +516,10 @@ async def crawl():
 
 ### ReportGenerator
 
-Multi-format report generation.
-
 ```python
 from brsxss.report import ReportGenerator, ReportFormat
 
 generator = ReportGenerator()
-```
-
-**Methods:**
-
-#### generate_report()
-
-Generate vulnerability report.
-
-```python
-def generate_report(
-    vulnerabilities: List[Dict[str, Any]],
-    format: ReportFormat = ReportFormat.JSON,
-    output_file: Optional[str] = None
-) -> str
-```
-
-**Example:**
-```python
-from brsxss.report import ReportGenerator, ReportFormat
-
-generator = ReportGenerator()
-
-vulnerabilities = [
-    {
-        "url": "https://example.com/search",
-        "parameter": "q",
-        "payload": "<script>alert(1)</script>",
-        "severity": "high",
-        "confidence": 0.95
-    }
-]
 
 # Generate SARIF report
 sarif = generator.generate_report(
@@ -737,184 +528,11 @@ sarif = generator.generate_report(
     output_file="results.sarif"
 )
 
-# Generate HTML report
-html = generator.generate_report(
-    vulnerabilities,
-    format=ReportFormat.HTML,
-    output_file="results.html"
-)
-```
+# Generate PDF report
+from brsxss.report.pdf_report import PDFReportGenerator
 
----
-
-## Utils Module
-
-### Logger
-
-Logging utility.
-
-```python
-from brsxss.utils import Logger
-
-logger = Logger("module.name")
-```
-
-**Methods:**
-
-```python
-logger.debug("Debug message")
-logger.info("Info message")
-logger.warning("Warning message")
-logger.error("Error message")
-logger.success("Success message")
-```
-
-### URLValidator
-
-URL validation utility.
-
-```python
-from brsxss.utils import URLValidator
-
-validator = URLValidator()
-```
-
-**Methods:**
-
-#### validate()
-
-Validate URL format and accessibility.
-
-```python
-def validate(url: str) -> bool
-```
-
-**Example:**
-```python
-from brsxss.utils import URLValidator
-
-validator = URLValidator()
-
-if validator.validate("https://example.com"):
-    print("Valid URL")
-else:
-    print("Invalid URL")
-```
-
----
-
-## Complete Example
-
-```python
-import asyncio
-from brsxss.core import XSSScanner, ConfigManager
-from brsxss.crawler import CrawlerEngine
-from brsxss.report import ReportGenerator, ReportFormat
-
-async def comprehensive_scan():
-    # Initialize components
-    config = ConfigManager()
-    config.set("scanner.timeout", 20)
-    config.set("scanner.max_concurrent", 30)
-    
-    scanner = XSSScanner(config=config, timeout=20, max_concurrent=30)
-    crawler = CrawlerEngine(max_depth=2)
-    reporter = ReportGenerator()
-    
-    # Crawl target
-    print("Crawling target...")
-    entry_points = await crawler.crawl("https://target.com")
-    print(f"Found {len(entry_points)} entry points")
-    
-    # Scan each entry point
-    all_vulnerabilities = []
-    for ep in entry_points:
-        print(f"Scanning {ep.url}...")
-        vulns = await scanner.scan_url(
-            url=ep.url,
-            method=ep.method,
-            parameters=ep.parameters
-        )
-        all_vulnerabilities.extend(vulns)
-    
-    print(f"Found {len(all_vulnerabilities)} vulnerabilities")
-    
-    # Generate reports
-    sarif_report = reporter.generate_report(
-        all_vulnerabilities,
-        format=ReportFormat.SARIF,
-        output_file="scan_results.sarif"
-    )
-    
-    html_report = reporter.generate_report(
-        all_vulnerabilities,
-        format=ReportFormat.HTML,
-        output_file="scan_results.html"
-    )
-    
-    # Cleanup
-    await scanner.close()
-    await crawler.close()
-    
-    print("Scan complete!")
-    print(f"SARIF report: scan_results.sarif")
-    print(f"HTML report: scan_results.html")
-
-if __name__ == "__main__":
-    asyncio.run(comprehensive_scan())
-```
-
----
-
-## Type Definitions
-
-### Common Types
-
-```python
-from typing import Dict, List, Any, Optional, Tuple
-
-# Vulnerability result
-VulnerabilityResult = Dict[str, Any]  # {url, parameter, payload, severity, confidence, ...}
-
-# Entry point
-EntryPoint = Dict[str, Any]  # {url, method, parameters}
-
-# HTTP response
-HTTPResponse = namedtuple('HTTPResponse', ['status_code', 'headers', 'text', 'content'])
-
-# WAF info
-WAFInfo = dataclass with fields: waf_type, name, confidence, detection_method, ...
-
-```
-
----
-
-## Error Handling
-
-```python
-from brsxss.core import XSSScanner
-from brsxss.utils.exceptions import (
-    ScannerError,
-    NetworkError,
-    ValidationError,
-    ConfigurationError
-)
-
-async def safe_scan():
-    scanner = XSSScanner()
-    
-    try:
-        results = await scanner.scan_url("https://example.com")
-    except NetworkError as e:
-        print(f"Network error: {e}")
-    except ValidationError as e:
-        print(f"Validation error: {e}")
-    except ScannerError as e:
-        print(f"Scanner error: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-    finally:
-        await scanner.close()
+pdf_gen = PDFReportGenerator()
+pdf_path = pdf_gen.generate(scan_data, vulnerabilities)
 ```
 
 ---
@@ -931,4 +549,3 @@ For API questions and support:
 ---
 
 **BRS-XSS** | **EasyProTech LLC** | **https://t.me/EasyProTech**
-

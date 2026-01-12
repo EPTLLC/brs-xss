@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 from pathlib import Path
 
-from brsxss.core.scan_metadata import ScanMetadata
+from brsxss.detect.xss.reflected.scan_metadata import ScanMetadata
 
 
 def test_scan_metadata_end_to_end(tmp_path: Path):

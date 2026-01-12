@@ -12,12 +12,12 @@ Telegram: https://t.me/EasyProTech
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from brsxss.core.scanner import XSSScanner
-from brsxss.core.http_client import HTTPClient
+from brsxss.detect.xss.reflected.scanner import XSSScanner
+from brsxss.detect.xss.reflected.http_client import HTTPClient
 
 
 @pytest.mark.asyncio
-@patch("brsxss.core.scanner.HeadlessDOMDetector")
+@patch("brsxss.detect.xss.reflected.scanner.HeadlessDOMDetector")
 async def test_scanner_uses_post_for_post_method(mock_headless_detector_class):
     """
     Verify that XSSScanner uses the HTTP POST method when instructed to.

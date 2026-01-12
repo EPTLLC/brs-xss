@@ -12,9 +12,9 @@ Telegram: https://t.me/EasyProTech
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from brsxss.core.http_client import HTTPClient
-from brsxss.waf.detector import WAFDetector
-from brsxss.waf.models import WAFBrand
+from brsxss.detect.xss.reflected.http_client import HTTPClient
+from brsxss.detect.waf.detector import WAFDetector
+from brsxss.detect.waf.models import WAFBrand
 
 
 @pytest.mark.asyncio

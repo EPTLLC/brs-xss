@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.waf.encoding_engine import EncodingEngine
+from brsxss.detect.waf.encoding_engine import EncodingEngine
 
 
 def test_encoding_engine_core_methods():

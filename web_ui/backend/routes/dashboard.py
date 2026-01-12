@@ -11,14 +11,25 @@ Telegram: https://t.me/EasyProTech
 Dashboard routes.
 """
 
-from fastapi import FastAPI
+from typing import Optional
+from fastapi import FastAPI, Header
 from ..models import DashboardStats
+from .auth import get_current_user
 
 
 def register(app: FastAPI, storage):
     """Register dashboard routes"""
 
+    def _get_user_id(authorization: Optional[str]) -> Optional[str]:
+        """Extract user_id from auth header if auth is enabled"""
+        config = storage.get_auth_config()
+        if not config.auth_enabled:
+            return None
+        user = get_current_user(authorization)
+        return user.id if user else None
+
     @app.get("/api/dashboard", response_model=DashboardStats)
-    async def get_dashboard():
-        """Get dashboard statistics"""
-        return storage.get_dashboard_stats()
+    async def get_dashboard(authorization: Optional[str] = Header(None)):
+        """Get dashboard statistics (user-specific if auth enabled)"""
+        user_id = _get_user_id(authorization)
+        return storage.get_dashboard_stats(user_id=user_id)

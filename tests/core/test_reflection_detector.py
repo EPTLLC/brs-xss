@@ -10,8 +10,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pytest
-from brsxss.core.reflection_detector import ReflectionDetector
-from brsxss.core.reflection_types import ReflectionType
+from brsxss.detect.xss.reflected.reflection_detector import ReflectionDetector
+from brsxss.detect.xss.reflected.reflection_types import ReflectionType
 
 
 @pytest.fixture

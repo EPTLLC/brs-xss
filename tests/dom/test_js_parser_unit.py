@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.dom.javascript_parser import JavaScriptParser
-from brsxss.dom.ast_types import ASTNode, NodeType
+from brsxss.detect.xss.dom.javascript_parser import JavaScriptParser
+from brsxss.detect.xss.dom.ast_types import ASTNode, NodeType
 
 
 def test_js_parser_tracks_assignments_and_stats(monkeypatch):

@@ -19,7 +19,7 @@ from rich.panel import Panel
 
 # BRS-KB is the single source of truth for knowledge base
 import brs_kb
-from brsxss.payloads import PayloadManager
+from brsxss.detect.payloads import PayloadManager
 
 # Use BRS-KB functions
 get_vulnerability_details = brs_kb.get_vulnerability_details

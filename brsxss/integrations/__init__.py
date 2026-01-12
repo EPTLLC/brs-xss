@@ -1,13 +1,18 @@
 """
 BRS-XSS Integrations
-Telegram notifications and PDF reports
+Telegram notifications
 
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Date: 2025-12-26
+Date: Sat 10 Jan 2026 10:00 UTC
+Telegram: https://t.me/EasyProTech
+
+Note: PDF reports moved to brsxss.report.pdf_report
 """
 
 from .telegram_bot import TelegramBot, TelegramConfig
-from .pdf_report import PDFReportGenerator, VulnItem
+
+# Re-export from new location for backward compatibility
+from ..report.pdf_report import PDFReportGenerator, VulnItem
 
 __all__ = ["TelegramBot", "TelegramConfig", "PDFReportGenerator", "VulnItem"]

@@ -10,8 +10,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pytest
-from brsxss.core.payload_generator import PayloadGenerator
-from brsxss.waf.models import WAF, WAFBrand
+from brsxss.detect.xss.reflected.payload_generator import PayloadGenerator
+from brsxss.detect.waf.models import WAF, WAFBrand
 
 
 @pytest.fixture

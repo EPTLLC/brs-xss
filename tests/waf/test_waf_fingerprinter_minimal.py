@@ -9,10 +9,10 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.waf.waf_fingerprinter import WAFFingerprinter
-from brsxss.waf.signature_database import SignatureDatabase
-from brsxss.waf.waf_signature import WAFSignature
-from brsxss.waf.waf_types import WAFType
+from brsxss.detect.waf.waf_fingerprinter import WAFFingerprinter
+from brsxss.detect.waf.signature_database import SignatureDatabase
+from brsxss.detect.waf.waf_signature import WAFSignature
+from brsxss.detect.waf.waf_types import WAFType
 
 
 def test_waf_fingerprinter_with_minimal_signature():

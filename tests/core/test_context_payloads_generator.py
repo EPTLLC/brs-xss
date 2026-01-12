@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.context_payloads import ContextPayloadGenerator
+from brsxss.detect.xss.reflected.context_payloads import ContextPayloadGenerator
 
 
 def test_context_payloads_cover_key_contexts():

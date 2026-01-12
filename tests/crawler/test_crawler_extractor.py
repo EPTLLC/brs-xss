@@ -11,8 +11,8 @@ Telegram: https://t.me/EasyProTech
 
 import pytest
 
-from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
-from brsxss.crawler.form_extractor import FormExtractor
+from brsxss.detect.crawler.engine import CrawlerEngine, CrawlConfig
+from brsxss.detect.crawler.form_extractor import FormExtractor
 
 
 @pytest.mark.asyncio

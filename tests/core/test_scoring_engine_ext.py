@@ -11,8 +11,8 @@ Telegram: https://t.me/EasyProTech
 
 from unittest.mock import MagicMock
 
-from brsxss.core.scoring_engine import ScoringEngine
-from brsxss.core.scoring_types import ScoringWeights
+from brsxss.detect.xss.reflected.scoring_engine import ScoringEngine
+from brsxss.detect.xss.reflected.scoring_types import ScoringWeights
 
 
 def _mk_reflection(exact=True):

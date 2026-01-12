@@ -15,7 +15,7 @@ from typing import Optional
 import pytest
 
 from web_ui.backend.scanner_service import ScannerService
-from brsxss.core.proxy_manager import ProxyProtocol
+from brsxss.detect.xss.reflected.proxy_manager import ProxyProtocol
 
 
 def _make_settings(
@@ -71,19 +71,24 @@ async def test_http_client_applies_proxy(monkeypatch):
             verify_ssl: bool = True,
             connector_limit: int = 64,
             connector_limit_per_host: int = 10,
+            request_delay_ms: int = 0,
         ):
             self.timeout = timeout
             self.verify_ssl = verify_ssl
             self.connector_limit = connector_limit
             self.connector_limit_per_host = connector_limit_per_host
+            self.request_delay_ms = request_delay_ms
             self.last_proxy = None
 
         def set_proxy(self, proxy_cfg):
             applied["cfg"] = proxy_cfg
             self.last_proxy = proxy_cfg
 
+        def set_rate_limit(self, delay_ms: int):
+            self.request_delay_ms = delay_ms
+
     monkeypatch.setattr(
-        "brsxss.core.http_client.HTTPClient",
+        "brsxss.detect.xss.reflected.http_client.HTTPClient",
         DummyHTTPClient,
         raising=False,
     )

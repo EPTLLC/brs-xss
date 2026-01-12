@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.polyglot_generator import PolyglotGenerator
+from brsxss.detect.xss.reflected.polyglot_generator import PolyglotGenerator
 
 
 def test_polyglot_generator_sets():

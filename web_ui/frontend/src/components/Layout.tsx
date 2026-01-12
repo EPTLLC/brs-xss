@@ -2,8 +2,8 @@
  * Project: BRS-XSS Scanner Web UI
  * Company: EasyProTech LLC (www.easypro.tech)
  * Dev: Brabus
- * Date: Thu 26 Dec 2025 UTC
- * Status: Updated - Draggable live stats bar
+ * Date: Sat 10 Jan 2026 UTC
+ * Status: Updated - Added Users menu item
  * Telegram: https://t.me/EasyProTech
  */
 
@@ -21,7 +21,10 @@ import {
   Activity,
   X,
   GripVertical,
-  Power
+  Power,
+  Users,
+  LogOut,
+  GitBranch
 } from 'lucide-react';
 import { api } from '../api/client';
 
@@ -50,13 +53,48 @@ const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/scan/new', icon: Crosshair, label: 'New Scan' },
   { to: '/history', icon: History, label: 'History' },
+  { to: '/strategy', icon: GitBranch, label: 'Strategy' },
 ];
 
-const bottomItems = [
-  { to: '/settings', icon: Settings, label: 'Settings' },
-];
+interface AuthConfig {
+  auth_enabled: boolean;
+  first_run_completed: boolean;
+  legal_accepted: boolean;
+}
+
+interface VersionInfo {
+  version: string;
+  name: string;
+  github: string;
+}
 
 export function Layout() {
+  // Get auth config
+  const { data: authConfig } = useQuery<AuthConfig>({
+    queryKey: ['auth-config'],
+    queryFn: () => api.get('/auth/config').then(res => res.data),
+    staleTime: Infinity,
+  });
+
+  // Get version info (kept for future use)
+  useQuery<VersionInfo>({
+    queryKey: ['version-info'],
+    queryFn: () => api.get('/version').then(res => res.data),
+    staleTime: Infinity,
+  });
+
+  // Get current user
+  const currentUser = JSON.parse(localStorage.getItem('brs-user') || '{}');
+  const isAdmin = currentUser.is_admin === true;
+  const isAuthEnabled = authConfig?.auth_enabled === true;
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem('brs-token');
+    localStorage.removeItem('brs-user');
+    window.location.href = '/';
+  };
+
   // Stats bar visibility - persist to localStorage
   const [showStatsBar, setShowStatsBar] = useState(() => {
     const saved = localStorage.getItem('brs-stats-bar-visible');
@@ -175,7 +213,7 @@ export function Layout() {
           href="https://github.com/EPTLLC/brs-xss"
           target="_blank"
           rel="noopener noreferrer"
-          className="brs-sidebar-logo brs-tooltip group"
+          className="brs-sidebar-logo brs-tooltip group flex items-center justify-center"
           data-tooltip="BRS-XSS on GitHub"
         >
           <Shield 
@@ -223,21 +261,42 @@ export function Layout() {
           </button>
         )}
 
-        {/* Footer - settings and restart button */}
+        {/* Footer - users, settings, logout, restart */}
         <div className="brs-sidebar-footer">
-          {/* Settings button */}
-          {bottomItems.map((item) => (
+          {/* Users button - always visible for admins, or when no auth (to create first admin) */}
+          {(isAdmin || !isAuthEnabled) && (
             <NavLink
-              key={item.to}
-              to={item.to}
+              to="/users"
               className={({ isActive }) =>
                 `brs-sidebar-item brs-tooltip ${isActive ? 'active' : ''}`
               }
-              data-tooltip={item.label}
+              data-tooltip="Users"
             >
-              <item.icon className="w-5 h-5" />
+              <Users className="w-5 h-5" />
             </NavLink>
-          ))}
+          )}
+
+          {/* Settings button */}
+          <NavLink
+            to="/settings"
+            className={({ isActive }) =>
+              `brs-sidebar-item brs-tooltip ${isActive ? 'active' : ''}`
+            }
+            data-tooltip="Settings"
+          >
+            <Settings className="w-5 h-5" />
+          </NavLink>
+
+          {/* Logout button - only when auth enabled */}
+          {isAuthEnabled && (
+            <button
+              onClick={handleLogout}
+              className="brs-sidebar-item brs-tooltip"
+              data-tooltip="Logout"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          )}
           
           {/* Restart backend button */}
           <button

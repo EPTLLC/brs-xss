@@ -21,7 +21,7 @@ from .report_types import ReportConfig, ReportFormat
 from .data_models import VulnerabilityData, ScanStatistics
 from .templates import HTMLTemplate, SARIFTemplate, JUnitTemplate, JSONTemplate
 from .sarif_reporter import SARIFReporter
-from ..core.finding_normalizer import prepare_findings_for_report
+from ..detect.xss.reflected.finding_normalizer import prepare_findings_for_report
 from ..utils.logger import Logger
 from .. import __version__
 

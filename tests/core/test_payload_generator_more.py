@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import pytest
 
-from brsxss.core.payload_generator import PayloadGenerator
+from brsxss.detect.xss.reflected.payload_generator import PayloadGenerator
 
 
 def test_norm_key_and_cached_behave_consistently():
@@ -39,7 +39,7 @@ def test_norm_key_and_cached_behave_consistently():
 
 
 def test_wrap_caps_length_and_sets_metadata():
-    from brsxss.core.payload_types import GenerationConfig
+    from brsxss.detect.xss.reflected.payload_types import GenerationConfig
 
     gen = PayloadGenerator(config=GenerationConfig(payload_max_len=10))
     long_payload = "x" * 50
@@ -51,7 +51,7 @@ def test_wrap_caps_length_and_sets_metadata():
 
 
 def test_weights_resolution_and_update_config_validation():
-    from brsxss.core.payload_types import GenerationConfig, Weights
+    from brsxss.detect.xss.reflected.payload_types import GenerationConfig, Weights
 
     # Defaults
     gen_default = PayloadGenerator()
@@ -76,7 +76,7 @@ def test_weights_resolution_and_update_config_validation():
 
 
 def test_generation_flows_with_mocks(monkeypatch):
-    from brsxss.core.payload_types import GenerationConfig, Weights
+    from brsxss.detect.xss.reflected.payload_types import GenerationConfig, Weights
 
     # Configure to avoid heavy pools
     cfg = GenerationConfig(
@@ -118,7 +118,7 @@ def test_generation_flows_with_mocks(monkeypatch):
 
 
 def test_evasion_and_waf_generation(monkeypatch):
-    from brsxss.core.payload_types import GenerationConfig, GeneratedPayload
+    from brsxss.detect.xss.reflected.payload_types import GenerationConfig, GeneratedPayload
 
     gen = PayloadGenerator(
         config=GenerationConfig(
@@ -187,7 +187,7 @@ def test_evasion_and_waf_generation(monkeypatch):
 
 
 def test_blind_xss_behavior(monkeypatch):
-    from brsxss.core.payload_types import GenerationConfig, GeneratedPayload
+    from brsxss.detect.xss.reflected.payload_types import GenerationConfig, GeneratedPayload
 
     # Safe mode: no blind payloads added
     gen1 = PayloadGenerator(
@@ -227,7 +227,7 @@ def test_blind_xss_behavior(monkeypatch):
 
 
 def test_generate_single_payload_and_technique(monkeypatch):
-    from brsxss.core.payload_types import EvasionTechnique
+    from brsxss.detect.xss.reflected.payload_types import EvasionTechnique
 
     gen = PayloadGenerator()
     monkeypatch.setattr(
@@ -248,7 +248,7 @@ def test_generate_single_payload_and_technique(monkeypatch):
 
 
 def test_statistics_update_and_reset(monkeypatch):
-    from brsxss.core.payload_types import GenerationConfig
+    from brsxss.detect.xss.reflected.payload_types import GenerationConfig
 
     gen = PayloadGenerator(config=GenerationConfig(max_payloads=5))
     monkeypatch.setattr(

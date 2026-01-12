@@ -7,12 +7,11 @@
  * Telegram: https://t.me/EasyProTech
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { 
   History, 
-  ArrowRight, 
   Search,
   Download,
   Trash2,
@@ -33,13 +32,14 @@ import {
   Gauge,
   Flame,
   Rocket,
-  ExternalLink,
   Globe,
   AlertTriangle,
   Send,
-  Hash
+  Hash,
+  StopCircle
 } from 'lucide-react';
 import { api } from '../api/client';
+import { PageHeader } from '../components/PageHeader';
 
 interface ProxyUsed {
   enabled: boolean;
@@ -92,23 +92,33 @@ const perfModeIcons: Record<string, typeof Leaf> = {
 function RescanModal({ 
   url,
   defaultMode,
+  defaultPerfMode,
   onConfirm, 
   onCancel,
   isScanning
 }: { 
   url: string;
   defaultMode: string;
-  onConfirm: (mode: string) => void;
+  defaultPerfMode: string;
+  onConfirm: (mode: string, perfMode: string) => void;
   onCancel: () => void;
   isScanning: boolean;
 }) {
   const [selectedMode, setSelectedMode] = useState(defaultMode);
+  const [selectedPerfMode, setSelectedPerfMode] = useState(defaultPerfMode);
   
   const modes = [
-    { value: 'quick', label: 'Quick', desc: '~30s, 50 payloads' },
-    { value: 'standard', label: 'Standard', desc: '~2min, 200 payloads' },
-    { value: 'deep', label: 'Deep', desc: '~10min, all payloads' },
-    { value: 'stealth', label: 'Stealth', desc: '~3min, slow & careful' },
+    { value: 'quick', label: 'Quick', desc: '~15s, 50 payloads' },
+    { value: 'standard', label: 'Standard', desc: '~30s, 200 payloads' },
+    { value: 'deep', label: 'Deep', desc: '~2min, all payloads' },
+    { value: 'stealth', label: 'Stealth', desc: '~1min, slow & careful' },
+  ];
+
+  const perfModes = [
+    { value: 'light', label: 'Light', icon: Leaf },
+    { value: 'standard', label: 'Standard', icon: Gauge },
+    { value: 'turbo', label: 'Turbo', icon: Flame },
+    { value: 'maximum', label: 'Maximum', icon: Rocket },
   ];
 
   // Get clean display URL
@@ -127,7 +137,7 @@ function RescanModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="brs-card max-w-md w-full mx-4 p-6">
+      <div className="brs-card max-w-lg w-full mx-4 p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 rounded-full bg-[var(--color-primary)]/20 flex items-center justify-center">
             <RotateCw className="w-5 h-5 text-[var(--color-primary)]" />
@@ -138,6 +148,7 @@ function RescanModal({
           </div>
         </div>
         
+        {/* Scan Mode */}
         <div className="mb-4">
           <label className="block text-sm text-[var(--color-text-muted)] mb-2">Scan Mode</label>
           <div className="grid grid-cols-2 gap-2">
@@ -157,6 +168,34 @@ function RescanModal({
             ))}
           </div>
         </div>
+
+        {/* Performance Mode */}
+        <div className="mb-4">
+          <label className="block text-sm text-[var(--color-text-muted)] mb-2">Performance</label>
+          <div className="grid grid-cols-4 gap-2">
+            {perfModes.map((perf) => {
+              const Icon = perf.icon;
+              return (
+                <button
+                  key={perf.value}
+                  onClick={() => setSelectedPerfMode(perf.value)}
+                  className={`p-2 rounded-lg border text-center transition-all ${
+                    selectedPerfMode === perf.value
+                      ? 'border-[var(--color-success)] bg-[var(--color-success)]/10'
+                      : 'border-[var(--color-border)] hover:border-[var(--color-success)]/50'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 mx-auto mb-1 ${
+                    selectedPerfMode === perf.value ? 'text-[var(--color-success)]' : 'text-[var(--color-text-muted)]'
+                  }`} />
+                  <div className={`text-xs font-medium ${
+                    selectedPerfMode === perf.value ? 'text-[var(--color-success)]' : ''
+                  }`}>{perf.label}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         
         <div className="flex gap-3 justify-end">
           <button 
@@ -167,7 +206,7 @@ function RescanModal({
             Cancel
           </button>
           <button 
-            onClick={() => onConfirm(selectedMode)}
+            onClick={() => onConfirm(selectedMode, selectedPerfMode)}
             className="brs-btn brs-btn-primary"
             disabled={isScanning}
           >
@@ -274,6 +313,35 @@ function formatDuration(seconds: number): string {
   return `${mins}m ${secs}s`;
 }
 
+// Live duration component for running scans
+function LiveDuration({ startedAt }: { startedAt: string }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    // Parse startedAt as UTC (server sends UTC timestamps)
+    // Append 'Z' if not present to ensure UTC parsing
+    const utcStartedAt = startedAt.endsWith('Z') ? startedAt : startedAt + 'Z';
+    const startTime = new Date(utcStartedAt).getTime();
+    
+    const updateElapsed = () => {
+      const now = Date.now();
+      const diff = Math.floor((now - startTime) / 1000);
+      // Sanity check: if negative or > 24 hours, something is wrong
+      setElapsed(diff >= 0 && diff < 86400 ? diff : 0);
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return (
+    <span className="text-[var(--color-accent)] animate-pulse">
+      {formatDuration(elapsed)}
+    </span>
+  );
+}
+
 // Format date
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '-';
@@ -317,7 +385,7 @@ export function ScanHistory() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedScanId, setCopiedScanId] = useState<string | null>(null);
-  const [rescanTarget, setRescanTarget] = useState<{url: string, mode: string} | null>(null);
+  const [rescanTarget, setRescanTarget] = useState<{url: string, mode: string, perfMode: string} | null>(null);
   const [sendingToTg, setSendingToTg] = useState<string | null>(null);
 
   // Copy scan ID to clipboard
@@ -409,8 +477,8 @@ export function ScanHistory() {
   });
 
   const rescanMutation = useMutation({
-    mutationFn: async ({ url, mode }: { url: string; mode: string }) => {
-      return api.post('/scans', { url, mode });
+    mutationFn: async ({ url, mode, performance_mode }: { url: string; mode: string; performance_mode: string }) => {
+      return api.post('/scans', { url, mode, performance_mode });
     },
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['scans'] });
@@ -418,6 +486,14 @@ export function ScanHistory() {
       setRescanTarget(null);
       // Navigate to the new scan
       window.location.href = `/scan/${response.data.scan_id}`;
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (scanId: string) => api.post(`/scans/${scanId}/cancel`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['scans'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 
@@ -476,7 +552,8 @@ export function ScanHistory() {
         <RescanModal
           url={rescanTarget.url}
           defaultMode={rescanTarget.mode}
-          onConfirm={(mode) => rescanMutation.mutate({ url: rescanTarget.url, mode })}
+          defaultPerfMode={rescanTarget.perfMode}
+          onConfirm={(mode, perfMode) => rescanMutation.mutate({ url: rescanTarget.url, mode, performance_mode: perfMode })}
           onCancel={() => setRescanTarget(null)}
           isScanning={rescanMutation.isPending}
         />
@@ -493,26 +570,11 @@ export function ScanHistory() {
       )}
 
       {/* Header */}
-      <header className="brs-header">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="brs-header-title">Scan History</h1>
-            <a 
-              href="https://github.com/EPTLLC/brs-xss"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline font-mono"
-            >
-              BRS-XSS
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-          <p className="brs-header-subtitle">
-            {scans?.length || 0} total scans
-            {selectedIds.size > 0 && ` | ${selectedIds.size} selected`}
-          </p>
-        </div>
-        <div className="flex gap-3">
+      <PageHeader 
+        title="Scan History" 
+        subtitle={`${scans?.length || 0} total scans${selectedIds.size > 0 ? ` | ${selectedIds.size} selected` : ''}`}
+      >
+        <div className="flex gap-3 ml-auto">
           {selectedIds.size > 0 && (
             <button 
               onClick={() => setDeleteTarget(Array.from(selectedIds))}
@@ -527,7 +589,7 @@ export function ScanHistory() {
             Export
           </button>
         </div>
-      </header>
+      </PageHeader>
 
       {/* Content */}
       <div className="brs-content">
@@ -604,13 +666,17 @@ export function ScanHistory() {
                   <th>Vulns</th>
                   <th>Duration</th>
                   <th>Date</th>
-                  <th className="text-right">Actions</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredScans.map((scan) => (
-                  <tr key={scan.id} className="group">
-                    <td>
+                  <tr 
+                    key={scan.id} 
+                    className="group cursor-pointer hover:bg-[var(--color-surface-hover)]"
+                    onClick={() => window.location.href = `/scan/${scan.id}`}
+                  >
+                    <td onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => toggleSelect(scan.id)}
                         className="p-1 hover:bg-[var(--color-surface-hover)] rounded"
@@ -623,56 +689,11 @@ export function ScanHistory() {
                       </button>
                     </td>
                     <td>
-                      <div className="flex items-center gap-1">
-                        <span 
-                          className="font-mono text-sm text-[var(--color-primary)]"
-                        >
-                          {truncateUrl(scan.url)}
-                        </span>
-                        <button
-                          onClick={(e) => copyUrl(e, scan.url, scan.id)}
-                          className="brs-tooltip p-1.5 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all"
-                          data-tooltip={copiedId === scan.id ? "Copied!" : "Copy URL"}
-                        >
-                          {copiedId === scan.id ? (
-                            <Check className="w-3.5 h-3.5 text-green-500" />
-                          ) : (
-                            <Copy className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
-                          )}
-                        </button>
-                        <button
-                          onClick={(e) => copyScanId(e, scan.id)}
-                          className="brs-tooltip p-1.5 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all"
-                          data-tooltip={copiedScanId === scan.id ? "Copied!" : "Copy ID"}
-                        >
-                          {copiedScanId === scan.id ? (
-                            <Check className="w-3.5 h-3.5 text-green-500" />
-                          ) : (
-                            <Hash className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => setRescanTarget({ url: scan.url, mode: scan.mode })}
-                          className="brs-tooltip p-1.5 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all"
-                          data-tooltip="Rescan"
-                        >
-                          <RotateCw className="w-3.5 h-3.5 text-[var(--color-text-muted)]" />
-                        </button>
-                        {telegramStatus?.configured && scan.status === 'completed' && (
-                          <button
-                            onClick={() => sendToTelegramMutation.mutate(scan.id)}
-                            disabled={sendingToTg === scan.id}
-                            className="brs-tooltip p-1.5 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all"
-                            data-tooltip="Send to Telegram"
-                          >
-                            {sendingToTg === scan.id ? (
-                              <Loader className="w-3.5 h-3.5 text-[var(--color-primary)] animate-spin" />
-                            ) : (
-                              <Send className="w-3.5 h-3.5 text-[var(--color-primary)]" />
-                            )}
-                          </button>
-                        )}
-                      </div>
+                      <span 
+                        className="font-mono text-sm text-[var(--color-primary)]"
+                      >
+                        {truncateUrl(scan.url)}
+                      </span>
                     </td>
                     <td>
                       {(() => {
@@ -730,26 +751,84 @@ export function ScanHistory() {
                       </span>
                     </td>
                     <td className="text-[var(--color-text-secondary)] font-mono text-sm">
-                      {formatDuration(scan.duration_seconds)}
+                      {scan.status === 'running' ? (
+                        <LiveDuration startedAt={scan.started_at} />
+                      ) : (
+                        formatDuration(scan.duration_seconds)
+                      )}
                     </td>
                     <td className="text-[var(--color-text-secondary)] text-sm">
                       {formatDate(scan.started_at)}
                     </td>
-                    <td>
-                      <div className="flex items-center justify-end gap-1">
+                    <td onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-start gap-1">
                         <Link 
                           to={`/scan/${scan.id}`}
-                          className="brs-btn brs-btn-ghost text-sm"
+                          className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
+                          data-tooltip="View"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          View
-                          <ArrowRight className="w-4 h-4" />
+                          <Eye className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-[var(--color-primary)] transition-colors" />
                         </Link>
                         <button
-                          onClick={() => setDeleteTarget([scan.id])}
-                          className="brs-tooltip brs-btn brs-btn-ghost text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => { e.stopPropagation(); copyUrl(e, scan.url, scan.id); }}
+                          className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
+                          data-tooltip={copiedId === scan.id ? "Copied!" : "Copy URL"}
+                        >
+                          {copiedId === scan.id ? (
+                            <Check className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <Copy className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-[var(--color-primary)] transition-colors" />
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); copyScanId(e, scan.id); }}
+                          className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
+                          data-tooltip={copiedScanId === scan.id ? "Copied!" : "Copy ID"}
+                        >
+                          {copiedScanId === scan.id ? (
+                            <Check className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <Hash className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-[var(--color-primary)] transition-colors" />
+                          )}
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setRescanTarget({ url: scan.url, mode: scan.mode, perfMode: scan.performance_mode || 'standard' }); }}
+                          className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
+                          data-tooltip="Rescan"
+                        >
+                          <RotateCw className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-[var(--color-primary)] transition-colors" />
+                        </button>
+                        {telegramStatus?.configured && scan.status === 'completed' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); sendToTelegramMutation.mutate(scan.id); }}
+                            disabled={sendingToTg === scan.id}
+                            className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
+                            data-tooltip="Telegram"
+                          >
+                            {sendingToTg === scan.id ? (
+                              <Loader className="w-4 h-4 text-[var(--color-primary)] animate-spin" />
+                            ) : (
+                              <Send className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-[var(--color-primary)] transition-colors" />
+                            )}
+                          </button>
+                        )}
+                        {scan.status === 'running' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); cancelMutation.mutate(scan.id); }}
+                            className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
+                            data-tooltip="Stop"
+                            disabled={cancelMutation.isPending}
+                          >
+                            <StopCircle className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-orange-400 transition-colors" />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setDeleteTarget([scan.id]); }}
+                          className="brs-tooltip brs-tooltip-top p-2 rounded hover:bg-[var(--color-surface-hover)] opacity-0 group-hover:opacity-100 transition-all group/btn"
                           data-tooltip="Delete"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4 text-[var(--color-text-muted)] group-hover/btn:text-red-400 transition-colors" />
                         </button>
                       </div>
                     </td>

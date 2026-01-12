@@ -40,10 +40,15 @@ import {
 import { api } from '../api/client';
 import { TargetIntelligence } from '../components/TargetIntelligence';
 
+interface AffectedUrl {
+  url: string;
+  method: string;
+}
+
 interface Vulnerability {
   id: string;
   type: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  severity: 'critical' | 'high' | 'medium' | 'low' | 'potential';
   context_type: string;
   payload: string;
   payload_id?: string;
@@ -54,6 +59,13 @@ interface Vulnerability {
   url: string;
   parameter: string;
   evidence?: string;
+  // v4.0.0-beta.2: Grouped findings support
+  affected_urls?: AffectedUrl[];
+  occurrence_count?: number;
+  is_pattern?: boolean;
+  pattern_note?: string;
+  confidence_label?: string;
+  status?: 'confirmed' | 'potential';
 }
 
 interface WAFInfo {
@@ -102,6 +114,35 @@ const formatDuration = (seconds?: number): string => {
   const secs = Math.round(seconds % 60);
   return `${mins}m ${secs}s`;
 };
+
+// Live duration component for running scans
+function LiveDuration({ startedAt }: { startedAt: string }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    // Parse startedAt as UTC (server sends UTC timestamps)
+    // Append 'Z' if not present to ensure UTC parsing
+    const utcStartedAt = startedAt.endsWith('Z') ? startedAt : startedAt + 'Z';
+    const startTime = new Date(utcStartedAt).getTime();
+    
+    const updateElapsed = () => {
+      const now = Date.now();
+      const diff = Math.floor((now - startTime) / 1000);
+      // Sanity check: if negative or > 24 hours, something is wrong
+      setElapsed(diff >= 0 && diff < 86400 ? diff : 0);
+    };
+
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
+    return () => clearInterval(interval);
+  }, [startedAt]);
+
+  return (
+    <span className="animate-pulse">
+      {formatDuration(elapsed)}
+    </span>
+  );
+}
 
 // Format date
 const formatDate = (dateStr?: string): string => {
@@ -253,6 +294,8 @@ export function ScanDetails() {
       case 'high': return 'bg-orange-500/20 text-orange-400 border-orange-500/30';
       case 'medium': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
       case 'low': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+      // v4.0.0-beta.2: Support for potential/heuristic findings
+      case 'potential': return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   };
@@ -320,7 +363,7 @@ export function ScanDetails() {
                   href="https://github.com/EPTLLC/brs-xss"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline font-mono"
+                  className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:opacity-80 transition-opacity font-mono"
                 >
                   BRS-XSS
                   <ExternalLink className="w-3 h-3" />
@@ -360,7 +403,11 @@ export function ScanDetails() {
               <span className="text-xs text-[var(--color-text-muted)]">Duration</span>
             </div>
             <div className="text-xl font-bold font-mono text-[var(--color-info)]">
-              {formatDuration(scan.duration_seconds)}
+              {scan.status === 'running' && scan.started_at ? (
+                <LiveDuration startedAt={scan.started_at} />
+              ) : (
+                formatDuration(scan.duration_seconds)
+              )}
             </div>
           </div>
           
@@ -457,7 +504,7 @@ export function ScanDetails() {
                   href={kbStats?.repo_url || 'https://github.com/EPTLLC/BRS-KB'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-mono text-[var(--color-primary)] hover:underline"
+                  className="font-mono text-[var(--color-primary)] hover:opacity-80 transition-opacity"
                 >
                   BRS-KB v{kbStats?.version || '4.0.0'}
                 </a>
@@ -520,13 +567,26 @@ export function ScanDetails() {
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 text-xs font-bold rounded border ${getSeverityBadge(vuln.severity)}`}>
-                        {vuln.severity.toUpperCase()}
+                      {/* v4.0.0-beta.2: Show POTENTIAL for heuristic findings */}
+                      <span className={`px-2 py-0.5 text-xs font-bold rounded border ${
+                        vuln.severity === 'potential' 
+                          ? 'bg-blue-500/20 text-blue-400 border-blue-500/50'
+                          : getSeverityBadge(vuln.severity)
+                      }`}>
+                        {vuln.severity === 'potential' ? 'POTENTIAL' : vuln.severity.toUpperCase()}
                       </span>
                       {vuln.payload_name ? (
                         <span className="font-medium text-sm">{vuln.payload_name}</span>
                       ) : (
-                        <span className="font-medium text-sm text-[var(--color-text-muted)]">XSS Injection</span>
+                        <span className="font-medium text-sm text-[var(--color-text-muted)]">
+                          {vuln.status === 'potential' ? 'Heuristic Finding' : 'XSS Injection'}
+                        </span>
+                      )}
+                      {/* v4.0.0-beta.2: Show occurrence count for grouped findings */}
+                      {vuln.is_pattern && vuln.occurrence_count && vuln.occurrence_count > 1 && (
+                        <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                          {vuln.occurrence_count} occurrences
+                        </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -541,6 +601,13 @@ export function ScanDetails() {
                   {vuln.payload_description && (
                     <p className="text-xs text-[var(--color-text-muted)] mb-2 line-clamp-1">
                       {vuln.payload_description}
+                    </p>
+                  )}
+                  
+                  {/* v4.0.0-beta.2: Show pattern note for grouped findings */}
+                  {vuln.pattern_note && (
+                    <p className="text-xs text-blue-400 mb-2">
+                      {vuln.pattern_note}
                     </p>
                   )}
                   

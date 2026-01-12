@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.context_calculator import ContextCalculator
+from brsxss.detect.xss.reflected.context_calculator import ContextCalculator
 
 
 def test_specific_context_override():

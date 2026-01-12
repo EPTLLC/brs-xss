@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.dom.sanitization_analyzer import SanitizationAnalyzer
+from brsxss.detect.xss.dom.sanitization_analyzer import SanitizationAnalyzer
 
 
 def test_sanitization_detects_and_flags_bypass_regex():

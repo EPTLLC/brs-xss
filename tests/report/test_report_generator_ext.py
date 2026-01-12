@@ -18,6 +18,8 @@ from brsxss.report.data_models import VulnerabilityData, ScanStatistics
 
 
 def _mk_vuln(i: int, sev: str) -> VulnerabilityData:
+    # v4.0.0-beta.2: Make each vuln unique to avoid deduplication
+    # Also add evidence_response to make them confirmed (not heuristic)
     return VulnerabilityData(
         id=f"x{i}",
         title=f"Vuln {i}",
@@ -25,9 +27,10 @@ def _mk_vuln(i: int, sev: str) -> VulnerabilityData:
         severity=sev,
         confidence=0.9,
         url=f"https://example.com/p{i}",
-        parameter="q",
-        payload="<poc>",
-        context="html_content",
+        parameter=f"param{i}",  # Unique parameter
+        payload=f"<poc{i}>",  # Unique payload
+        context=f"html_content_{i}",  # Unique context
+        evidence_response=f"Reflected payload found in response body at position {i * 100}",
     )
 
 

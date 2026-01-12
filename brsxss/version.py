@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 """
-Project: BRS-XSS v4.0.0-beta.1
+Project: BRS-XSS v--help
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
 Date: Thu 09 Jan 2026 UTC
-Status: Beta - v4.0.0-beta.1
+Status: Beta - v--help
 Telegram: https://t.me/EasyProTech
 
 SINGLE SOURCE OF TRUTH for version information.
@@ -48,7 +48,7 @@ def _get_version_from_pyproject() -> Optional[str]:
 
 
 # Get the actual version from pyproject.toml
-PROJECT_VERSION = _get_version_from_pyproject() or "4.0.0-beta.1"
+PROJECT_VERSION = _get_version_from_pyproject() or "--help"
 
 # Knowledge Base version - updated dynamically from API
 _kb_version_info: dict[str, str] = {

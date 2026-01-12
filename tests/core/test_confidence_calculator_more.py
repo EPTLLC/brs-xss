@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from types import SimpleNamespace
-from brsxss.core.confidence_calculator import ConfidenceCalculator
+from brsxss.detect.xss.reflected.confidence_calculator import ConfidenceCalculator
 
 
 def test_confidence_branches_reflection_and_payload():

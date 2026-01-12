@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.filter_detector import FilterDetector
-from brsxss.core.context_types import EncodingType, FilterType
+from brsxss.detect.xss.reflected.filter_detector import FilterDetector
+from brsxss.detect.xss.reflected.context_types import EncodingType, FilterType
 
 
 def test_detect_filters_content_removed_and_indicators_and_keyword():

@@ -14,7 +14,7 @@ from urllib.parse import urlparse, parse_qs
 
 import pytest
 
-from brsxss.core.scanner import XSSScanner
+from brsxss.detect.xss.reflected.scanner import XSSScanner
 from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig, ReportFormat
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics
@@ -82,6 +82,8 @@ async def test_system_e2e_scan_and_report(tmp_path, monkeypatch):
                 parameter=v.get("parameter", "q"),
                 payload=v.get("payload", payload_value),
                 context="html_content",
+                # v4.0.0-beta.2: Add evidence to make findings confirmed
+                evidence_response="Payload reflected in response body",
             )
         )
 

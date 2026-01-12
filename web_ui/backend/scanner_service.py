@@ -13,6 +13,7 @@ Scanner service with full Crawler integration for Web UI.
 
 import asyncio
 import time
+import traceback
 import uuid
 from typing import Optional, Callable, Any
 from urllib.parse import urlparse, parse_qs
@@ -27,8 +28,139 @@ from .models import (
 )
 from .storage import ScanStorage
 from brsxss.utils.logger import Logger
+from brsxss.detect.xss.reflected.custom_payloads import get_custom_payloads_loader, CustomPayload
+from brsxss.strategy import StrategyEngine, create_default_strategy
 
 logger = Logger("web_ui.scanner_service")
+
+
+class ScanStrategyTracker:
+    """
+    Tracks strategy execution during a scan.
+    Records all actions, visited nodes, pivots for later visualization.
+    """
+    
+    def __init__(self, scan_id: str, strategy_tree_id: str, initial_context: str):
+        self.scan_id = scan_id
+        self.strategy_tree_id = strategy_tree_id
+        self.initial_context = initial_context
+        self.waf_detected = False
+        self.waf_name: Optional[str] = None
+        
+        # Tracking data
+        self.actions: list[dict[str, Any]] = []
+        self.visited_nodes: set[str] = set()
+        self.node_statuses: dict[str, str] = {}  # node_id -> status
+        self.pivots: list[dict[str, Any]] = []
+        self.step_counter = 0
+        
+        # Deduplication tracking
+        self._initialized = False
+        self._seen_payloads: set[str] = set()  # payload hash for dedup
+    
+    def set_waf_info(self, detected: bool, name: Optional[str] = None):
+        """Set WAF detection info"""
+        self.waf_detected = detected
+        self.waf_name = name
+    
+    def record_action(
+        self,
+        action_type: str,
+        node_id: Optional[str],
+        payload: Optional[str] = None,
+        encoding: Optional[str] = None,
+        context: Optional[str] = None,
+        metadata: Optional[dict[str, Any]] = None,
+    ):
+        """Record a strategy action with deduplication"""
+        
+        # Deduplicate initialize - only record once
+        if action_type == "initialize":
+            if self._initialized:
+                return  # Skip duplicate initialize
+            self._initialized = True
+        
+        # Deduplicate test_payload - skip if same payload+context already recorded
+        if action_type == "test_payload" and payload:
+            payload_key = f"{payload}:{context or ''}"
+            if payload_key in self._seen_payloads:
+                return  # Skip duplicate payload
+            self._seen_payloads.add(payload_key)
+        
+        self.step_counter += 1
+        
+        action = {
+            "step": self.step_counter,
+            "action_type": action_type,
+            "node_id": node_id,
+            "payload": payload,
+            "encoding": encoding,
+            "context": context,
+            "metadata": metadata or {},
+            "timestamp": time.time(),
+        }
+        self.actions.append(action)
+        
+        if node_id:
+            self.visited_nodes.add(node_id)
+        
+        # Detect pivots
+        if action_type in ("switch_context", "encode", "waf_bypass"):
+            self.pivots.append({
+                "step": self.step_counter,
+                "type": action_type,
+                "from_context": metadata.get("from") if metadata else None,
+                "to_context": context or (metadata.get("to") if metadata else None),
+                "encoding": encoding,
+                "reason": metadata.get("reason") if metadata else None,
+            })
+    
+    def record_result(self, node_id: Optional[str], success: bool):
+        """Record result for a node"""
+        if node_id:
+            if success:
+                self.node_statuses[node_id] = "success"
+            else:
+                # Only mark as failed if not already marked as pivot
+                if self.node_statuses.get(node_id) != "pivot":
+                    self.node_statuses[node_id] = "failed"
+    
+    def mark_pivot(self, node_id: str):
+        """Mark a node as a pivot point"""
+        if node_id:
+            self.node_statuses[node_id] = "pivot"
+    
+    def get_statistics(self) -> dict[str, Any]:
+        """Get tracking statistics"""
+        success_count = sum(1 for s in self.node_statuses.values() if s == "success")
+        failed_count = sum(1 for s in self.node_statuses.values() if s == "failed")
+        pivot_count = len(self.pivots)
+        
+        return {
+            "total_actions": len(self.actions),
+            "visited_nodes": len(self.visited_nodes),
+            "success_count": success_count,
+            "failed_count": failed_count,
+            "pivot_count": pivot_count,
+            "initial_context": self.initial_context,
+            "waf_detected": self.waf_detected,
+            "waf_name": self.waf_name,
+        }
+    
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for storage"""
+        return {
+            "scan_id": self.scan_id,
+            "strategy_tree_id": self.strategy_tree_id,
+            "initial_context": self.initial_context,
+            "waf_detected": self.waf_detected,
+            "waf_name": self.waf_name,
+            "actions": self.actions,
+            "visited_nodes": list(self.visited_nodes),
+            "node_statuses": self.node_statuses,
+            "pivots": self.pivots,
+            "statistics": self.get_statistics(),
+        }
 
 
 class ScannerService:
@@ -55,15 +187,16 @@ class ScannerService:
         self.progress_callback = progress_callback
         self.vulnerability_callback = vulnerability_callback
         self.recon_callback = recon_callback
-        self._scanner = None
-        self._crawler = None
-        self._http_client = None
-        self._http_client_pool_size = None
-        self._http_client_proxy_sig = None
-        self._target_profiler = None
-        self._active_scans: dict = {}
-        self._cancelled_scans: set = set()
+        self._scanner: Any = None
+        self._crawler: Any = None
+        self._http_client: Any = None
+        self._http_client_pool_size: Optional[int] = None
+        self._http_client_proxy_sig: Optional[tuple[Any, ...]] = None
+        self._target_profiler: Any = None
+        self._active_scans: dict[str, Any] = {}
+        self._cancelled_scans: set[str] = set()
         self._kb_payload_cache: dict[str, dict[str, Any]] = {}
+        self._strategy_trackers: dict[str, ScanStrategyTracker] = {}
 
     def _get_proxy_signature(self, settings) -> Optional[tuple]:
         """
@@ -79,11 +212,11 @@ class ScannerService:
             if not host or port <= 0:
                 return None
             protocol = getattr(proxy, "protocol", None)
-            proto_value = (
-                protocol.value
-                if hasattr(protocol, "value")
-                else str(protocol or "socks5")
-            )
+            proto_value: str
+            if protocol is not None and hasattr(protocol, "value"):
+                proto_value = str(protocol.value)
+            else:
+                proto_value = str(protocol or "socks5")
             username = getattr(proxy, "username", None)
             password = getattr(proxy, "password", None)
             return (
@@ -98,13 +231,13 @@ class ScannerService:
             return None
 
     def _build_proxy_config(self, settings):
-        """Convert SettingsModel.proxy into brsxss.core.proxy_manager.ProxyConfig (or None)."""
+        """Convert SettingsModel.proxy into brsxss.detect.xss.reflected.proxy_manager.ProxyConfig (or None)."""
         sig = self._get_proxy_signature(settings)
         if sig is None:
             return None
         _, host, port, proto_value, username, password = sig
         try:
-            from brsxss.core.proxy_manager import ProxyConfig, ProxyProtocol
+            from brsxss.detect.xss.reflected.proxy_manager import ProxyConfig, ProxyProtocol
 
             proto = ProxyProtocol(proto_value)
             return ProxyConfig(
@@ -182,7 +315,7 @@ class ScannerService:
 
         info: dict[str, Any] = {}
         try:
-            from brsxss.payloads.kb_adapter import get_kb_adapter
+            from brsxss.detect.payloads.kb_adapter import get_kb_adapter
 
             kb = get_kb_adapter()
             if getattr(kb, "is_available", False):
@@ -195,12 +328,14 @@ class ScannerService:
         self._kb_payload_cache[payload] = info
         return info
 
-    async def _get_http_client(self, pool_size: Optional[int] = None):
+    async def _get_http_client(
+        self, pool_size: Optional[int] = None, request_delay_ms: int = 0
+    ):
         """Get or create shared HTTP client (applies proxy settings if enabled)."""
         desired_pool = pool_size or self._http_client_pool_size or 64
         if self._http_client is None or self._http_client_pool_size != desired_pool:
             try:
-                from brsxss.core.http_client import HTTPClient
+                from brsxss.detect.xss.reflected.http_client import HTTPClient
 
                 connector_limit = desired_pool
                 per_host = max(10, desired_pool // 4)
@@ -211,12 +346,16 @@ class ScannerService:
                     verify_ssl=True,
                     connector_limit=connector_limit,
                     connector_limit_per_host=per_host,
+                    request_delay_ms=request_delay_ms,
                 )
                 self._http_client_pool_size = desired_pool
                 self._http_client_proxy_sig = None
             except ImportError:
                 self._http_client = None
                 return self._http_client
+        elif self._http_client and request_delay_ms >= 0:
+            # Update rate limit on existing client
+            self._http_client.set_rate_limit(request_delay_ms)
 
         # Apply (or remove) proxy settings if changed
         try:
@@ -228,10 +367,7 @@ class ScannerService:
                     self._http_client.set_proxy(proxy_cfg)
                     if proxy_cfg:
                         logger.debug(
-                            "Proxy applied: %s://%s:%s",
-                            proxy_cfg.protocol.value,
-                            proxy_cfg.host,
-                            proxy_cfg.port,
+                            f"Proxy applied: {proxy_cfg.protocol.value}://{proxy_cfg.host}:{proxy_cfg.port}"
                         )
                     else:
                         logger.debug("Proxy disabled")
@@ -245,19 +381,28 @@ class ScannerService:
     ):
         """Get or create scanner instance with shared HTTP client"""
         try:
-            from brsxss.core import XSSScanner
+            from brsxss.detect.xss.reflected import XSSScanner
 
             http_client = await self._get_http_client(
-                perf.get("http_pool_size") if perf else None
+                perf.get("http_pool_size") if perf else None,
+                perf.get("request_delay_ms", 0) if perf else 0,
             )
             dom_workers = perf.get("dom_workers", 2) if perf else 2
             dom_gpu = perf.get("gpu_available", False) if perf else False
+            # Early stop settings based on SCAN MODE (not performance mode)
+            # quick/standard: early stop for speed
+            # deep: test ALL payloads, keep ALL evidence
+            # stealth: early stop to minimize detection
+            early_stop = perf.get("early_stop_threshold", 3) if perf else 3
+            max_evidence = perf.get("max_evidence", 10) if perf else 10
             scanner = XSSScanner(
                 max_payloads=max_payloads,
                 max_concurrent=perf.get("threads", 10) if perf else 10,
                 http_client=http_client,
                 dom_workers=dom_workers,
                 dom_use_gpu=dom_gpu,
+                early_stop_threshold=early_stop,
+                max_evidence=max_evidence,
             )
             scanner.scan_start_time = time.time()
             return scanner
@@ -268,7 +413,7 @@ class ScannerService:
     async def _get_crawler(self, config: dict):
         """Get crawler instance with shared HTTP client"""
         try:
-            from brsxss.crawler import CrawlerEngine, CrawlConfig
+            from brsxss.detect.crawler import CrawlerEngine, CrawlConfig
 
             http_client = await self._get_http_client()
 
@@ -289,7 +434,7 @@ class ScannerService:
         """Get target profiler instance with shared HTTP client"""
         if self._target_profiler is None:
             try:
-                from brsxss.reconnaissance import TargetProfiler
+                from brsxss.detect.recon import TargetProfiler
 
                 http_client = await self._get_http_client()
                 self._target_profiler = TargetProfiler(
@@ -300,7 +445,7 @@ class ScannerService:
                 self._target_profiler = None
         return self._target_profiler
 
-    async def start_scan(self, request: ScanRequest) -> str:
+    async def start_scan(self, request: ScanRequest, user_id: Optional[str] = None) -> str:
         """Start a new scan with crawling."""
         scan_id = str(uuid.uuid4())[:12]
 
@@ -308,8 +453,8 @@ class ScannerService:
         perf_mode = getattr(request, "performance_mode", None)
         perf_mode_value = perf_mode.value if perf_mode else "standard"
 
-        # Get current proxy settings to record with scan
-        settings = self.storage.get_settings()
+        # Get current proxy settings to record with scan (user-specific if auth enabled)
+        settings = self.storage.get_settings(user_id=user_id)
         proxy_used: dict
         if (
             settings.proxy
@@ -326,6 +471,16 @@ class ScannerService:
         else:
             proxy_used = {"enabled": False}
 
+        # Load custom payloads from request if provided
+        if request.custom_payloads:
+            loader = get_custom_payloads_loader()
+            for payload_str in request.custom_payloads:
+                if payload_str.strip():
+                    loader._payloads.append(CustomPayload(payload=payload_str.strip()))
+            logger.info(
+                f"Loaded {len(request.custom_payloads)} custom payloads from UI"
+            )
+
         self.storage.create_scan(
             scan_id=scan_id,
             url=request.target_url,
@@ -333,6 +488,7 @@ class ScannerService:
             performance_mode=perf_mode_value,
             settings=request.model_dump(),
             proxy_used=proxy_used,
+            user_id=user_id,
         )
 
         self.storage.update_scan_status(scan_id, ScanStatus.RUNNING)
@@ -341,6 +497,7 @@ class ScannerService:
             "request": request,
             "started_at": time.time(),
             "cancelled": False,
+            "user_id": user_id,
         }
 
         # Notify Telegram about scan start
@@ -383,7 +540,9 @@ class ScannerService:
         parsed = urlparse(url)
         return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
-    def _get_performance_settings(self, requested_mode: str = None) -> dict[str, Any]:
+    def _get_performance_settings(
+        self, requested_mode: Optional[str] = None
+    ) -> dict[str, Any]:
         """
         Get performance mode settings.
 
@@ -436,17 +595,42 @@ class ScannerService:
         parameters_tested = 0
         all_vulnerabilities = []
         target_profile = None
+        
+        # Initialize strategy engine and tracker
+        strategy_engine = StrategyEngine()
+        default_tree = create_default_strategy()
+        strategy_tracker = ScanStrategyTracker(
+            scan_id=scan_id,
+            strategy_tree_id=default_tree.id,
+            initial_context="html",  # Will be updated after context detection
+        )
+        self._strategy_trackers[scan_id] = strategy_tracker
 
         try:
             # Get performance settings - use mode from request if provided
             perf_mode = getattr(request, "performance_mode", None)
             perf_mode_value = perf_mode.value if perf_mode else None
             perf = self._get_performance_settings(perf_mode_value)
-            await self._get_http_client(perf.get("http_pool_size"))
+            await self._get_http_client(
+                perf.get("http_pool_size"), perf.get("request_delay_ms", 0)
+            )
 
             # Determine payload limit based on scan mode
             mode_limits = {"quick": 50, "standard": 200, "deep": None, "stealth": 100}
             max_payloads = mode_limits.get(request.mode.value, 200)
+
+            # Early stop settings based on SCAN MODE (thoroughness, not resources)
+            # 0 = disabled (test ALL payloads, keep ALL evidence)
+            scan_mode_settings = {
+                "quick": {"early_stop": 3, "max_evidence": 5},      # Fast, stop early
+                "standard": {"early_stop": 3, "max_evidence": 10},  # Balanced
+                "deep": {"early_stop": 0, "max_evidence": 0},       # Test ALL, keep ALL
+                "stealth": {"early_stop": 2, "max_evidence": 3},    # Minimal footprint
+            }
+            mode_settings = scan_mode_settings.get(request.mode.value, scan_mode_settings["standard"])
+            # Store in perf dict for scanner creation
+            perf["early_stop_threshold"] = mode_settings["early_stop"]
+            perf["max_evidence"] = mode_settings["max_evidence"]
 
             # Crawl limits based on scan mode + performance settings
             base_crawl = {
@@ -492,6 +676,7 @@ class ScannerService:
                         print(f"[RECON] Optimized payload count: {max_payloads}")
 
                 # Use WAF from reconnaissance
+                waf_info: Optional[WAFInfo] = None
                 if target_profile.get("waf") and target_profile["waf"].get("detected"):
                     waf_data = target_profile["waf"]
                     waf_info = WAFInfo(
@@ -518,7 +703,6 @@ class ScannerService:
                 return
 
             # Skip separate WAF detection if we have it from recon
-            waf_info = None
             if not target_profile or not target_profile.get("waf", {}).get("detected"):
                 # Phase 2: WAF Detection (fallback)
                 await self._notify_progress(
@@ -535,6 +719,13 @@ class ScannerService:
                 waf_info = await self._detect_waf(request.target_url)
                 if waf_info:
                     self.storage.set_waf_info(scan_id, waf_info)
+                    # Update strategy tracker with WAF info
+                    strategy_tracker.set_waf_info(True, waf_info.name)
+            else:
+                # WAF info from recon
+                if target_profile.get("waf", {}).get("detected"):
+                    waf_data = target_profile["waf"]
+                    strategy_tracker.set_waf_info(True, waf_data.get("name"))
 
             # Phase 3: Crawling
             await self._notify_progress(
@@ -722,13 +913,17 @@ class ScannerService:
                     print(f"Crawler error: {e}")
 
             # Deduplicate targets
-            seen = set()
-            unique_targets = []
+            seen: set[tuple[str, str, tuple[str, ...]]] = set()
+            unique_targets: list[dict[str, Any]] = []
             for target in scan_targets:
-                key = (
-                    target["url"],
-                    target["method"],
-                    tuple(sorted(target["params"].keys())),
+                params = target.get("params", {})
+                param_keys: tuple[str, ...] = tuple(
+                    sorted(params.keys() if hasattr(params, "keys") else params)
+                )
+                key: tuple[str, str, tuple[str, ...]] = (
+                    str(target["url"]),
+                    str(target["method"]),
+                    param_keys,
                 )
                 if key not in seen:
                     seen.add(key)
@@ -789,6 +984,8 @@ class ScannerService:
 
                 Adapts to machine capacity - weak machines get fewer parallel tasks,
                 powerful machines get more (controlled by max_parallel_targets from perf mode).
+                
+                Integrates with StrategyEngine for adaptive payload selection.
                 """
                 async with semaphore:
                     if self._is_cancelled(scan_id):
@@ -799,6 +996,33 @@ class ScannerService:
                     target_params = target["params"]
                     form_info = target.get("form_info")
                     target_vulns = []
+                    
+                    # Determine initial context for this target
+                    target_context = "html"  # Default
+                    if form_info:
+                        target_context = "attribute"  # Form fields are typically in attributes
+                    
+                    # Initialize strategy for this target
+                    strategy_engine.initialize(
+                        url=target_url,
+                        parameter=list(target_params.keys())[0] if target_params else "unknown",
+                        context_type=target_context,
+                        waf_detected=strategy_tracker.waf_detected,
+                        waf_name=strategy_tracker.waf_name,
+                    )
+                    
+                    # Record strategy initialization
+                    with scan_lock:
+                        strategy_tracker.record_action(
+                            action_type="initialize",
+                            node_id="root",
+                            context=target_context,
+                            metadata={
+                                "url": target_url,
+                                "parameters": list(target_params.keys()),
+                                "waf_detected": strategy_tracker.waf_detected,
+                            },
+                        )
 
                     try:
                         # Pass form_info to scanner for DOM XSS detection
@@ -822,9 +1046,44 @@ class ScannerService:
                             urls_scanned_counter[0] += 1
                             parameters_tested_counter[0] += len(target_params)
 
+                        # Track strategy actions for each result
+                        for result in results:
+                            # Skip None or non-dict results
+                            if result is None:
+                                print(f"[WARN] Skipping None result")
+                                continue
+                            if not isinstance(result, dict):
+                                print(f"[WARN] Skipping non-dict result: {type(result)}")
+                                continue
+                            payload = result.get("payload", "")
+                            ctx = result.get("context", result.get("context_type", "html"))
+                            is_vulnerable = result.get("vulnerable", False)
+                            
+                            # Determine node_id based on context
+                            node_id = f"ctx-{ctx.split('_')[0].lower()}" if ctx else "ctx-html"
+                            
+                            with scan_lock:
+                                strategy_tracker.record_action(
+                                    action_type="test_payload",
+                                    node_id=node_id,
+                                    payload=payload,
+                                    context=ctx,
+                                    metadata={
+                                        "vulnerable": is_vulnerable,
+                                        "confidence": result.get("confidence", 0),
+                                    },
+                                )
+                                strategy_tracker.record_result(node_id, is_vulnerable)
+
                         # Process vulnerabilities
                         for vuln in results:
-                            if not vuln or vuln.get("vulnerable") is False:
+                            # Skip None or non-dict results
+                            if vuln is None:
+                                continue
+                            if not isinstance(vuln, dict):
+                                print(f"[WARN] Skipping non-dict vuln: {type(vuln)}")
+                                continue
+                            if vuln.get("vulnerable") is False:
                                 continue
 
                             payload_str = vuln.get("payload", "")
@@ -849,6 +1108,7 @@ class ScannerService:
                             is_dom_xss = (
                                 reflection_type == "dom_based"
                                 or xss_type_from_vuln == "DOM-based XSS"
+                                or vuln.get("vulnerability_type") == "DOM XSS"
                                 or "DOM" in ctx
                                 or "dom" in ctx.lower()
                                 or "->" in ctx
@@ -859,12 +1119,22 @@ class ScannerService:
                                 "response_snippet"
                             )
                             if isinstance(evidence_value, list):
-                                evidence_str = "; ".join(
-                                    [
-                                        f"{e.get('trigger', 'unknown')}: {e.get('payload', '')[:50]}"
-                                        for e in evidence_value[:3]
-                                    ]
-                                )
+                                evidence_parts = []
+                                for e in evidence_value[:3]:
+                                    if e is None:
+                                        continue
+                                    if isinstance(e, dict):
+                                        trigger = e.get('trigger', 'unknown')
+                                        payload = e.get('payload', '')[:50] if e.get('payload') else ''
+                                        evidence_parts.append(f"{trigger}: {payload}")
+                                    elif hasattr(e, 'payload'):
+                                        # Object with .payload attribute
+                                        trigger = getattr(e, 'trigger', 'unknown')
+                                        payload = (e.payload or '')[:50]
+                                        evidence_parts.append(f"{trigger}: {payload}")
+                                    else:
+                                        evidence_parts.append(str(e)[:50])
+                                evidence_str = "; ".join(evidence_parts)
                             else:
                                 evidence_str = evidence_value or ""
 
@@ -897,19 +1167,19 @@ class ScannerService:
                             )
 
                             # Store additional metadata
-                            vuln_info._xss_type = (
+                            vuln_info.xss_type = (
                                 "DOM-Based XSS" if is_dom_xss else "Reflected XSS"
                             )
-                            vuln_info._reflection_type = reflection_type
-                            vuln_info._sink = (
+                            vuln_info.reflection_type = reflection_type
+                            vuln_info.sink = (
                                 ctx.split("->")[-1].strip() if "->" in ctx else ""
                             )
-                            vuln_info._source = (
+                            vuln_info.source = (
                                 ctx.split("->")[0].strip() if "->" in ctx else ""
                             )
 
                             # Deduplicate thread-safely
-                            sink_for_dedup = vuln_info._sink or "none"
+                            sink_for_dedup = vuln_info.sink or "none"
                             dedup_key = (target_url, sink_for_dedup, payload_str)
 
                             with scan_lock:
@@ -928,7 +1198,9 @@ class ScannerService:
                             )
 
                     except Exception as e:
+                        import traceback as tb
                         print(f"Error scanning {target_url}: {e}")
+                        tb.print_exc()
 
                     return target_vulns
 
@@ -1028,6 +1300,25 @@ class ScannerService:
                 duration_seconds=time.time() - start_time,
             )
 
+            # Save strategy path to database
+            try:
+                tracker_data = strategy_tracker.to_dict()
+                self.storage.save_scan_strategy_path(
+                    scan_id=scan_id,
+                    strategy_tree_id=tracker_data["strategy_tree_id"],
+                    initial_context=tracker_data["initial_context"],
+                    waf_detected=tracker_data["waf_detected"],
+                    waf_name=tracker_data["waf_name"],
+                    actions=tracker_data["actions"],
+                    visited_nodes=tracker_data["visited_nodes"],
+                    node_statuses=tracker_data["node_statuses"],
+                    pivots=tracker_data["pivots"],
+                    statistics=tracker_data["statistics"],
+                )
+                print(f"[STRATEGY] Saved strategy path for scan {scan_id}: {len(tracker_data['actions'])} actions, {len(tracker_data['visited_nodes'])} nodes")
+            except Exception as e:
+                print(f"[STRATEGY] Failed to save strategy path: {e}")
+
             # Completion
             await self._notify_progress(
                 ScanProgress(
@@ -1043,6 +1334,30 @@ class ScannerService:
             )
 
             self.storage.update_scan_status(scan_id, ScanStatus.COMPLETED)
+
+            # Update domain profile with scan results
+            try:
+                target_parsed = urlparse(request.target_url)
+                domain = target_parsed.netloc.lower()
+                # Get user_id from active scan context
+                scan_user_id = self._active_scans.get(scan_id, {}).get("user_id")
+                # Extract technologies from target profile
+                technologies = None
+                if target_profile and target_profile.get("technologies"):
+                    tech_data = target_profile["technologies"]
+                    technologies = tech_data.get("detected", [])
+                
+                self.storage.update_domain_profile_from_scan(
+                    domain=domain,
+                    scan_id=scan_id,
+                    vulnerabilities=all_vulnerabilities,
+                    waf_info=waf_info if waf_info else None,
+                    technologies=technologies,
+                    user_id=scan_user_id,
+                )
+                print(f"[DOMAIN] Updated profile for {domain}")
+            except Exception as e:
+                print(f"[DOMAIN] Profile update error: {e}")
 
             # Notify Telegram about completion
             # Get proxy info string from storage
@@ -1098,6 +1413,10 @@ class ScannerService:
         finally:
             if scan_id in self._active_scans:
                 del self._active_scans[scan_id]
+            
+            # Cleanup strategy tracker
+            if scan_id in self._strategy_trackers:
+                del self._strategy_trackers[scan_id]
 
             # Cleanup HTTP client
             if self._http_client:
@@ -1291,21 +1610,26 @@ class ScannerService:
         duration_seconds: float,
         urls_scanned: int,
         payloads_sent: int,
-        vulnerabilities: list,
-        target_profile: dict = None,
+        vulnerabilities: list[Any],
+        target_profile: Optional[dict[str, Any]] = None,
     ):
         """Notify Telegram about scan completion"""
         try:
             from brsxss.integrations.telegram_service import telegram_service
 
             # v4.0.0 Phase 9: Import finding normalizer
+            # v4.0.0-beta.2: Return type changed to dict[str, Any] for stats
+            prepare_findings_for_report: Optional[
+                Callable[[list[dict[str, Any]], str], dict[str, Any]]
+            ] = None
             try:
-                from brsxss.core.finding_normalizer import prepare_findings_for_report
+                from brsxss.detect.xss.reflected.finding_normalizer import (
+                    prepare_findings_for_report as _prepare_findings,
+                )
 
-                NORMALIZER_AVAILABLE = True
+                prepare_findings_for_report = _prepare_findings
             except ImportError:
-                NORMALIZER_AVAILABLE = False
-                prepare_findings_for_report = None
+                pass
 
             # Convert VulnerabilityInfo objects to dicts for PDF generation with deduplication FIRST
             # Then count statistics from deduplicated list
@@ -1388,12 +1712,15 @@ class ScannerService:
             # v4.0.0 Phase 9: UNIFIED NORMALIZATION
             # ALL findings MUST pass through normalizer before report/telegram
             # ========================================
-            normalized = {"confirmed": vuln_dicts, "potential": []}
-            if NORMALIZER_AVAILABLE and prepare_findings_for_report:
+            normalized: dict[str, list[dict[str, Any]]] = {
+                "confirmed": vuln_dicts,
+                "potential": [],
+            }
+            if prepare_findings_for_report is not None:
                 print(
                     f"[NORMALIZE] Applying unified normalization to {len(vuln_dicts)} findings (mode={mode})"
                 )
-                normalized = prepare_findings_for_report(vuln_dicts, mode=mode)
+                normalized = prepare_findings_for_report(vuln_dicts, mode)
                 print("[NORMALIZE] Normalization complete")
 
             confirmed_vulns = normalized.get("confirmed", [])

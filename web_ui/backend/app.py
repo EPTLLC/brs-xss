@@ -133,6 +133,14 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         """Lifespan context manager for startup/shutdown events"""
+        # Reset KB adapter cache on startup to ensure fresh data
+        try:
+            from brsxss.detect.payloads.kb_adapter import reset_kb_adapter
+            reset_kb_adapter()
+            print("[KB] Cache cleared on startup")
+        except ImportError:
+            pass
+        
         await init_telegram()
         yield
         # Cleanup on shutdown (if needed)

@@ -16,8 +16,8 @@ from typing import Optional
 from rich.console import Console
 from rich.table import Table
 
-from brsxss.payloads.payload_manager import PayloadManager
-from brsxss.payloads.context_matrix import ContextMatrix, Context
+from brsxss.detect.payloads.payload_manager import PayloadManager
+from brsxss.detect.payloads.context_matrix import ContextMatrix, Context
 
 console = Console()
 

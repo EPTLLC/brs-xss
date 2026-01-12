@@ -137,6 +137,17 @@ class TelegramService:
         if self._config and self._config.bot_token:
             self._config.enabled = True
 
+    async def set_channel(self, channel_id: int) -> dict[str, Any]:
+        """Set channel ID for scan posts"""
+        if not self._config:
+            return {"success": False, "error": "Bot not configured"}
+
+        self._config.channel_id = channel_id
+        if self._bot:
+            self._bot.config.channel_id = channel_id
+
+        return {"success": True, "channel_id": channel_id}
+
     def get_status(self) -> dict[str, Any]:
         """Get current status"""
         if not self._config:
@@ -181,8 +192,8 @@ class TelegramService:
         low: int,
         urls_scanned: int = 0,
         payloads_sent: int = 0,
-        target_profile: Optional[dict[Any, Any]] = None,
-        vulnerabilities: Optional[list[Any]] = None,
+        target_profile: Optional[dict[str, Any]] = None,
+        vulnerabilities: Optional[dict[str, list[dict[str, Any]]]] = None,
     ):
         """Handle scan completed event - generate PDFs and post to channel"""
         if not self.is_configured or not self._bot:
@@ -190,7 +201,7 @@ class TelegramService:
             return
 
         try:
-            from .pdf_report import PDFReportGenerator
+            from ..report.pdf_report import PDFReportGenerator
 
             pdf_gen = PDFReportGenerator()
 

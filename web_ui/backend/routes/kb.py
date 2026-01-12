@@ -22,7 +22,7 @@ def register(app: FastAPI):
     async def get_kb_stats():
         """Get BRS-KB statistics - data from remote API via KBAdapter"""
         try:
-            from brsxss.payloads.kb_adapter import get_kb_adapter
+            from brsxss.detect.payloads.kb_adapter import get_kb_adapter
 
             # Get statistics from KB API
             kb = get_kb_adapter()
@@ -75,7 +75,7 @@ def register(app: FastAPI):
         offset: int = Query(0, ge=0),
     ):
         """Get payloads from BRS-KB"""
-        from brsxss.payloads import PayloadManager
+        from brsxss.detect.payloads import PayloadManager
 
         pm = PayloadManager()
 

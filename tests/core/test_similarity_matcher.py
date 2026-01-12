@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.similarity_matcher import SimilarityMatcher
+from brsxss.detect.xss.reflected.similarity_matcher import SimilarityMatcher
 
 
 def test_find_similar_reflections_exact_partial_fuzzy_and_threshold():

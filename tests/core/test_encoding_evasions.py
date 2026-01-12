@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import random
-from brsxss.core.encoding_evasions import EncodingEvasions
+from brsxss.detect.xss.reflected.encoding_evasions import EncodingEvasions
 
 
 def test_encoding_evasions_outputs(monkeypatch):

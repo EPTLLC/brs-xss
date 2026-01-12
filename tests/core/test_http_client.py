@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 import pytest
 from aresponses.main import ResponsesMockServer
 
-from brsxss.core.http_client import HTTPClient
+from brsxss.detect.xss.reflected.http_client import HTTPClient
 
 
 @pytest.mark.asyncio

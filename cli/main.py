@@ -20,7 +20,7 @@ from .commands.payloads import payloads_group
 from brsxss import __version__
 
 # BRS-KB is the single source of truth for knowledge base
-from brsxss.payloads import PayloadManager
+from brsxss.detect.payloads import PayloadManager
 
 app = typer.Typer(
     name="brs-xss",
@@ -64,6 +64,9 @@ def scan(
     max_payloads: int = typer.Option(
         500, "--max-payloads", help="Max payloads per entry point"
     ),
+    custom_payloads: Optional[str] = typer.Option(
+        None, "--custom-payloads", help="Path to custom payloads file (one per line)"
+    ),
 ):
     simple_scan.simple_scan_wrapper(
         target,
@@ -77,6 +80,7 @@ def scan(
         safe_mode,
         pool_cap,
         max_payloads,
+        custom_payloads,
     )
 
 
@@ -113,7 +117,7 @@ def version():
 )
 def config(ctx: typer.Context):
     """Manage configuration settings"""
-    from brsxss.core.config_manager import ConfigManager
+    from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
     # Manual parse of flags and options due to parsing quirks
     args = list(ctx.args or [])

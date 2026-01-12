@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.security_headers import SecurityHeadersInspector
+from brsxss.detect.xss.reflected.security_headers import SecurityHeadersInspector
 
 
 def test_security_headers_inspector_minimal_secure():

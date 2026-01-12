@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.waf.header_detector import HeaderDetector
-from brsxss.waf.waf_types import WAFType
+from brsxss.detect.waf.header_detector import HeaderDetector
+from brsxss.detect.waf.waf_types import WAFType
 
 
 def test_header_detector_by_header_name():

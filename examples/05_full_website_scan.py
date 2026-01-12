@@ -15,8 +15,8 @@ website using the crawler to discover entry points.
 """
 
 import asyncio
-from brsxss.core import XSSScanner
-from brsxss.crawler import CrawlerEngine
+from brsxss.detect.xss.reflected import XSSScanner
+from brsxss.detect.crawler import CrawlerEngine
 from brsxss.report import ReportGenerator, ReportFormat
 
 

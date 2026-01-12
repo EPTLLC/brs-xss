@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import pytest
 
-from brsxss.core.http_client import HTTPClient, HTTPResponse
+from brsxss.detect.xss.reflected.http_client import HTTPClient, HTTPResponse
 
 
 @pytest.mark.asyncio

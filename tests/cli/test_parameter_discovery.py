@@ -48,7 +48,7 @@ async def test_discover_parameters_finds_post_form():
 
     # We need to mock the CrawlerEngine class to return our mock instance
     # This is a bit complex due to how it's imported within the function
-    from brsxss.crawler import engine
+    from brsxss.detect.crawler import engine
 
     original_crawler_engine = engine.CrawlerEngine
     engine.CrawlerEngine = MagicMock(return_value=mock_crawler_instance)

@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.payloads import (
+from brsxss.detect.xss.reflected.payloads import (
     PayloadGenerator,
     GeneratedPayload,
     PayloadTemplate,

@@ -318,7 +318,6 @@ def run_processes(processes: list[ManagedProcess]) -> int:
 def main():
     args = parse_args()
     root_dir = Path(__file__).resolve().parents[1]
-    backend_dir = root_dir / "web_ui" / "backend"
     frontend_dir = root_dir / "web_ui" / "frontend"
 
     ensure_python_dependencies()
@@ -337,7 +336,7 @@ def main():
     )
 
     processes = [
-        ManagedProcess("backend", backend_command, backend_dir),
+        ManagedProcess("backend", backend_command, root_dir),  # Run from project root
         ManagedProcess("frontend", frontend_command, frontend_dir),
     ]
     exit_code = run_processes(processes)

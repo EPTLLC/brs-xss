@@ -9,9 +9,9 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.waf.evasion_engine import EvasionEngine
-from brsxss.waf.detector import WAFInfo, WAFType
-from brsxss.waf.evasion_types import EvasionTechnique
+from brsxss.detect.waf.evasion_engine import EvasionEngine
+from brsxss.detect.waf.detector import WAFInfo, WAFType
+from brsxss.detect.waf.evasion_types import EvasionTechnique
 
 
 def test_generate_evasions_generic_and_waf_specific(monkeypatch):

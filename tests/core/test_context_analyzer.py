@@ -10,8 +10,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pytest
-from brsxss.core.context_analyzer import ContextAnalyzer
-from brsxss.core.context_types import ContextType
+from brsxss.detect.xss.reflected.context_analyzer import ContextAnalyzer
+from brsxss.detect.xss.reflected.context_types import ContextType
 
 
 @pytest.fixture

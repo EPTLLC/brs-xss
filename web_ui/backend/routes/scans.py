@@ -12,26 +12,39 @@ Scan management routes.
 """
 
 from datetime import datetime
-from typing import Optional, Any
-from fastapi import FastAPI, HTTPException, Query
+from typing import Optional
+from fastapi import FastAPI, HTTPException, Query, Header
 from ..models import ScanRequest, ScanResult, ScanSummary, ScanStatus
+from .auth import get_current_user
 
 
 def register(app: FastAPI, storage, scanner_service):
     """Register scan routes"""
 
+    def _get_user_id(authorization: Optional[str]) -> Optional[str]:
+        """Extract user_id from auth header if auth is enabled"""
+        config = storage.get_auth_config()
+        if not config.auth_enabled:
+            return None
+        user = get_current_user(authorization)
+        return user.id if user else None
+
     @app.post("/api/scans", response_model=dict)
-    async def create_scan(request: ScanRequest):
+    async def create_scan(request: ScanRequest, authorization: Optional[str] = Header(None)):
         """Start a new scan"""
-        scan_id = await scanner_service.start_scan(request)
+        user_id = _get_user_id(authorization)
+        scan_id = await scanner_service.start_scan(request, user_id=user_id)
         return {"scan_id": scan_id, "status": "started"}
 
     @app.get("/api/scans", response_model=list[ScanSummary])
     async def list_scans(
-        limit: int = Query(20, le=100), status: Optional[ScanStatus] = None
+        limit: int = Query(20, le=100),
+        status: Optional[ScanStatus] = None,
+        authorization: Optional[str] = Header(None),
     ):
         """list recent scans"""
-        scans = storage.get_recent_scans(limit)
+        user_id = _get_user_id(authorization)
+        scans = storage.get_recent_scans(limit, user_id=user_id)
         if status:
             scans = [s for s in scans if s.status == status]
         return scans
@@ -101,45 +114,16 @@ def register(app: FastAPI, storage, scanner_service):
             try:
                 start = datetime.fromisoformat(start_str.replace("Z", "+00:00"))
                 end = datetime.fromisoformat(end_str.replace("Z", "+00:00"))
-                duration = (end - start).total_seconds()
+                duration = int((end - start).total_seconds())
             except Exception:
                 duration = scan.duration_seconds or 0
 
-        vulns = []
-        for v in scan.vulnerabilities or []:
-            if hasattr(v, "model_dump"):
-                vulns.append(v.model_dump())
-            elif hasattr(v, "dict"):
-                vulns.append(v.dict())
-            elif isinstance(v, dict):
-                vulns.append(v)
-            else:
-                vulns.append(
-                    {
-                        "severity": getattr(v, "severity", "unknown"),
-                        "url": getattr(v, "url", ""),
-                        "parameter": getattr(v, "parameter", ""),
-                        "payload": getattr(v, "payload", ""),
-                        "context_type": getattr(v, "context_type", ""),
-                    }
-                )
+        # Use count/ module - SINGLE SOURCE OF TRUTH
+        from brsxss.count import count_findings, prepare_report_data
 
-        # v4.0.0 Phase 9: Apply unified normalization
-        confirmed_vulns: list[dict[str, Any]] = []
-        try:
-            from brsxss.core.finding_normalizer import prepare_findings_for_report
-
-            normalized = prepare_findings_for_report(vulns, mode=mode_str)
-            confirmed_vulns = normalized.get("confirmed", [])
-            normalized.get("potential", [])
-        except ImportError:
-            confirmed_vulns = vulns
-            normalized = {"confirmed": confirmed_vulns, "potential": []}
-
-        critical = sum(1 for v in confirmed_vulns if v.get("severity") == "critical")
-        high = sum(1 for v in confirmed_vulns if v.get("severity") == "high")
-        medium = sum(1 for v in confirmed_vulns if v.get("severity") == "medium")
-        low = sum(1 for v in confirmed_vulns if v.get("severity") == "low")
+        vulns = scan.vulnerabilities or []
+        counts = count_findings(vulns)
+        report_data = prepare_report_data(vulns)
 
         await telegram_service.on_scan_completed(
             scan_id=scan_id,
@@ -147,15 +131,15 @@ def register(app: FastAPI, storage, scanner_service):
             mode=mode_str,
             duration_seconds=duration,
             proxy=proxy_str,
-            total_vulns=len(confirmed_vulns),
-            critical=critical,
-            high=high,
-            medium=medium,
-            low=low,
+            total_vulns=counts.total,
+            critical=counts.critical,
+            high=counts.high,
+            medium=counts.medium,
+            low=counts.low,
             urls_scanned=scan.urls_scanned or 0,
             payloads_sent=scan.payloads_sent or 0,
             target_profile=profile,
-            vulnerabilities=normalized,
+            vulnerabilities=report_data.to_dict(),
         )
 
         return {"status": "sent", "scan_id": scan_id}

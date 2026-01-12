@@ -752,6 +752,16 @@
     margin-top: 8px;
   }
 
+  /* Tooltip positioned above (for action buttons in tables) */
+  .brs-tooltip-top::after {
+    left: 50%;
+    top: auto;
+    bottom: 100%;
+    transform: translateX(-50%);
+    margin-left: 0;
+    margin-bottom: 8px;
+  }
+
   /* ============================================
      ANIMATIONS
      ============================================ */

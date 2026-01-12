@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pytest
-from brsxss.core.payload_types import GeneratedPayload, PayloadTemplate, ContextType
+from brsxss.detect.xss.reflected.payload_types import GeneratedPayload, PayloadTemplate, ContextType
 
 
 def test_generated_payload_validation():

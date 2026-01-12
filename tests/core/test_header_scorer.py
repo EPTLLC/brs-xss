@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.header_scorer import HeaderSecurityScorer
-from brsxss.core.header_types import HeaderAnalysis, SecurityLevel
+from brsxss.detect.xss.reflected.header_scorer import HeaderSecurityScorer
+from brsxss.detect.xss.reflected.header_types import HeaderAnalysis, SecurityLevel
 
 
 def test_header_scorer_calculates_and_describes():

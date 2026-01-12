@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 import builtins
 
-from brsxss.dom.javascript_extractor import JavaScriptExtractor
+from brsxss.detect.xss.dom.javascript_extractor import JavaScriptExtractor
 
 
 def test_extract_from_file_js(tmp_path):

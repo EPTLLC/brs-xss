@@ -1,6 +1,6 @@
 # Classification Engine
 
-**BRS-XSS v4.0.0-beta.1 - Intelligent XSS Classification System**
+**BRS-XSS v4.0.0-beta.2 - Intelligent XSS Classification System**
 
 ## Overview
 

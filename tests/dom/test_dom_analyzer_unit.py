@@ -9,9 +9,9 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.dom.dom_analyzer import DOMAnalyzer
-from brsxss.dom.ast_types import ASTNode, NodeType, SourceSinkMapping
-from brsxss.dom.vulnerability_types import VulnerabilityType, RiskLevel
+from brsxss.detect.xss.dom.dom_analyzer import DOMAnalyzer
+from brsxss.detect.xss.dom.ast_types import ASTNode, NodeType, SourceSinkMapping
+from brsxss.detect.xss.dom.vulnerability_types import VulnerabilityType, RiskLevel
 
 
 def _node(nt: NodeType, value: str, ln: int, col: int, **kw) -> ASTNode:

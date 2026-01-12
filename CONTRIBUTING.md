@@ -49,7 +49,7 @@ pre-commit install
 
 ### Code Standards
 
-- **Language:** Python 3.8+
+- **Language:** Python 3.10+
 - **Style:** Follow PEP 8
 - **Linting:** Use `ruff check .`
 - **Type Hints:** Required for all new code

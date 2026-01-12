@@ -33,4 +33,4 @@ python-dateutil>=2.8.0   # Date/time utilities
 urllib3>=1.26.0          # HTTP library utilities
 
 # DOM XSS Detection
-playwright>=1.40.0       # Headless browser for DOM XSS detection (1.50+ not available for Python 3.8)
+playwright>=1.40.0       # Headless browser for DOM XSS detection

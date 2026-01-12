@@ -11,7 +11,7 @@ Telegram: https://t.me/EasyProTech
 
 from pathlib import Path
 
-from brsxss.core.config_manager import ConfigManager
+from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
 
 def test_simple_toml_parser_arrays_and_types(monkeypatch, tmp_path: Path):

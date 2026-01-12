@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from types import SimpleNamespace
-from brsxss.waf.behavior_detector import BehaviorDetector
+from brsxss.detect.waf.behavior_detector import BehaviorDetector
 
 
 def _resp(code: int, ct: str = "text/html", body: bytes = b"hi"):

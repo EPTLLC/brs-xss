@@ -12,7 +12,7 @@ Telegram: https://t.me/EasyProTech
 import yaml
 from pathlib import Path
 
-from brsxss.core.config_manager import ConfigManager
+from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
 
 def test_simple_toml_parser_edges(monkeypatch, tmp_path: Path):

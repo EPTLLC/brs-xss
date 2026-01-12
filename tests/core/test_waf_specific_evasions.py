@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.waf_specific_evasions import WAFSpecificEvasions
+from brsxss.detect.xss.reflected.waf_specific_evasions import WAFSpecificEvasions
 
 
 def test_apply_waf_specific_evasions_cloudflare():

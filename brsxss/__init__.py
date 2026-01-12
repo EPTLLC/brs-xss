@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 """
-Project: BRS-XSS v4.0.0
+Project: BRS-XSS
 Company: EasyProTech LLC (www.easypro.tech)
 Dev: Brabus
-Date: Sun 28 Dec 2025 UTC
-Status: Beta - v4.0.0-beta.1
+Date: Sat 10 Jan 2026 10:00 UTC
+Status: Beta
 Telegram: https://t.me/EasyProTech
 """
 
@@ -18,15 +18,19 @@ __contact__ = "https://t.me/EasyProTech"
 __license__ = "MIT"
 __description__ = "Context-aware async XSS scanner powered by BRS-KB"
 
-# Core components
-from .core import ConfigManager, HTTPClient, XSSScanner
-from .dom import DOMAnalyzer, DOMVulnerability
+# Core components - from new detect/ structure
+from .detect.xss.reflected import ConfigManager, HTTPClient, XSSScanner
+from .detect.xss.dom import DOMAnalyzer, DOMVulnerability
+from .detect.waf import WAFDetector, EvasionEngine
+from .detect.crawler import CrawlerEngine, FormExtractor
+
+# Reporting
 from .report import ReportGenerator, ReportFormat
-from .waf import WAFDetector, EvasionEngine
-from .crawler import CrawlerEngine, FormExtractor
+
+# Utilities
 from .utils import Logger, URLValidator
 
-# API and GUI removed - terminal-only mode
+# Internationalization
 from .i18n.messages import Messages
 
 # Initialize internationalization

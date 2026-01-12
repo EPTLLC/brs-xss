@@ -4,6 +4,7 @@
  */
 
 import { useCallback, useRef, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useScanStore } from '../store/scanStore'
 import type { WSMessage, ScanProgress, VulnerabilityInfo } from '../types'
 
@@ -11,9 +12,13 @@ const DEFAULT_RECONNECT_MS = 3000
 const PING_INTERVAL_MS = 30000
 
 function getDefaultWsUrl(): string {
-  if (typeof window === 'undefined') return 'ws://localhost/ws'
+  if (typeof window === 'undefined') return 'ws://localhost:8000/ws'
   const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-  return `${proto}://${window.location.host}/ws`
+  const hostname = window.location.hostname
+  // In dev mode, frontend is on 5173 but backend is on 8000
+  // In production, both are on the same port (proxied)
+  const port = window.location.port === '5173' ? '8000' : window.location.port
+  return `${proto}://${hostname}:${port}/ws`
 }
 
 const WS_URL = import.meta.env.VITE_WS_URL || getDefaultWsUrl()
@@ -24,6 +29,7 @@ export function useWebSocket() {
   const pingIntervalRef = useRef<number>()
   const shouldReconnectRef = useRef(true)
   const { updateProgress, addVulnerability } = useScanStore()
+  const queryClient = useQueryClient()
 
   const connect = useCallback(() => {
     shouldReconnectRef.current = true
@@ -57,12 +63,23 @@ export function useWebSocket() {
           const message: WSMessage = JSON.parse(event.data)
           
           switch (message.type) {
-            case 'progress':
-              updateProgress(message.data as ScanProgress)
+            case 'progress': {
+              const progress = message.data as ScanProgress
+              updateProgress(progress)
+              
+              // Invalidate scan query when status changes to completed/failed
+              if (progress.status === 'completed' || progress.status === 'failed') {
+                queryClient.invalidateQueries({ queryKey: ['scan', progress.scan_id] })
+                queryClient.invalidateQueries({ queryKey: ['scans'] })
+                queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+              }
               break
+            }
             case 'vulnerability':
               if (message.scan_id) {
                 addVulnerability(message.scan_id, message.data as VulnerabilityInfo)
+                // Invalidate scan query to refresh vulnerability count
+                queryClient.invalidateQueries({ queryKey: ['scan', message.scan_id] })
               }
               break
             case 'pong':
@@ -91,7 +108,7 @@ export function useWebSocket() {
       if (!shouldReconnectRef.current) return
       reconnectTimeoutRef.current = window.setTimeout(connect, DEFAULT_RECONNECT_MS)
     }
-  }, [updateProgress, addVulnerability])
+  }, [updateProgress, addVulnerability, queryClient])
 
   const disconnect = useCallback(() => {
     shouldReconnectRef.current = false

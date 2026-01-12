@@ -73,7 +73,7 @@ def fuzz_command(ctx: typer.Context):
     console.print(_("Delay: {delay}s").format(delay=delay))
 
     try:
-        from brsxss.waf.detector import WAFDetector
+        from brsxss.detect.waf.detector import WAFDetector
         from brsxss.utils.validators import URLValidator
         from brsxss.utils.logger import Logger
         import time

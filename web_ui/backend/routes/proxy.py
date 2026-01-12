@@ -13,7 +13,7 @@ Proxy management routes.
 
 import uuid
 from fastapi import FastAPI, HTTPException
-from brsxss.core.proxy_manager import (
+from brsxss.detect.xss.reflected.proxy_manager import (
     ProxyParser,
     ProxyManager,
     ProxyProtocol as CoreProxyProtocol,

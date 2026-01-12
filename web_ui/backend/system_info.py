@@ -22,6 +22,9 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 import subprocess
 
+# Module-level cache for network delta calculation
+_net_cache: dict[str, Any] = {}
+
 
 @dataclass
 class SystemProfile:
@@ -196,7 +199,7 @@ class SystemDetector:
         except Exception as e:
             print(f"Warning: Could not save system profile: {e}")
 
-    def _detect_gpu(self) -> (str, int):
+    def _detect_gpu(self) -> tuple[str, int]:
         """Detect GPU model/count (NVIDIA preferred)."""
         gpu_model = "None"
         gpu_count = 0
@@ -269,42 +272,59 @@ class SystemDetector:
             else profile.network_speed_mbps / 1000.0
         )
         capacity_multiplier = freq_factor * gpu_factor * net_factor
-        max_rps = int(min(cores * 25, ram_gb * 12) * capacity_multiplier)
-        dom_workers_base = max(2, cores // 4)
-        playwright_browsers_base = max(2, cores // 12)
-        http_pool_base = max(32, cores * 4)
+        # XSS scanning is I/O-bound (HTTP requests), not CPU-bound
+        # We can have MANY more concurrent tasks than CPU threads
+        # Each task mostly waits for network response
+        max_rps = int(min(cores * 50, ram_gb * 20) * capacity_multiplier)
+        dom_workers_base = max(2, cores // 2)  # More DOM workers
+        playwright_browsers_base = max(2, cores // 6)  # More browsers
+        http_pool_base = max(64, cores * 8)  # Larger connection pool
 
-        # Calculate modes as percentages of capacity
-        def mode(key: str, share: float, desc: str, recommended=False):
-            threads = max(1, int(max_threads * share))
+        # Calculate modes - aggressive for I/O-bound scanning
+        def mode(
+            key: str,
+            share: float,
+            concurrent_multiplier: int,
+            desc: str,
+            recommended=False,
+        ):
+            threads = max(2, int(max_threads * share))
+            # I/O-bound: concurrent can be MUCH higher than threads
+            # Network latency means we can have many requests in flight
+            concurrent = max(10, threads * concurrent_multiplier)
+            rps = max(10, int(max_rps * share))
             return PerformanceMode(
                 name=key,
                 label=desc.split()[0],
                 description=desc,
                 threads=threads,
-                max_concurrent=max(1, threads),
-                requests_per_second=max(5, int(max_rps * share)),
-                request_delay_ms=(
-                    0
-                    if share >= 0.5
-                    else max(5, int(1000 / max(5, int(max_rps * share))))
-                ),
-                dom_workers=max(1, int(dom_workers_base * share)),
+                max_concurrent=concurrent,
+                requests_per_second=rps,
+                request_delay_ms=0 if share >= 0.3 else max(5, int(500 / rps)),
+                dom_workers=max(2, int(dom_workers_base * share)),
                 playwright_browsers=max(1, int(playwright_browsers_base * share)),
-                http_pool_size=max(16, int(http_pool_base * share)),
+                http_pool_size=max(32, int(http_pool_base * share)),
                 recommended=recommended,
             )
 
         modes = {
-            "light": mode("light", 0.15, "Light minimal load"),
+            # Light: gentle, for shared/weak systems
+            "light": mode("light", 0.15, 4, "Light minimal load"),
+            # Standard: balanced, good for most systems
             "standard": mode(
-                "standard", 0.35, "Standard balanced", recommended=(cores <= 8)
+                "standard", 0.4, 6, "Standard balanced", recommended=(cores <= 8)
             ),
+            # Turbo: aggressive, uses most resources
             "turbo": mode(
-                "turbo", 0.6, "Turbo high performance", recommended=(8 < cores <= 24)
+                "turbo",
+                0.7,
+                10,
+                "Turbo high performance",
+                recommended=(8 < cores <= 24),
             ),
+            # Maximum: BURN THE CPU - full power, no mercy
             "maximum": mode(
-                "maximum", 0.95, "Maximum full power", recommended=(cores > 24)
+                "maximum", 1.0, 16, "Maximum FULL POWER", recommended=(cores > 24)
             ),
         }
 
@@ -315,6 +335,8 @@ class SystemDetector:
         """Get specific performance mode by name"""
         if self._modes is None:
             self.get_performance_modes()
+        if self._modes is None:
+            return None
         return self._modes.get(name)
 
     def get_recommended_mode(self) -> PerformanceMode:
@@ -453,7 +475,7 @@ def get_live_stats() -> dict[str, Any]:
 
         # Use module-level cache for network delta calculation
         global _net_cache
-        if "_net_cache" not in globals():
+        if not _net_cache:
             _net_cache = {
                 "time": current_time,
                 "sent": net_io.bytes_sent,

@@ -14,7 +14,7 @@ This example demonstrates how to scan HTML forms using POST method.
 """
 
 import asyncio
-from brsxss.core import XSSScanner
+from brsxss.detect.xss.reflected import XSSScanner
 
 
 async def main():

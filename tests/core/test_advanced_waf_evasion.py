@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import random
-from brsxss.core.advanced_waf_evasion import AdvancedWAFEvasion
+from brsxss.detect.xss.reflected.advanced_waf_evasion import AdvancedWAFEvasion
 
 
 def test_generate_evasion_variations_deterministic(monkeypatch):

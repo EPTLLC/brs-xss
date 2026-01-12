@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.waf.content_detector import ContentDetector
-from brsxss.waf.waf_types import WAFType
+from brsxss.detect.waf.content_detector import ContentDetector
+from brsxss.detect.waf.waf_types import WAFType
 
 
 def test_content_detector_cloudflare_signature_and_blocking_behavior():

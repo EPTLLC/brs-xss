@@ -13,7 +13,7 @@ import pytest
 import os
 from unittest.mock import patch
 
-from brsxss.core.config_manager import ConfigManager
+from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
 # --- Mock Data ---
 MOCK_DEFAULT_YAML = """

@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.dom.javascript_extractor import JavaScriptExtractor
-from brsxss.dom.javascript_parser import JavaScriptParser
+from brsxss.detect.xss.dom.javascript_extractor import JavaScriptExtractor
+from brsxss.detect.xss.dom.javascript_parser import JavaScriptParser
 
 
 def test_extract_from_html_variants():

@@ -13,7 +13,6 @@ import {
   Zap, 
   Eye, 
   Bell,
-  Palette,
   Save,
   Check,
   Cpu,
@@ -41,8 +40,6 @@ interface SettingsState {
   enableTelegram: boolean;
   telegramBotToken: string;
   telegramChatId: string;
-  theme: string;
-  resultsPerPage: number;
 }
 
 interface SavedProxy {
@@ -137,8 +134,6 @@ export function Settings() {
     enableTelegram: false,
     telegramBotToken: '',
     telegramChatId: '',
-    theme: 'dark',
-    resultsPerPage: 20,
   });
 
   // Proxy state
@@ -151,6 +146,37 @@ export function Settings() {
   const [telegramStatus, setTelegramStatus] = useState<TelegramStatus | null>(null);
   const [isTestingTelegram, setIsTestingTelegram] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
+
+  // Load saved settings from backend
+  const { data: savedSettings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => api.get('/settings').then(res => res.data),
+  });
+
+  // Load telegram status
+  const { data: telegramStatusData } = useQuery<TelegramStatus>({
+    queryKey: ['telegram-status'],
+    queryFn: () => api.get('/telegram').then(res => res.data),
+  });
+
+  // Update local state when saved settings load
+  useEffect(() => {
+    if (savedSettings) {
+      setSettings(prev => ({
+        ...prev,
+        enableTelegram: savedSettings.telegram_enabled || false,
+        telegramBotToken: savedSettings.telegram_bot_token || '',
+        telegramChatId: savedSettings.telegram_channel_input || savedSettings.telegram_channel_id?.toString() || '',
+      }));
+    }
+  }, [savedSettings]);
+
+  // Update telegram status when loaded
+  useEffect(() => {
+    if (telegramStatusData) {
+      setTelegramStatus(telegramStatusData);
+    }
+  }, [telegramStatusData]);
 
   // Proxy settings query
   const { data: proxySettings } = useQuery<ProxySettings>({
@@ -261,6 +287,9 @@ export function Settings() {
           bot_username: response.data.bot_username
         });
         setTelegramError(null);
+        // Refresh settings and telegram status
+        queryClient.invalidateQueries({ queryKey: ['settings'] });
+        queryClient.invalidateQueries({ queryKey: ['telegram-status'] });
       } else {
         setTelegramError(response.data.error || 'Configuration failed');
         setTelegramStatus(null);
@@ -309,7 +338,7 @@ export function Settings() {
               href="https://github.com/EPTLLC/brs-xss"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline font-mono"
+              className="flex items-center gap-1 text-xs text-[var(--color-primary)] hover:opacity-80 transition-opacity font-mono"
             >
               BRS-XSS
               <ExternalLink className="w-3 h-3" />
@@ -801,7 +830,7 @@ export function Settings() {
                       }}
                     />
                     <p className="text-xs text-[var(--color-text-muted)] mt-1">
-                      Get token from <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:underline">@BotFather</a>
+                      Get token from <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" className="text-[var(--color-primary)] hover:opacity-80 transition-opacity">@BotFather</a>
                     </p>
                   </div>
                   <div>
@@ -886,44 +915,6 @@ export function Settings() {
             </div>
           </div>
 
-          {/* UI Preferences */}
-          <div className="brs-card">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-[var(--color-success-muted)] flex items-center justify-center">
-                <Palette className="w-5 h-5 text-[var(--color-success)]" />
-              </div>
-              <h2 className="text-lg font-semibold">UI Preferences</h2>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm text-[var(--color-text-secondary)] mb-2">
-                  Theme
-                </label>
-                <select
-                  className="brs-select"
-                  value={settings.theme}
-                  onChange={(e) => setSettings({ ...settings, theme: e.target.value })}
-                >
-                  <option value="dark">Dark (Cyber)</option>
-                  <option value="light">Light</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-[var(--color-text-secondary)] mb-2">
-                  Results Per Page
-                </label>
-                <input
-                  type="number"
-                  className="brs-input"
-                  min="10"
-                  max="100"
-                  value={settings.resultsPerPage}
-                  onChange={(e) => setSettings({ ...settings, resultsPerPage: parseInt(e.target.value) })}
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </>

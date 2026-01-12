@@ -14,8 +14,8 @@ This example demonstrates WAF detection and automatic bypass technique generatio
 """
 
 import asyncio
-from brsxss.core import XSSScanner
-from brsxss.waf import WAFDetector, EvasionEngine
+from brsxss.detect.xss.reflected import XSSScanner
+from brsxss.detect.waf import WAFDetector, EvasionEngine
 
 
 async def main():

@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.payload_generator import PayloadGenerator
-from brsxss.core.payload_types import GenerationConfig, EvasionTechnique
+from brsxss.detect.xss.reflected.payload_generator import PayloadGenerator
+from brsxss.detect.xss.reflected.payload_types import GenerationConfig, EvasionTechnique
 
 
 def _cfg(**kw):

@@ -10,8 +10,8 @@ Telegram: https://t.me/EasyProTech
 """
 
 import pytest
-from brsxss.core.scoring_engine import ScoringEngine
-from brsxss.core.reflection_types import (
+from brsxss.detect.xss.reflected.scoring_engine import ScoringEngine
+from brsxss.detect.xss.reflected.reflection_types import (
     ReflectionResult,
     ReflectionPoint,
     ReflectionType,

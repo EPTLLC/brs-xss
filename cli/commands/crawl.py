@@ -19,7 +19,7 @@ import typer
 from rich.console import Console
 
 from brsxss import _
-from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
+from brsxss.detect.crawler.engine import CrawlerEngine, CrawlConfig
 from brsxss.utils.logger import Logger
 from brsxss.utils.validators import URLValidator
 

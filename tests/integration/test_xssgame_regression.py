@@ -9,10 +9,10 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.context_analyzer import ContextAnalyzer
-from brsxss.core.context_types import ContextType
-from brsxss.core.result_manager import ResultManager
-from brsxss.dom.headless_detector import DOMXSSResult
+from brsxss.detect.xss.reflected.context_analyzer import ContextAnalyzer
+from brsxss.detect.xss.reflected.context_types import ContextType
+from brsxss.detect.xss.reflected.result_manager import ResultManager
+from brsxss.detect.xss.dom.headless_detector import DOMXSSResult
 
 
 def test_xssgame_level1_reflection_context_html():

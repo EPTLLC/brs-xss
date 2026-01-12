@@ -9,7 +9,7 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.payloads.context_matrix import ContextMatrix, Context
+from brsxss.detect.payloads.context_matrix import ContextMatrix, Context
 
 
 def test_context_matrix_stats_and_accessors():

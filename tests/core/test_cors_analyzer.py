@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.cors_analyzer import CORSAnalyzer
-from brsxss.core.header_types import SecurityLevel
+from brsxss.detect.xss.reflected.cors_analyzer import CORSAnalyzer
+from brsxss.detect.xss.reflected.header_types import SecurityLevel
 
 
 def test_cors_analyzer_allow_origin_and_credentials():

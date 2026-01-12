@@ -77,6 +77,9 @@ class ScanRequest(BaseModel):
     waf_bypass: bool = Field(default=True, alias="waf_bypass_enabled")
     dom_analysis: bool = Field(default=True)
     dom_analysis_enabled: bool = Field(default=True)
+    custom_payloads: Optional[list[str]] = Field(
+        default=None, description="Custom XSS payloads to include in scan"
+    )
 
     model_config = ConfigDict(populate_by_name=True)
 

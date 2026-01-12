@@ -19,12 +19,13 @@ from rich.progress import Progress
 from rich.table import Table
 
 from brsxss import __version__
-from brsxss.core.scanner import XSSScanner
+from brsxss.detect.xss.reflected.scanner import XSSScanner
+from brsxss.detect.xss.reflected.custom_payloads import load_custom_payloads
 from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig, ReportFormat
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics
 from brsxss.utils.logger import Logger
-from brsxss.crawler.data_models import DiscoveredParameter
+from brsxss.detect.crawler.data_models import DiscoveredParameter
 
 console = Console()
 
@@ -41,6 +42,7 @@ async def simple_scan(
     safe_mode: bool = True,
     pool_cap: int = 10000,
     max_payloads: int = 500,
+    custom_payloads: Optional[str] = None,
 ):
     """Scan target for XSS vulnerabilities - specify domain or IP only"""
 
@@ -51,6 +53,11 @@ async def simple_scan(
 
     console.print(f"[bold green]BRS-XSS v{__version__}[/bold green]")
     console.print(f"Target: {target}")
+
+    # Load custom payloads if specified or from defaults
+    custom_count = len(load_custom_payloads(custom_payloads))
+    if custom_count > 0:
+        console.print(f"[cyan]Custom payloads loaded: {custom_count}[/cyan]")
 
     if verbose:
         console.print("[dim]Verbose mode enabled - detailed parameter analysis[/dim]")
@@ -94,7 +101,7 @@ async def simple_scan(
                     )
 
             # Create a single reusable HTTP client
-            from brsxss.core.http_client import HTTPClient
+            from brsxss.detect.xss.reflected.http_client import HTTPClient
 
             http_client = HTTPClient(timeout=timeout, verify_ssl=not no_ssl_verify)
 
@@ -288,7 +295,7 @@ async def simple_scan(
             )
             generator = ReportGenerator(report_config)
             # Load config for report generation
-            from brsxss.core.config_manager import ConfigManager
+            from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
             config_mgr = ConfigManager()
 
@@ -431,8 +438,8 @@ async def _discover_parameters(
     # 2. If deep scan, crawl and extract forms
     if deep_scan and http_client:
         try:
-            from brsxss.crawler.engine import CrawlerEngine, CrawlConfig
-            from brsxss.crawler.form_extractor import FormExtractor
+            from brsxss.detect.crawler.engine import CrawlerEngine, CrawlConfig
+            from brsxss.detect.crawler.form_extractor import FormExtractor
 
             config = CrawlConfig(
                 max_depth=2,
@@ -570,6 +577,7 @@ def simple_scan_wrapper(
     safe_mode: bool = True,
     pool_cap: int = 10000,
     max_payloads: int = 500,
+    custom_payloads: Optional[str] = None,
 ):
     """Wrapper to run async scan function"""
     return asyncio.run(
@@ -585,6 +593,7 @@ def simple_scan_wrapper(
             safe_mode,
             pool_cap,
             max_payloads,
+            custom_payloads,
         )
     )
 

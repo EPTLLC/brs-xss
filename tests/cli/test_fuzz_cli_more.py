@@ -37,7 +37,7 @@ def test_fuzz_cli_saves_output_json(tmp_path, monkeypatch):
         async def detect_waf(self, url):
             return [W()]
 
-    import brsxss.waf.detector as detm
+    import brsxss.detect.waf.detector as detm
 
     monkeypatch.setattr(detm, "WAFDetector", lambda: Det())
     out = tmp_path / "fz"
@@ -69,7 +69,7 @@ def test_fuzz_cli_detected_branch(monkeypatch):
         async def detect_waf(self, url):
             return [W()]
 
-    import brsxss.waf.detector as detm
+    import brsxss.detect.waf.detector as detm
 
     monkeypatch.setattr(detm, "WAFDetector", lambda: Det())
     result = runner.invoke(fuzz_app, ["http://example.com"])

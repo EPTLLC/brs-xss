@@ -9,10 +9,10 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.html_context_detector import HTMLContextDetector
-from brsxss.core.css_context_detector import CSSContextDetector
-from brsxss.core.javascript_context_detector import JavaScriptContextDetector
-from brsxss.core.context_types import ContextType
+from brsxss.detect.xss.reflected.html_context_detector import HTMLContextDetector
+from brsxss.detect.xss.reflected.css_context_detector import CSSContextDetector
+from brsxss.detect.xss.reflected.javascript_context_detector import JavaScriptContextDetector
+from brsxss.detect.xss.reflected.context_types import ContextType
 
 
 def test_html_context_detector_core_branches():
@@ -38,6 +38,19 @@ def test_html_context_detector_core_branches():
     assert info["tag_name"] in ("a", "div") and isinstance(
         info["dangerous_attributes"], list
     )
+
+
+def test_html_context_detector_event_handler_attribute_nested_quotes():
+    d = HTMLContextDetector()
+    html = """
+    <br>
+    <img src="/static/loading.gif" onload="startTimer('TESTMARKER123');" />
+    <br>
+    """
+    pos = html.find("TESTMARKER123")
+    assert pos != -1
+    assert d.extract_attribute_name(html, pos, "TESTMARKER123") == "onload"
+    assert d.detect_html_context(html, pos, "TESTMARKER123") == ContextType.JS_STRING
 
 
 def test_css_context_detector_core_branches():

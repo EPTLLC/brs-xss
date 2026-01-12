@@ -12,8 +12,8 @@ Telegram: https://t.me/EasyProTech
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 
-from brsxss.core.scanner import XSSScanner
-from brsxss.core.http_client import HTTPClient
+from brsxss.detect.xss.reflected.scanner import XSSScanner
+from brsxss.detect.xss.reflected.http_client import HTTPClient
 
 # A payload that is likely to be found as an exact reflection
 TEST_PAYLOAD = "<brsxss-test-payload>"

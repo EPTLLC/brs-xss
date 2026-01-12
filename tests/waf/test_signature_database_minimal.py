@@ -9,9 +9,9 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.waf.signature_database import SignatureDatabase
-from brsxss.waf.waf_types import WAFType
-from brsxss.waf.waf_signature import WAFSignature
+from brsxss.detect.waf.signature_database import SignatureDatabase
+from brsxss.detect.waf.waf_types import WAFType
+from brsxss.detect.waf.waf_signature import WAFSignature
 
 
 def test_signature_database_defaults_and_add(tmp_path):

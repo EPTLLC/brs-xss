@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 from pathlib import Path
-from brsxss.core.config_manager import ConfigManager
+from brsxss.detect.xss.reflected.config_manager import ConfigManager
 
 
 def test_get_section_and_has_and_summary(tmp_path: Path):

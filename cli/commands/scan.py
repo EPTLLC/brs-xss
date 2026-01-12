@@ -19,9 +19,10 @@ from rich.console import Console
 from rich.progress import Progress
 
 from brsxss import _
-from brsxss.core.scanner import XSSScanner
-from brsxss.waf.detector import WAFDetector
-from brsxss.dom.dom_analyzer import DOMAnalyzer
+from brsxss.detect.xss.reflected.scanner import XSSScanner
+from brsxss.detect.xss.reflected.custom_payloads import load_custom_payloads
+from brsxss.detect.waf.detector import WAFDetector
+from brsxss.detect.xss.dom.dom_analyzer import DOMAnalyzer
 from brsxss.report.report_generator import ReportGenerator
 from brsxss.report.report_types import ReportConfig
 from brsxss.report.data_models import VulnerabilityData, ScanStatistics
@@ -53,11 +54,19 @@ def scan_command(
         None, "--user-agent", "-ua", help="Custom User-Agent header", metavar="UA"
     ),
     skip_dom: bool = typer.Option(False, "--skip-dom", help="Skip DOM XSS analysis"),
+    custom_payloads: Optional[str] = typer.Option(
+        None, "--custom-payloads", help="Path to custom payloads file", metavar="FILE"
+    ),
 ):
     """Scan target for XSS vulnerabilities"""
 
     console = Console()
     logger = Logger("cli.scan")
+
+    # Load custom payloads if specified
+    custom_count = len(load_custom_payloads(custom_payloads))
+    if custom_count > 0:
+        console.print(f"[cyan]Custom payloads loaded: {custom_count}[/cyan]")
 
     # Display banner
     console.print(
@@ -120,7 +129,7 @@ def scan_command(
 
         try:
             # Run WAF detection (sync version)
-            from brsxss.waf.evasion import EvasionEngine
+            from brsxss.detect.waf.evasion import EvasionEngine
 
             # Use sync detection for now
             # Simple mock WAF detection for now

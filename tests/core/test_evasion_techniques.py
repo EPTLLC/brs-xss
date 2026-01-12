@@ -10,7 +10,7 @@ Telegram: https://t.me/EasyProTech
 """
 
 import random
-from brsxss.core.evasion_techniques import EvasionTechniques
+from brsxss.detect.xss.reflected.evasion_techniques import EvasionTechniques
 
 
 def test_case_and_url_html_unicode_are_deterministic(monkeypatch):

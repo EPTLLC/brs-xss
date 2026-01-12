@@ -18,6 +18,7 @@ from brsxss.report.data_models import VulnerabilityData, ScanStatistics
 
 
 def _vuln(sev: str) -> VulnerabilityData:
+    # v4.0.0-beta.2: Add evidence_response to make findings confirmed
     return VulnerabilityData(
         id="1",
         title="Title",
@@ -28,6 +29,7 @@ def _vuln(sev: str) -> VulnerabilityData:
         parameter="q",
         payload="<p>",
         context="html_content",
+        evidence_response="Payload reflected in response",
     )
 
 

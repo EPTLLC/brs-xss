@@ -1,12 +1,25 @@
 # Quick Start Guide
 
-**Ship the Web UI and CLI in minutes (BRS-XSS v4.0.0-beta.1)**
+**Ship the Web UI and CLI in minutes (BRS-XSS v4.0.0-beta.2)**
 
 ## Requirements
 
-- Python 3.8+
-- Bun ≥ 1.3 (frontend toolchain: `bun install`, `bunx --bun vite`)
+- Python 3.10+
+- Bun >= 1.3 (frontend toolchain: `bun install`, `bunx --bun vite`)
 - Playwright browsers (for DOM XSS detection): `playwright install chromium`
+- System libraries for PDF generation (WeasyPrint)
+
+### System Dependencies
+
+**macOS** (Homebrew):
+```bash
+brew install pango libffi
+```
+
+**Ubuntu/Debian**:
+```bash
+sudo apt-get install libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info
+```
 
 ## Web UI (recommended)
 

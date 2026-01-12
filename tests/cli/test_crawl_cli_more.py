@@ -39,7 +39,7 @@ def test_crawl_cli_saves_output_json(tmp_path, monkeypatch):
         async def crawl(self, url):
             return [R()]
 
-    import brsxss.crawler.engine as eng
+    import brsxss.detect.crawler.engine as eng
 
     monkeypatch.setattr(eng, "CrawlerEngine", CE)
     out = tmp_path / "res"
@@ -74,7 +74,7 @@ def test_crawl_cli_no_output_does_not_save(tmp_path, monkeypatch):
         async def crawl(self, url):
             return [R()]
 
-    import brsxss.crawler.engine as eng
+    import brsxss.detect.crawler.engine as eng
 
     monkeypatch.setattr(eng, "CrawlerEngine", CE)
     result = runner.invoke(app, ["http://example.com"])

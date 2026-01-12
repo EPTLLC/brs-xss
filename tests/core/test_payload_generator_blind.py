@@ -9,8 +9,8 @@ Status: Created
 Telegram: https://t.me/EasyProTech
 """
 
-from brsxss.core.payload_generator import PayloadGenerator
-from brsxss.core.payload_types import GenerationConfig
+from brsxss.detect.xss.reflected.payload_generator import PayloadGenerator
+from brsxss.detect.xss.reflected.payload_types import GenerationConfig
 
 
 def test_blind_with_explicit_webhook_in_safe_mode(monkeypatch):
