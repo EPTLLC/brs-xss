@@ -22,7 +22,7 @@ except ImportError:
     CLASSIFICATION_RULES_AVAILABLE = False
 
 # Use count/ module - SINGLE SOURCE OF TRUTH
-from ..count import count_findings, prepare_report_data
+from ..count import prepare_report_data
 
 
 @dataclass
@@ -451,7 +451,7 @@ class PDFReportGenerator:
         counts = report_data.counts
 
         # Build normalized dict for HTML builder (legacy format)
-        normalized: dict[str, list[dict[str, Any]]] = {
+        normalized: dict[str, Any] = {
             "confirmed": [f.to_dict() for f in report_data.findings],
             "potential": [],
             "counts": counts.to_dict(),

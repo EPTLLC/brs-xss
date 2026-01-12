@@ -12,7 +12,7 @@ Switching rules for adaptive XSS scanning strategy.
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Any, Callable
+from typing import Optional, Any
 from abc import ABC, abstractmethod
 from enum import Enum
 

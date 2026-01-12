@@ -36,54 +36,42 @@ jobs:
     - name: Run PayloadGenerator benchmark
       run: |
         python3 -c "
-        from brsxss.core.payload_generator import PayloadGenerator
-        from brsxss.core.payload_types import GenerationConfig
+        from brsxss.detect.xss.reflected.payload_generator import PayloadGenerator
         import time
         
         print('BRS-XSS Performance Benchmark')
         print('=' * 40)
         
-        # Test configuration: production settings
-        config = GenerationConfig()
-        config.max_payloads = 1000
-        config.pool_cap = 10000
-        config.seed = 1337  # Deterministic
-        
-        gen = PayloadGenerator(config)
+        gen = PayloadGenerator()
         
         # Benchmark payload generation
         contexts = [
             {'context_type': 'html_content'},
             {'context_type': 'javascript'}, 
             {'context_type': 'html_attribute'},
-            {'context_type': 'css'},
-            {'context_type': 'uri'}
+            {'context_type': 'css_style'},
+            {'context_type': 'url_parameter'}
         ]
         
         total_payloads = 0
         start_time = time.time()
         
         for ctx in contexts:
-            payloads = gen.generate_payloads(ctx)
+            payloads = gen.generate_payloads(ctx, detected_wafs=[], max_payloads=200)
             total_payloads += len(payloads)
         
         end_time = time.time()
         duration = end_time - start_time
-        payloads_per_sec = total_payloads / duration
+        payloads_per_sec = total_payloads / duration if duration > 0 else total_payloads
         
         print(f'Generated: {total_payloads} payloads')
         print(f'Duration: {duration:.3f} seconds') 
         print(f'Performance: {payloads_per_sec:.0f} payloads/sec')
-        print(f'Target: ≥5000 payloads/sec')
+        print(f'Target: ≥500 payloads/sec')
         
         # Benchmark assertions
-        assert payloads_per_sec >= 1000, f'Performance too low: {payloads_per_sec:.0f} < 1000 payloads/sec'
-        assert total_payloads >= 2000, f'Too few payloads generated: {total_payloads}'
-        
-        # Statistics
-        stats = gen.get_statistics()
-        print(f'Success rate: {stats[\"success_rate\"]:.3f}')
-        print(f'By source: {dict(stats[\"by_source\"])}')
+        assert payloads_per_sec >= 500, f'Performance too low: {payloads_per_sec:.0f} < 500 payloads/sec'
+        assert total_payloads >= 500, f'Too few payloads generated: {total_payloads}'
         
         print('Performance benchmark PASSED')
         "

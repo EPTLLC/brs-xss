@@ -594,7 +594,6 @@ def prepare_findings_for_report(
         execution_state = str(execution_raw or "").lower()
         execution_present = execution_state not in ("", "none", "unknown")
         runtime_confirmed = execution_state in RUNTIME_CONFIRMED_STATES
-        evidence_present = bool(f.get("evidence")) or bool(f.get("evidence_payloads"))
 
         if execution_present:
             execution_label = EXECUTION_LABELS.get(
@@ -608,8 +607,6 @@ def prepare_findings_for_report(
 
         # Heuristic for potential findings
         is_dom = "dom" in vuln_type.lower()
-        has_source = bool(f.get("source"))
-        has_sink = bool(f.get("sink"))
         is_reflected = "reflected" in vuln_type.lower()
         param_unknown = param in (None, "", "unknown", "N/A")
 

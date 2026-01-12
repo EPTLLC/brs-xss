@@ -13,7 +13,7 @@ from typing import Any
 import hashlib
 import re
 
-from .types import SeverityCounts, ReportData, NormalizedFinding
+from .types import ReportData, NormalizedFinding
 from .counter import count_findings, _extract_severity
 
 

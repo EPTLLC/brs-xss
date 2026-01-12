@@ -287,6 +287,7 @@ def create_default_strategy() -> StrategyTree:
     )
 
     root = tree.root
+    assert root is not None, "Tree root must be initialized"
 
     # Level 1: Context detection
     html_ctx = root.add_child(

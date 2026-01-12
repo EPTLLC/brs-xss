@@ -13,7 +13,6 @@ Strategy engine for executing PTT decision trees.
 
 from dataclasses import dataclass, field
 from typing import Optional, Any, Generator
-import time
 
 from .tree import StrategyTree, StrategyNode, NodeType, create_default_strategy
 from .rules import SwitchRule, get_default_rules
