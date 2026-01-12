@@ -33,6 +33,7 @@ from .xss.dom.detector import DOMXSSDetector
 
 # WAF Detection
 from .waf.detector import WAFDetector
+
 # WAFDetectionResult removed - does not exist
 from .waf.evasion_engine import EvasionEngine
 

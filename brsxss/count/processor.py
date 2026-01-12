@@ -71,14 +71,16 @@ def _to_dicts(vulnerabilities: list[Any]) -> list[dict[str, Any]]:
             result.append(vars(v))
         else:
             # Try to extract common fields
-            result.append({
-                "severity": getattr(v, "severity", "unknown"),
-                "url": getattr(v, "url", ""),
-                "parameter": getattr(v, "parameter", ""),
-                "payload": getattr(v, "payload", ""),
-                "context_type": getattr(v, "context_type", ""),
-                "confidence": getattr(v, "confidence", 0.0),
-            })
+            result.append(
+                {
+                    "severity": getattr(v, "severity", "unknown"),
+                    "url": getattr(v, "url", ""),
+                    "parameter": getattr(v, "parameter", ""),
+                    "payload": getattr(v, "payload", ""),
+                    "context_type": getattr(v, "context_type", ""),
+                    "confidence": getattr(v, "confidence", 0.0),
+                }
+            )
     return result
 
 

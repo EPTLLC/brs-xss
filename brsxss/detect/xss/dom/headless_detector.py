@@ -274,7 +274,9 @@ class HeadlessDOMDetector:
                     return await coro
 
             tasks.append(asyncio.create_task(run(self._test_fragment_xss(url))))
-            tasks.append(asyncio.create_task(run(self._test_fragment_external_script(url))))
+            tasks.append(
+                asyncio.create_task(run(self._test_fragment_external_script(url)))
+            )
             tasks.append(asyncio.create_task(run(self._test_postmessage_xss(url))))
             tasks.append(asyncio.create_task(run(self._test_storage_dom_xss(url))))
 
@@ -331,7 +333,7 @@ class HeadlessDOMDetector:
         """Test fragment-based DOM XSS (location.hash) - PARALLEL with semaphore"""
         results: list[DOMXSSResult] = []
         found_vuln = asyncio.Event()
-        base_url = url.split('#')[0]
+        base_url = url.split("#")[0]
 
         async def test_single_payload(payload: str) -> Optional[DOMXSSResult]:
             if found_vuln.is_set():
@@ -361,7 +363,10 @@ class HeadlessDOMDetector:
                     console_logs: list[str] = []
                     error_logs: list[str] = []
 
-                    page.on("console", lambda msg: console_logs.append(f"{msg.type}: {msg.text}"))
+                    page.on(
+                        "console",
+                        lambda msg: console_logs.append(f"{msg.type}: {msg.text}"),
+                    )
                     page.on("pageerror", lambda exc: error_logs.append(str(exc)))
 
                     async def handle_dialog(dlg):
@@ -374,7 +379,11 @@ class HeadlessDOMDetector:
                     page.on("dialog", handle_dialog)
 
                     # First navigate to base URL
-                    await page.goto(base_url, timeout=self.timeout * 1000, wait_until="domcontentloaded")
+                    await page.goto(
+                        base_url,
+                        timeout=self.timeout * 1000,
+                        wait_until="domcontentloaded",
+                    )
 
                     # Then set hash via JavaScript (avoids URL encoding)
                     await page.evaluate(f"window.location.hash = {repr(payload)}")
@@ -391,13 +400,17 @@ class HeadlessDOMDetector:
 
                     if result.vulnerable:
                         result.score = 8.5
-                        logger.warning(f"Fragment XSS found: {url} with payload: {payload[:30]}...")
+                        logger.warning(
+                            f"Fragment XSS found: {url} with payload: {payload[:30]}..."
+                        )
                         found_vuln.set()
 
                     return result
 
                 except Exception as e:
-                    logger.error(f"Error testing fragment payload {payload[:20]}...: {e}")
+                    logger.error(
+                        f"Error testing fragment payload {payload[:20]}...: {e}"
+                    )
                     return None
                 finally:
                     if page:
@@ -419,16 +432,16 @@ class HeadlessDOMDetector:
     async def _test_fragment_external_script(self, url: str) -> list[DOMXSSResult]:
         """
         Test fragment-based external script injection (Level6-style).
-        
+
         Targets vulnerabilities where fragment is used to load external scripts:
         - includeGadget(location.hash.substr(1))
         - script.src = location.hash.slice(1)
-        
+
         Payloads bypass http:// filters using protocol-relative URLs.
         """
         results: list[DOMXSSResult] = []
         found_vuln = asyncio.Event()
-        base_url = url.split('#')[0]
+        base_url = url.split("#")[0]
 
         async def test_single_payload(payload: str) -> Optional[DOMXSSResult]:
             if found_vuln.is_set():
@@ -510,9 +523,7 @@ class HeadlessDOMDetector:
                     if result.vulnerable:
                         result.score = 9.0  # High severity - external script load
                         found_vuln.set()
-                        logger.warning(
-                            f"Fragment external script XSS found: {payload}"
-                        )
+                        logger.warning(f"Fragment external script XSS found: {payload}")
 
                 except Exception as e:
                     logger.debug(f"Error in fragment external script test: {e}")
@@ -602,7 +613,9 @@ class HeadlessDOMDetector:
                     )
 
                     if result.vulnerable:
-                        logger.warning(f"Parameter DOM XSS found: {param_name} in {url}")
+                        logger.warning(
+                            f"Parameter DOM XSS found: {param_name} in {url}"
+                        )
                         found_vulns.add(param_name)
 
                     return result

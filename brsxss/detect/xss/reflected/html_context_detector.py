@@ -95,7 +95,9 @@ class HTMLContextDetector:
         self, html_content: str, marker_pos: int, marker: str
     ) -> str:
         """Detect quote character used around marker"""
-        _attr_name, quote_char = self._extract_attribute_context(html_content, marker_pos)
+        _attr_name, quote_char = self._extract_attribute_context(
+            html_content, marker_pos
+        )
         return quote_char
 
     def _is_in_html_comment(self, html_content: str, pos: int) -> bool:
@@ -116,7 +118,9 @@ class HTMLContextDetector:
         attr_name, _quote = self._extract_attribute_context(html_content, pos)
         return bool(attr_name)
 
-    def _find_tag_end(self, html_content: str, tag_start: int, max_scan: int = 5000) -> int:
+    def _find_tag_end(
+        self, html_content: str, tag_start: int, max_scan: int = 5000
+    ) -> int:
         """
         Find the end '>' for a tag starting at tag_start, ignoring any '>' inside
         QUOTED attribute values.

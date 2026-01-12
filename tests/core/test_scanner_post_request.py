@@ -43,7 +43,8 @@ async def test_scanner_uses_post_for_post_method(mock_headless_detector_class):
     mock_http_client.post.return_value = mock_response
 
     # Instantiate the scanner, injecting our mocked HTTP client
-    scanner = XSSScanner(http_client=mock_http_client)
+    # Disable DOM XSS to avoid launching headless browser in tests
+    scanner = XSSScanner(http_client=mock_http_client, enable_dom_xss=False)
 
     # Mock dependencies of the scanner to isolate the test
     # We mock detect_waf to prevent it from making GET requests

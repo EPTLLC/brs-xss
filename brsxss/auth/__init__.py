@@ -17,7 +17,7 @@ from .jwt_handler import create_token, verify_token, get_current_user_id
 
 __all__ = [
     "User",
-    "UserCreate", 
+    "UserCreate",
     "UserUpdate",
     "AuthConfig",
     "hash_password",

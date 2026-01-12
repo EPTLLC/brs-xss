@@ -68,7 +68,7 @@ class XSSScanner:
         max_evidence: int = 0,
     ):
         """Initialize XSS scanner
-        
+
         Args:
             early_stop_threshold: Stop testing parameter after N confirmed payloads.
                                   0 = disabled (test ALL payloads)
@@ -354,7 +354,7 @@ class XSSScanner:
                         return None
 
                     self.total_tests += 1
-                    
+
                     # Update progress incrementally for smooth UX
                     self.current_payload_index += 1
                     if self.progress_callback and self.total_payloads_count > 0:
@@ -409,14 +409,20 @@ class XSSScanner:
                                 highest_score = result_score
 
                             # Check if XSS is now confirmed - trigger early stop (if enabled)
-                            if CONFIRMATION_THRESHOLD > 0 and len(confirmed_payloads) >= CONFIRMATION_THRESHOLD:
+                            if (
+                                CONFIRMATION_THRESHOLD > 0
+                                and len(confirmed_payloads) >= CONFIRMATION_THRESHOLD
+                            ):
                                 xss_confirmed = True
                                 logger.info(
                                     f"[CONFIRMED] Reflected XSS in {param_name} after {len(confirmed_payloads)} payloads"
                                 )
 
                             # Early stop if we have enough evidence (if enabled, 0 = unlimited)
-                            if MAX_EVIDENCE > 0 and len(confirmed_payloads) >= MAX_EVIDENCE:
+                            if (
+                                MAX_EVIDENCE > 0
+                                and len(confirmed_payloads) >= MAX_EVIDENCE
+                            ):
                                 stop_flag.set()
                                 logger.info(
                                     f"[EARLY STOP] XSS confirmed for {param_name}, stopping parallel tests"
@@ -573,7 +579,12 @@ class XSSScanner:
                 # Evidence (not individual vulns)
                 "evidence_count": len(confirmed_payloads),
                 "evidence_payloads": [
-                    p["payload"] for p in (confirmed_payloads[:MAX_EVIDENCE] if MAX_EVIDENCE > 0 else confirmed_payloads)
+                    p["payload"]
+                    for p in (
+                        confirmed_payloads[:MAX_EVIDENCE]
+                        if MAX_EVIDENCE > 0
+                        else confirmed_payloads
+                    )
                 ],
                 # Classification details
                 "classification": {
@@ -597,7 +608,8 @@ class XSSScanner:
                 },
                 # Metadata
                 "timestamp": time.time(),
-                "early_stopped": CONFIRMATION_THRESHOLD > 0 and len(confirmed_payloads) >= CONFIRMATION_THRESHOLD,
+                "early_stopped": CONFIRMATION_THRESHOLD > 0
+                and len(confirmed_payloads) >= CONFIRMATION_THRESHOLD,
             }
 
             logger.info(
@@ -704,19 +716,18 @@ class XSSScanner:
 
         # Detect if we're in an event handler or function call context
         # This is critical for generating correct tail-neutralizing payloads
-        surrounding = (
-            primary_injection.surrounding_code if primary_injection else ""
-        )
+        surrounding = primary_injection.surrounding_code if primary_injection else ""
         attr_name = (
             primary_injection.attribute_name if primary_injection else ""
         ).lower()
-        
+
         # Event handler attributes: onclick, onload, onerror, onmouseover, etc.
         is_in_event_handler = attr_name.startswith("on") and len(attr_name) > 2
-        
+
         # Check for function call pattern in surrounding code
         # Patterns like: func('...'), setTimeout('...'), startTimer('...')
         import re
+
         marker = getattr(context_result, "parameter_value", "") or ""
         marker_in_surrounding = surrounding.find(marker) if marker else -1
         before_marker = (
@@ -725,7 +736,7 @@ class XSSScanner:
             else surrounding
         )
         is_in_function_call = bool(re.search(r"\b\w+\s*\([^)]*$", before_marker))
-        
+
         return {
             "context_type": payload_context_type,
             "specific_context": specific_context,

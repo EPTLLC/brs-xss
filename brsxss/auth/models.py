@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 
 class User(BaseModel):
     """User model"""
+
     id: str
     username: str
     email: Optional[str] = None
@@ -29,6 +30,7 @@ class User(BaseModel):
 
 class UserCreate(BaseModel):
     """User creation request"""
+
     username: str = Field(..., min_length=1, max_length=50)
     password: str = Field(..., min_length=1, max_length=128)
     email: Optional[str] = None
@@ -37,6 +39,7 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     """User update request"""
+
     email: Optional[str] = None
     password: Optional[str] = Field(None, min_length=1, max_length=128)
     is_active: Optional[bool] = None
@@ -44,12 +47,14 @@ class UserUpdate(BaseModel):
 
 class UserLogin(BaseModel):
     """Login request"""
+
     username: str
     password: str
 
 
 class TokenResponse(BaseModel):
     """JWT token response"""
+
     access_token: str
     token_type: str = "bearer"
     user: User
@@ -57,6 +62,7 @@ class TokenResponse(BaseModel):
 
 class AuthConfig(BaseModel):
     """Authentication configuration"""
+
     auth_enabled: bool = False
     first_run_completed: bool = False
     legal_accepted: bool = False

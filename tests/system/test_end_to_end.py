@@ -45,7 +45,8 @@ async def test_system_e2e_scan_and_report(tmp_path, monkeypatch):
             return None
 
     # Build real scanner with mocked client
-    scanner = XSSScanner(http_client=MClient())
+    # Disable DOM XSS to avoid launching headless browser in tests
+    scanner = XSSScanner(http_client=MClient(), enable_dom_xss=False)
 
     # Limit payloads to a single known payload to speed up
     payload_value = "<system-xss>"

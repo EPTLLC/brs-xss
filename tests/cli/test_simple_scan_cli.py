@@ -51,7 +51,9 @@ async def test_simple_scan_smoke_generates_report(tmp_path, monkeypatch):
             }
         ]
 
-    monkeypatch.setattr("brsxss.detect.xss.reflected.scanner.XSSScanner.scan_url", fake_scan_url)
+    monkeypatch.setattr(
+        "brsxss.detect.xss.reflected.scanner.XSSScanner.scan_url", fake_scan_url
+    )
 
     # Execute scan for a synthetic target with query param
     out_file = tmp_path / "out.json"

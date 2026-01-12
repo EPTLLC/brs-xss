@@ -432,7 +432,10 @@ class PDFReportGenerator:
         vulns_list = []
         if isinstance(vulns, dict) and "findings" in vulns:
             # Already processed by prepare_report_data
-            vulns_list = [f if isinstance(f, dict) else f.to_dict() for f in vulns.get("findings", [])]
+            vulns_list = [
+                f if isinstance(f, dict) else f.to_dict()
+                for f in vulns.get("findings", [])
+            ]
         elif isinstance(vulns, list):
             for v in vulns:
                 if isinstance(v, dict):

@@ -11,7 +11,9 @@ Telegram: https://t.me/EasyProTech
 
 from brsxss.detect.xss.reflected.html_context_detector import HTMLContextDetector
 from brsxss.detect.xss.reflected.css_context_detector import CSSContextDetector
-from brsxss.detect.xss.reflected.javascript_context_detector import JavaScriptContextDetector
+from brsxss.detect.xss.reflected.javascript_context_detector import (
+    JavaScriptContextDetector,
+)
 from brsxss.detect.xss.reflected.context_types import ContextType
 
 

@@ -51,8 +51,12 @@ def test_js_parser_tracks_assignments_and_stats(monkeypatch):
         def find_data_flows(self):
             return []
 
-    monkeypatch.setattr("brsxss.dom.javascript_parser.ASTExtractor", FakeExtractor)
-    monkeypatch.setattr("brsxss.dom.javascript_parser.DataFlowAnalyzer", FakeAnalyzer)
+    monkeypatch.setattr(
+        "brsxss.detect.xss.dom.javascript_parser.ASTExtractor", FakeExtractor
+    )
+    monkeypatch.setattr(
+        "brsxss.detect.xss.dom.javascript_parser.DataFlowAnalyzer", FakeAnalyzer
+    )
 
     nodes = parser.parse_javascript("x = y\neval(x)")
     assert len(nodes) == 2 and "x" in parser.variable_assignments

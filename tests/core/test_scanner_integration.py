@@ -42,7 +42,8 @@ async def test_scanner_finds_xss_in_post_request():
     mock_http_client.get_response_headers = AsyncMock(return_value={})
 
     # Instantiate the real scanner, injecting our mock client
-    scanner = XSSScanner(http_client=mock_http_client)
+    # Disable DOM XSS to avoid launching headless browser in tests
+    scanner = XSSScanner(http_client=mock_http_client, enable_dom_xss=False)
 
     # We only need to mock the payload generator to return our specific test payload
     # All other components (ReflectionDetector, ContextAnalyzer, etc.) will be real.

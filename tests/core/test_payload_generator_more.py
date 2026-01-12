@@ -118,7 +118,10 @@ def test_generation_flows_with_mocks(monkeypatch):
 
 
 def test_evasion_and_waf_generation(monkeypatch):
-    from brsxss.detect.xss.reflected.payload_types import GenerationConfig, GeneratedPayload
+    from brsxss.detect.xss.reflected.payload_types import (
+        GenerationConfig,
+        GeneratedPayload,
+    )
 
     gen = PayloadGenerator(
         config=GenerationConfig(
@@ -187,7 +190,10 @@ def test_evasion_and_waf_generation(monkeypatch):
 
 
 def test_blind_xss_behavior(monkeypatch):
-    from brsxss.detect.xss.reflected.payload_types import GenerationConfig, GeneratedPayload
+    from brsxss.detect.xss.reflected.payload_types import (
+        GenerationConfig,
+        GeneratedPayload,
+    )
 
     # Safe mode: no blind payloads added
     gen1 = PayloadGenerator(

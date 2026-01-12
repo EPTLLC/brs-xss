@@ -649,7 +649,9 @@ def prepare_findings_for_report(
         elif is_reflected and not param_unknown and confidence >= 0.5:
             confirmable = True
             f["confirmation_reason"] = "Reflected XSS with known parameter"
-            logger.debug(f"Reflected XSS confirmed: param={param}, confidence={confidence:.2f}")
+            logger.debug(
+                f"Reflected XSS confirmed: param={param}, confidence={confidence:.2f}"
+            )
 
         # Runtime confirmed always wins
         elif runtime_confirmed:
@@ -664,7 +666,9 @@ def prepare_findings_for_report(
         # High confidence (>= 0.8) with any severity is likely real
         elif confidence >= 0.8 and severity in ("critical", "high"):
             confirmable = True
-            f["confirmation_reason"] = f"High confidence ({confidence:.0%}) {severity} finding"
+            f["confirmation_reason"] = (
+                f"High confidence ({confidence:.0%}) {severity} finding"
+            )
 
         # Log why not confirmed
         if not confirmable:
@@ -675,7 +679,9 @@ def prepare_findings_for_report(
                 reasons.append("reflected without known parameter")
             if is_dom and confidence < 0.6:
                 reasons.append(f"DOM with insufficient confidence ({confidence:.0%})")
-            logger.debug(f"Marking as heuristic: {', '.join(reasons) or 'no confirmation criteria met'}")
+            logger.debug(
+                f"Marking as heuristic: {', '.join(reasons) or 'no confirmation criteria met'}"
+            )
 
         f["is_confirmed"] = confirmable
         f["status"] = "confirmed" if confirmable else "potential"
