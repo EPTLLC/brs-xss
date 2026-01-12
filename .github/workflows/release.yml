@@ -31,19 +31,20 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Verify version consistency (tag vs pyproject vs __init__)
+    - name: Verify version consistency (tag vs pyproject vs runtime)
       run: |
         if [[ "${GITHUB_REF}" == refs/tags/* ]]; then TAG="${GITHUB_REF#refs/tags/}"; else TAG="${{ github.event.inputs.tag }}"; fi
         echo "Git tag: $TAG"
         PY_VER=$(python -c "import tomllib;print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")
-        INIT_VER=$(python -c "import re;import io;print(re.search(r'__version__\\s*=\\s*[\'\"]([^\'\"]+)[\'\"]', io.open('brsxss/__init__.py','r',encoding='utf-8').read()).group(1))")
-        echo "pyproject: $PY_VER"
-        echo "__init__:   $INIT_VER"
+        pip install -e . -q
+        RUNTIME_VER=$(python -c "from brsxss import __version__; print(__version__)")
+        echo "pyproject:    $PY_VER"
+        echo "runtime ver:  $RUNTIME_VER"
         if [ "${TAG#v}" != "$PY_VER" ]; then
           echo "ERROR: Tag ${TAG} does not match pyproject version ${PY_VER}"; exit 1;
         fi
-        if [ "$INIT_VER" != "$PY_VER" ]; then
-          echo "ERROR: __init__ version ${INIT_VER} does not match pyproject ${PY_VER}"; exit 1;
+        if [ "$RUNTIME_VER" != "$PY_VER" ]; then
+          echo "ERROR: Runtime version ${RUNTIME_VER} does not match pyproject ${PY_VER}"; exit 1;
         fi
 
     - name: Install dependencies

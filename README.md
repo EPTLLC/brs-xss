@@ -1,30 +1,16 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/EPTLLC/brs-xss/main/docs/logo.svg" alt="BRS-XSS" width="120" />
-</p>
+# BRS-XSS
 
-<h1 align="center">BRS-XSS</h1>
+**Advanced XSS Vulnerability Scanner**
 
-<p align="center">
-  <strong>Advanced XSS Vulnerability Scanner</strong>
-</p>
+Deterministic, auditable XSS detection for modern web applications
 
-<p align="center">
-  Deterministic, auditable XSS detection for modern web applications
-</p>
+![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Version](https://img.shields.io/badge/version-4.0.0--beta.2-00FF88?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)
 
-<p align="center">
-  <img src="https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/version-4.0.0--beta.2-00FF88?style=for-the-badge" alt="Version" />
-  <img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge" alt="License" />
-</p>
+[BRS-KB API](https://brs-kb.easypro.tech) • [GitHub](https://github.com/EPTLLC/brs-xss) • [Discussions](https://github.com/EPTLLC/brs-xss/discussions)
 
-<p align="center">
-  <a href="https://brs-kb.easypro.tech">BRS-KB API</a> •
-  <a href="https://github.com/EPTLLC/brs-xss">GitHub</a> •
-  <a href="https://t.me/EasyProTech">Telegram</a>
-</p>
-
-> **Beta Release**: This is an active development version. We are continuously testing, refining detection algorithms, and improving the user experience. Expect regular updates with new features, performance optimizations, and bug fixes. Your feedback is valuable — report issues on [GitHub](https://github.com/EPTLLC/brs-xss/issues) or reach out via [Telegram](https://t.me/EasyProTech).
+> **Beta Release**: This is an active development version. We are continuously testing, refining detection algorithms, and improving the user experience. Expect regular updates with new features, performance optimizations, and bug fixes. Your feedback is valuable — report issues on [GitHub](https://github.com/EPTLLC/brs-xss/issues).
 
 ---
 
@@ -53,17 +39,13 @@ BRS-XSS includes a modern, dark-themed web interface for easy scanning and resul
 
 ### Login
 
-<p align="center">
-  <img src="docs/images/login.jpg" alt="Login" width="800" />
-</p>
+![Login](docs/images/login.jpg)
 
 Secure authentication with session management.
 
 ### Dashboard
 
-<p align="center">
-  <img src="docs/images/dashboard.jpg" alt="Dashboard" width="800" />
-</p>
+![Dashboard](docs/images/dashboard.jpg)
 
 Real-time overview featuring:
 - **Statistics Cards**: Total scans, vulnerabilities found, average duration, top context
@@ -73,13 +55,9 @@ Real-time overview featuring:
 
 ### New Scan
 
-<p align="center">
-  <img src="docs/images/new-scan-1.jpg" alt="New Scan - Configuration" width="800" />
-</p>
+![New Scan - Configuration](docs/images/new-scan-1.jpg)
 
-<p align="center">
-  <img src="docs/images/new-scan-2.jpg" alt="New Scan - Advanced Options" width="800" />
-</p>
+![New Scan - Advanced Options](docs/images/new-scan-2.jpg)
 
 Flexible scan configuration:
 - **Target URL**: Smart parsing (auto-HTTPS, domain/IP/full URL support)
@@ -89,9 +67,7 @@ Flexible scan configuration:
 
 ### Scan History
 
-<p align="center">
-  <img src="docs/images/scan-history.jpg" alt="Scan History" width="800" />
-</p>
+![Scan History](docs/images/scan-history.jpg)
 
 Complete scan archive with:
 - Search by URL or scan ID
@@ -101,13 +77,9 @@ Complete scan archive with:
 
 ### Scan Details
 
-<p align="center">
-  <img src="docs/images/scan-details-1.jpg" alt="Scan Details - Overview" width="800" />
-</p>
+![Scan Details - Overview](docs/images/scan-details-1.jpg)
 
-<p align="center">
-  <img src="docs/images/scan-details-2.jpg" alt="Scan Details - Vulnerabilities" width="800" />
-</p>
+![Scan Details - Vulnerabilities](docs/images/scan-details-2.jpg)
 
 Comprehensive results including:
 - **Scanner Output**: Real-time log with color-coded markers
@@ -117,25 +89,17 @@ Comprehensive results including:
 
 ### Rescan
 
-<p align="center">
-  <img src="docs/images/rescan.jpg" alt="Rescan" width="800" />
-</p>
+![Rescan](docs/images/rescan.jpg)
 
 Quick rescan with pre-filled configuration from previous scan.
 
 ### Strategy (PTT)
 
-<p align="center">
-  <img src="docs/images/strategy.jpg" alt="Strategy - Decision Tree" width="800" />
-</p>
+![Strategy - Decision Tree](docs/images/strategy.jpg)
 
-<p align="center">
-  <img src="docs/images/strategy-my.jpg" alt="Strategy - My Strategies" width="800" />
-</p>
+![Strategy - My Strategies](docs/images/strategy-my.jpg)
 
-<p align="center">
-  <img src="docs/images/strategy-ab-test.jpg" alt="Strategy - A/B Testing" width="800" />
-</p>
+![Strategy - A/B Testing](docs/images/strategy-ab-test.jpg)
 
 Pentesting Task Tree management:
 - **Decision Tree**: Visual strategy flow with context/WAF/payload nodes
@@ -145,13 +109,9 @@ Pentesting Task Tree management:
 
 ### Settings
 
-<p align="center">
-  <img src="docs/images/settings-1.jpg" alt="Settings - Performance & Proxy" width="800" />
-</p>
+![Settings - Performance & Proxy](docs/images/settings-1.jpg)
 
-<p align="center">
-  <img src="docs/images/settings-2.jpg" alt="Settings - Telegram & Defaults" width="800" />
-</p>
+![Settings - Telegram & Defaults](docs/images/settings-2.jpg)
 
 Full configuration:
 - **Performance Mode**: Auto-detect hardware, select optimal mode
@@ -162,9 +122,7 @@ Full configuration:
 
 ### User Management
 
-<p align="center">
-  <img src="docs/images/users.jpg" alt="User Management" width="800" />
-</p>
+![User Management](docs/images/users.jpg)
 
 Multi-user support with role-based access.
 
@@ -290,7 +248,7 @@ export BRSXSS_TELEGRAM_CHANNEL_ID="-100123456789"
 - **GitHub**: https://github.com/EPTLLC/brs-xss
 - **BRS-KB API**: https://brs-kb.easypro.tech
 - **Documentation**: https://brs-kb.easypro.tech/docs.html
-- **Telegram**: https://t.me/EasyProTech
+- **Discussions**: https://github.com/EPTLLC/brs-xss/discussions
 
 ---
 
